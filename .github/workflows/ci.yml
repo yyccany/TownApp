@@ -1,0 +1,62 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Cache Gradle packages
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+
+    - name: Build with Gradle
+      run: ./gradlew build --no-daemon
+
+    - name: Run Unit Tests
+      run: ./gradlew test --no-daemon
+
+    - name: Run Instrumented Tests
+      uses: reactivecircus/android-emulator-runner@v2
+      with:
+        api-level: 33
+        target: google_apis
+        arch: x86_64
+        script: ./gradlew connectedAndroidTest --no-daemon
+
+    - name: Generate Coverage Report
+      run: ./gradlew jacocoTestReport --no-daemon
+
+    - name: Upload Coverage Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: app/build/reports/jacoco/jacocoTestReport/html/
+
+    - name: Build Release APK
+      run: ./gradlew assembleRelease --no-daemon
+
+    - name: Upload Release APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: townapp-release
+        path: app/build/outputs/apk/release/
