@@ -1,5 +1,7 @@
 package com.example.townapp.ui.screens
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -54,7 +56,7 @@ fun CognitiveScalpelScreen(
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(AppDimens.paddingLarge),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -65,7 +67,7 @@ fun CognitiveScalpelScreen(
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(AppDimens.radiusLarge),
                     colors = CardDefaults.cardColors(containerColor = AppColors.BeigeBackground),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
@@ -75,7 +77,7 @@ fun CognitiveScalpelScreen(
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = AppColors.TextPrimary,
-                            modifier = Modifier.padding(bottom = 16.dp)
+                            modifier = Modifier.padding(bottom = AppDimens.paddingLarge)
                         )
                         
                         Text(
@@ -98,13 +100,13 @@ fun CognitiveScalpelScreen(
             }
 
             item {
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingXXLarge))
             }
 
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(AppDimens.radiusLarge),
                     colors = CardDefaults.cardColors(containerColor = AppColors.SuccessBackground),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
@@ -114,7 +116,7 @@ fun CognitiveScalpelScreen(
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = AppColors.SuccessDark,
-                            modifier = Modifier.padding(bottom = 12.dp)
+                            modifier = Modifier.padding(bottom = AppDimens.paddingMedium)
                         )
                         
                         Text(

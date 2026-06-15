@@ -1,5 +1,7 @@
 package com.example.townapp.ui.components
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -32,7 +34,7 @@ fun DietPanel(
         modifier = modifier
             .fillMaxWidth()
             .then(if (enableInternalScroll) Modifier.verticalScroll(rememberScrollState()) else Modifier),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(AppDimens.paddingMedium)
     ) {
         Text("今日饮食", fontSize = 18.sp, fontWeight = FontWeight.Bold)
 
@@ -66,7 +68,7 @@ fun DietPanel(
         Text("午休加餐", fontSize = 14.sp, fontWeight = FontWeight.Medium)
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(AppDimens.paddingSmall)
         ) {
             val snacks = DietSystem.allFoods.filter { it.category == DietSystem.FoodCategory.SNACK }
             snacks.forEach { food ->
@@ -88,7 +90,7 @@ fun DietPanel(
         val effect = DietSystem.calculateDailyEffect(currentPlan)
         if (effect.totalCost > 0) {
             Surface(
-                shape = RoundedCornerShape(8.dp),
+                shape = RoundedCornerShape(AppDimens.radiusSmall),
                 color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
                 modifier = Modifier.fillMaxWidth()
             ) {

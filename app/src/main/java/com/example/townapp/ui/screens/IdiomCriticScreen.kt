@@ -1,5 +1,7 @@
 package com.example.townapp.ui.screens
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -112,7 +114,7 @@ private fun IdiomCategoryOverviewScreen(
                 .fillMaxWidth()
                 .padding(16.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(AppDimens.radiusLarge)
         ) {
             Column(
                 modifier = Modifier.padding(16.dp)
@@ -123,7 +125,7 @@ private fun IdiomCategoryOverviewScreen(
                     fontSize = 16.sp,
                     color = Color(0xFF4A3728)
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                 Text(
                     "所有的成语，都是古代宗族社会、集体社会的产物。\n" +
                     "它们的核心，都是要你牺牲自己、成全别人。\n\n" +
@@ -139,8 +141,8 @@ private fun IdiomCategoryOverviewScreen(
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            contentPadding = PaddingValues(AppDimens.paddingLarge),
+            verticalArrangement = Arrangement.spacedBy(AppDimens.paddingMedium)
         ) {
             items(categories) { category ->
                 CategoryCard(
@@ -151,7 +153,7 @@ private fun IdiomCategoryOverviewScreen(
             }
 
             item {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
                 Text(
                     "💛 现实很苦，但你很甜。\n不管你是什么样的，你都值得被爱。",
                     fontSize = 14.sp,
@@ -177,8 +179,8 @@ private fun CategoryCard(
             .fillMaxWidth()
             .clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.2f)),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        shape = RoundedCornerShape(AppDimens.radiusLarge),
+        elevation = CardDefaults.cardElevation(defaultElevation = AppDimens.cardElevation)
     ) {
         Row(
             modifier = Modifier
@@ -196,7 +198,7 @@ private fun CategoryCard(
                 Text(category.emoji, fontSize = 24.sp)
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(AppDimens.paddingLarge))
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -248,7 +250,7 @@ private fun IdiomCategoryListScreen(
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(category.emoji, fontSize = 20.sp)
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                     Text(category.displayName, fontWeight = FontWeight.Bold)
                 }
             },
@@ -264,7 +266,7 @@ private fun IdiomCategoryListScreen(
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(AppDimens.paddingLarge),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             itemsIndexed(idioms) { index, idiom ->
@@ -292,7 +294,7 @@ private fun IdiomListItem(
             .fillMaxWidth()
             .clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(AppDimens.radiusMedium),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
@@ -316,7 +318,7 @@ private fun IdiomListItem(
                 )
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(AppDimens.paddingMedium))
 
             Text(
                 idiom.idiom,
@@ -338,7 +340,7 @@ private fun IdiomListItem(
                 )
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
 
             Text("→", fontSize = 16.sp, color = Color.Gray)
         }
@@ -391,14 +393,14 @@ private fun IdiomCritiqueDetailScreen(
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            contentPadding = PaddingValues(AppDimens.paddingLarge),
+            verticalArrangement = Arrangement.spacedBy(AppDimens.paddingLarge)
         ) {
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
-                    shape = RoundedCornerShape(20.dp)
+                    shape = RoundedCornerShape(AppDimens.radiusXLarge)
                 ) {
                     Column(
                         modifier = Modifier.padding(24.dp),
@@ -411,7 +413,7 @@ private fun IdiomCritiqueDetailScreen(
                             Text(idiom.category.emoji, fontSize = 48.sp)
                         }
 
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
 
                         Text(
                             idiom.idiom,
@@ -420,14 +422,14 @@ private fun IdiomCritiqueDetailScreen(
                             color = Color(0xFF4A3728)
                         )
 
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
 
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Box(
                                 modifier = Modifier
-                                    .clip(RoundedCornerShape(8.dp))
+                                    .clip(RoundedCornerShape(AppDimens.radiusSmall))
                                     .background(toxicityColor.copy(alpha = 0.3f))
-                                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                                    .padding(horizontal = AppDimens.paddingMedium, vertical = 6.dp)
                             ) {
                                 Text(
                                     "${idiom.toxicityLevel.emoji} ${idiom.toxicityLevel.displayName}",
@@ -445,7 +447,7 @@ private fun IdiomCritiqueDetailScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = toxicityColor.copy(alpha = 0.15f)),
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(AppDimens.radiusLarge)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
@@ -454,7 +456,7 @@ private fun IdiomCritiqueDetailScreen(
                             fontSize = 14.sp,
                             color = toxicityColor
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                         Text(
                             idiom.toxicityLevel.definition,
                             fontSize = 13.sp,
@@ -475,7 +477,7 @@ private fun IdiomCritiqueDetailScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFFFFE0E0)),
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(AppDimens.radiusLarge)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
@@ -484,7 +486,7 @@ private fun IdiomCritiqueDetailScreen(
                             fontSize = 14.sp,
                             color = Color(0xFFCC0000)
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                         Text(
                             idiom.traditionalMeaning,
                             fontSize = 15.sp,
@@ -500,7 +502,7 @@ private fun IdiomCritiqueDetailScreen(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF3E0)),
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(AppDimens.radiusLarge)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(
@@ -509,7 +511,7 @@ private fun IdiomCritiqueDetailScreen(
                                 fontSize = 14.sp,
                                 color = Color(0xFFFF8C00)
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                             Text(
                                 idiom.distortedTruth,
                                 fontSize = 15.sp,
@@ -526,7 +528,7 @@ private fun IdiomCritiqueDetailScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.3f)),
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(AppDimens.radiusLarge)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
@@ -535,7 +537,7 @@ private fun IdiomCritiqueDetailScreen(
                             fontSize = 14.sp,
                             color = color
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                         Text(
                             idiom.townPerspective,
                             fontSize = 16.sp,
@@ -552,7 +554,7 @@ private fun IdiomCritiqueDetailScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF9C3)),
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(AppDimens.radiusLarge)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(
@@ -571,7 +573,7 @@ private fun IdiomCritiqueDetailScreen(
                             Text(text = if (expandSpotlight) "▼" else "▶", fontSize = 12.sp, color = Color.Gray)
                         }
                         if (expandSpotlight) {
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
                             idiom.spotlights.forEachIndexed { index, spotlight ->
                                 Column(modifier = Modifier.padding(bottom = if (index < idiom.spotlights.size - 1) 8.dp else 0.dp)) {
                                     Row(verticalAlignment = Alignment.Top) {
@@ -597,7 +599,7 @@ private fun IdiomCritiqueDetailScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(AppDimens.radiusLarge)
                 ) {
                     Row(
                         modifier = Modifier.padding(16.dp),
@@ -612,7 +614,7 @@ private fun IdiomCritiqueDetailScreen(
                         ) {
                             Text("💡", fontSize = 20.sp)
                         }
-                        Spacer(modifier = Modifier.width(12.dp))
+                        Spacer(modifier = Modifier.width(AppDimens.paddingMedium))
                         Text(
                             idiom.keyMessage,
                             fontSize = 16.sp,
@@ -625,7 +627,7 @@ private fun IdiomCritiqueDetailScreen(
             }
 
             item {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
                 Text(
                     "💛 现实很苦，但你很甜。\n不管你是什么样的，你都值得被爱。",
                     fontSize = 14.sp,

@@ -1,5 +1,7 @@
 package com.example.townapp.ui.components
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.graphics.graphicsLayer
@@ -51,7 +53,7 @@ fun AestheticLearningDashboard() {
                             text = "🎨",
                             fontSize = 24.sp
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                         Text(
                             text = "万物薪俸小镇 - 审美学院",
                             fontWeight = FontWeight.Bold
@@ -75,7 +77,7 @@ fun AestheticLearningDashboard() {
                 vertical = 16.dp,
                 horizontal = 8.dp
             ),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(AppDimens.paddingMedium)
         ) {
             // 审美等级卡片
             item {
@@ -140,9 +142,9 @@ fun QuickActionsCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        shape = RoundedCornerShape(16.dp),
+            .padding(horizontal = AppDimens.paddingSmall),
+        elevation = CardDefaults.cardElevation(defaultElevation = AppDimens.cardElevation),
+        shape = RoundedCornerShape(AppDimens.radiusLarge),
         colors = CardDefaults.cardColors(containerColor = TownAestheticDesign.ColorPalette.success.copy(alpha = 0.1f))
     ) {
         Column(
@@ -155,7 +157,7 @@ fun QuickActionsCard(
                     text = "⚡",
                     fontSize = 20.sp
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                 Text(
                     text = "快速提升审美",
                     fontSize = 16.sp,
@@ -164,7 +166,7 @@ fun QuickActionsCard(
                 )
             }
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
             
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -210,7 +212,7 @@ fun QuickActionButton(
         modifier = Modifier
             .size(72.dp)
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(AppDimens.radiusMedium),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.2f))
     ) {
@@ -239,9 +241,9 @@ fun AestheticPrinciplesCardV2() {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        shape = RoundedCornerShape(16.dp)
+            .padding(horizontal = AppDimens.paddingSmall),
+        elevation = CardDefaults.cardElevation(defaultElevation = AppDimens.cardElevation),
+        shape = RoundedCornerShape(AppDimens.radiusLarge)
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -253,7 +255,7 @@ fun AestheticPrinciplesCardV2() {
                     text = "📖",
                     fontSize = 20.sp
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                 Text(
                     text = "审美四大原则",
                     fontSize = 16.sp,
@@ -262,7 +264,7 @@ fun AestheticPrinciplesCardV2() {
                 )
             }
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
             
             PrincipleItem(
                 number = "1",
@@ -311,7 +313,7 @@ fun PrincipleItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(AppDimens.radiusMedium),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.1f))
     ) {
@@ -337,7 +339,7 @@ fun PrincipleItem(
                 }
             }
             
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(AppDimens.paddingMedium))
             
             Column(
                 modifier = Modifier.weight(1f)

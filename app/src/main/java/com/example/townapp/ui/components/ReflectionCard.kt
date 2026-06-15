@@ -1,5 +1,7 @@
 package com.example.townapp.ui.components
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -74,7 +76,7 @@ fun ReflectionCard(
         colors = CardDefaults.cardColors(
             containerColor = if (isUnlocked) Color(0xFFFFF8E1) else Color(0xFFF3F4F6)
         ),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(AppDimens.radiusMedium),
         elevation = CardDefaults.cardElevation(defaultElevation = if (isUnlocked) 2.dp else 0.dp)
     ) {
         Column(
@@ -98,14 +100,14 @@ fun ReflectionCard(
                                 shape = RoundedCornerShape(4.dp)
                             )
                     )
-                    Spacer(modifier = Modifier.width(12.dp))
+                    Spacer(modifier = Modifier.width(AppDimens.paddingMedium))
                     Text(
                         text = if (isUnlocked) reflection.idiom else "???" ,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = if (isUnlocked) Color(0xFFE65100) else Color(0xFF9CA3AF)
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                     // 阶段标签
                     Box(
                         modifier = Modifier
@@ -113,7 +115,7 @@ fun ReflectionCard(
                                 if (isUnlocked) stageColor.copy(alpha = 0.15f) else Color(0xFFE5E7EB),
                                 shape = RoundedCornerShape(6.dp)
                             )
-                            .padding(horizontal = 8.dp, vertical = 2.dp)
+                            .padding(horizontal = AppDimens.paddingSmall, vertical = 2.dp)
                     ) {
                         Text(
                             text = if (isUnlocked) stageLabel else "未解锁",
@@ -134,7 +136,7 @@ fun ReflectionCard(
             }
 
             if (!isUnlocked) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                 Text(
                     text = "解锁条件：${reflection.unlockCondition}",
                     fontSize = 12.sp,
@@ -143,7 +145,7 @@ fun ReflectionCard(
             }
 
             if (isUnlocked) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
 
                 // 传统/社会规训
                 Text(
@@ -155,7 +157,7 @@ fun ReflectionCard(
 
                 // 展开区域
                 if (isExpanded) {
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
 
                     // 觉醒解读
                     Text(
@@ -173,7 +175,7 @@ fun ReflectionCard(
                     )
 
                     // 关联行为
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
@@ -202,7 +204,7 @@ fun ReflectionCard(
                     }
 
                     // 解锁条件
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.End

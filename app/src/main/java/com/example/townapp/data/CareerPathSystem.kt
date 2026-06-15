@@ -44,17 +44,17 @@ object CareerPathSystem {
         CareerOption("civil_servant", "基层公务员", CareerPathType.STABLE,
             5000.0, 0.03, 12000.0, 0.2, 0.1, 0.3, 0.05,
             minAge = 22,
-            description = "朝九晚五，旱涝保收。薪资增长慢但稳定，几乎不用担心失业。"),
+            description = "朝九晚五，薪资稳定，失业风险低"),
 
         CareerOption("state_enterprise", "国企职员", CareerPathType.STABLE,
             6000.0, 0.04, 15000.0, 0.25, 0.15, 0.35, 0.08,
             minAge = 22,
-            description = "比公务员薪资稍高，福利待遇好，加班不多。"),
+            description = "福利好，加班少，薪资稳定"),
 
         CareerOption("teacher", "公立教师", CareerPathType.STABLE,
             4500.0, 0.03, 10000.0, 0.3, 0.2, 0.25, 0.05,
             minAge = 22,
-            description = "寒暑假是最大福利，日常工作压力适中。"),
+            description = "寒暑假福利，压力适中"),
 
         // ── 大厂内卷路线 ──
         CareerOption("programmer", "程序员", CareerPathType.CORPORATE,

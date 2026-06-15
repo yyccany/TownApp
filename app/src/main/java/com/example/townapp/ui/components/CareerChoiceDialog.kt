@@ -54,7 +54,7 @@ fun CareerChoiceDialog(
                 ) {
                     Column {
                         Text(
-                            text = "选择职业",
+                            text = "更换职业",
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             color = BrandColors.TextPrimary
@@ -163,7 +163,7 @@ private fun CareerCard(
                 lineHeight = 16.sp
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
 
             CareerStatsRow(career)
 
@@ -197,7 +197,7 @@ private fun CareerCard(
 private fun CareerStatsRow(career: CareerPathSystem.CareerOption) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(AppDimens.paddingMedium)
     ) {
         StatItem("月薪", if (career.baseSalary > 0) "${career.baseSalary.toInt()}" else "无", "元")
         StatItem("年增长", "${(career.salaryGrowth * 100).toInt()}", "%")

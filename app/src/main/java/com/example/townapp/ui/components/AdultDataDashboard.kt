@@ -1,5 +1,7 @@
 package com.example.townapp.ui.components
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -51,7 +53,7 @@ fun AdultDataDashboard(
                 )
             }
 
-            LazyColumn(modifier = Modifier.fillMaxSize().padding(top = 16.dp)) {
+            LazyColumn(modifier = Modifier.fillMaxSize().padding(top = AppDimens.paddingLarge)) {
                 items(products) { product ->
                     AdultProductCard(
                         product = product,
@@ -71,10 +73,10 @@ fun AdultProductCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 8.dp)
+            .padding(bottom = AppDimens.paddingSmall)
             .clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(AppDimens.radiusMedium),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
@@ -94,7 +96,7 @@ fun AdultProductCard(
                         text = product.category,
                         fontSize = 12.sp,
                         color = Color(0xFF888888),
-                        modifier = Modifier.padding(end = 8.dp)
+                        modifier = Modifier.padding(end = AppDimens.paddingSmall)
                     )
                     if (product.subCategory.isNotEmpty()) {
                         Text(

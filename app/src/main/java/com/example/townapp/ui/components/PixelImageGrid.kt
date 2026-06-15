@@ -1,5 +1,7 @@
 package com.example.townapp.ui.components
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -228,7 +230,7 @@ private fun PixelEmptyPlaceholder(modifier: Modifier = Modifier) {
             Text(
                 text = "📷",
                 fontSize = 32.sp,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = AppDimens.paddingSmall)
             )
             Text(
                 text = "暂无图片",
@@ -713,7 +715,7 @@ fun PixelDecoratedCard(
                     color = PixelPalette.PixelWhite,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(top = 8.dp)
+                    modifier = Modifier.padding(top = AppDimens.paddingSmall)
                 )
             }
         }

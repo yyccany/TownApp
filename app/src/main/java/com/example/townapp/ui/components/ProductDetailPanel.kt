@@ -1,5 +1,7 @@
 package com.example.townapp.ui.components
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -51,7 +53,7 @@ fun ProductDetailPanel(
                 )
             }
 
-            Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+            Row(modifier = Modifier.fillMaxWidth().padding(top = AppDimens.paddingSmall)) {
                 Text(
                     text = "${product.category} · ${product.subCategory}",
                     fontSize = 14.sp,
@@ -61,9 +63,9 @@ fun ProductDetailPanel(
 
             if (product.description.isNotEmpty()) {
                 Card(
-                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                    modifier = Modifier.fillMaxWidth().padding(top = AppDimens.paddingMedium),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
-                    shape = RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(AppDimens.radiusSmall)
                 ) {
                     Text(
                         text = product.description,
@@ -85,9 +87,9 @@ fun ProductDetailPanel(
 @Composable
 fun PriceCard(product: ProductEntity, isChildMode: Boolean) {
     Card(
-        modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+        modifier = Modifier.fillMaxWidth().padding(top = AppDimens.paddingMedium),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF8E7)),
-        shape = RoundedCornerShape(8.dp)
+        shape = RoundedCornerShape(AppDimens.radiusSmall)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(
@@ -96,7 +98,7 @@ fun PriceCard(product: ProductEntity, isChildMode: Boolean) {
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF4A3728)
             )
-            Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+            Row(modifier = Modifier.fillMaxWidth().padding(top = AppDimens.paddingSmall)) {
                 Text(
                     text = "市场价",
                     fontSize = 14.sp,
@@ -149,9 +151,9 @@ fun PriceCard(product: ProductEntity, isChildMode: Boolean) {
 fun NutritionCard(product: ProductEntity, isChildMode: Boolean) {
     if (product.nutritionValue.isNotEmpty()) {
         Card(
-            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+            modifier = Modifier.fillMaxWidth().padding(top = AppDimens.paddingMedium),
             colors = CardDefaults.cardColors(containerColor = Color(0xFFE0FFE0)),
-            shape = RoundedCornerShape(8.dp)
+            shape = RoundedCornerShape(AppDimens.radiusSmall)
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
                 Text(
@@ -164,7 +166,7 @@ fun NutritionCard(product: ProductEntity, isChildMode: Boolean) {
                     text = product.nutritionValue,
                     fontSize = 14.sp,
                     color = Color(0xFF3D7A37),
-                    modifier = Modifier.padding(top = 8.dp)
+                    modifier = Modifier.padding(top = AppDimens.paddingSmall)
                 )
             }
         }
@@ -179,9 +181,9 @@ fun ValueCard(product: ProductEntity, isChildMode: Boolean) {
 
     if (hasValueData) {
         Card(
-            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+            modifier = Modifier.fillMaxWidth().padding(top = AppDimens.paddingMedium),
             colors = CardDefaults.cardColors(containerColor = Color(0xFFE0FFFF)),
-            shape = RoundedCornerShape(8.dp)
+            shape = RoundedCornerShape(AppDimens.radiusSmall)
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
                 Text(
@@ -191,7 +193,7 @@ fun ValueCard(product: ProductEntity, isChildMode: Boolean) {
                     color = Color(0xFF275A6D)
                 )
                 if (product.medicalValue.isNotEmpty()) {
-                    Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+                    Row(modifier = Modifier.fillMaxWidth().padding(top = AppDimens.paddingSmall)) {
                         Text(
                             text = "健康",
                             fontSize = 12.sp,
@@ -252,9 +254,9 @@ fun CostCard(product: ProductEntity, isChildMode: Boolean) {
 
     if (hasCostData) {
         Card(
-            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+            modifier = Modifier.fillMaxWidth().padding(top = AppDimens.paddingMedium),
             colors = CardDefaults.cardColors(containerColor = Color(0xFFFFE0FF)),
-            shape = RoundedCornerShape(8.dp)
+            shape = RoundedCornerShape(AppDimens.radiusSmall)
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
                 Text(
@@ -264,7 +266,7 @@ fun CostCard(product: ProductEntity, isChildMode: Boolean) {
                     color = Color(0xFF5A276D)
                 )
                 if (product.lifeCycle > 0) {
-                    Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+                    Row(modifier = Modifier.fillMaxWidth().padding(top = AppDimens.paddingSmall)) {
                         Text(
                             text = "使用寿命",
                             fontSize = 12.sp,

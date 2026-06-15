@@ -1,5 +1,7 @@
 package com.example.townapp.ui.screens
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.layout.*
@@ -85,8 +87,8 @@ fun LifeStyleScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
                     .graphicsLayer { clip = true },
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                contentPadding = PaddingValues(AppDimens.paddingLarge),
+                verticalArrangement = Arrangement.spacedBy(AppDimens.paddingMedium)
             ) {
                 items(entries, key = { it.id }) { entry ->
                     LifeStyleCard(
@@ -112,7 +114,7 @@ private fun LifeStyleCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(enabled = entry.isUnlocked) { onClick() },
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(AppDimens.radiusMedium),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (entry.isUnlocked)
@@ -143,7 +145,7 @@ private fun LifeStyleCard(
                         Text(
                             text = "未解锁",
                             fontSize = 11.sp,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                            modifier = Modifier.padding(horizontal = AppDimens.paddingSmall, vertical = 2.dp)
                         )
                     }
                 } else {
@@ -154,7 +156,7 @@ private fun LifeStyleCard(
                         Text(
                             text = "已解锁",
                             fontSize = 11.sp,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                            modifier = Modifier.padding(horizontal = AppDimens.paddingSmall, vertical = 2.dp)
                         )
                     }
                 }
@@ -175,7 +177,7 @@ private fun LifeStyleCard(
                 text = entry.unlockHint,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 8.dp)
+                modifier = Modifier.padding(top = AppDimens.paddingSmall)
             )
 
             // 未解锁条目：显示解锁进度条
@@ -194,7 +196,7 @@ private fun LifeStyleCard(
                         color = MaterialTheme.colorScheme.primary,
                         trackColor = MaterialTheme.colorScheme.surfaceVariant
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                     Text(
                         text = "$progress/$maxProgress",
                         fontSize = 11.sp,

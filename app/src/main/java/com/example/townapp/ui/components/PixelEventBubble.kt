@@ -1,5 +1,7 @@
 package com.example.townapp.ui.components
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -42,7 +44,7 @@ fun PixelEventBubble(
             ) {
                 Card(
                     colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF8E7)),
-                    shape = RoundedCornerShape(20.dp),
+                    shape = RoundedCornerShape(AppDimens.radiusXLarge),
                     elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
                     modifier = Modifier.padding(16.dp)
                 ) {
@@ -53,7 +55,7 @@ fun PixelEventBubble(
                         Text(
                             text = getEventIcon(event.id),
                             fontSize = 48.sp,
-                            modifier = Modifier.padding(bottom = 8.dp)
+                            modifier = Modifier.padding(bottom = AppDimens.paddingSmall)
                         )
                         Text(
                             text = event.title,
@@ -66,7 +68,7 @@ fun PixelEventBubble(
                             fontSize = 14.sp,
                             fontFamily = FontFamily.Monospace,
                             color = Color(0xFF6B5B4F),
-                            modifier = Modifier.padding(top = 8.dp)
+                            modifier = Modifier.padding(top = AppDimens.paddingSmall)
                         )
                         Text(
                             text = "点击关闭",
@@ -74,7 +76,7 @@ fun PixelEventBubble(
                             fontFamily = FontFamily.Monospace,
                             color = Color(0xFF8B7B6F),
                             modifier = Modifier
-                                .padding(top = 12.dp)
+                                .padding(top = AppDimens.paddingMedium)
                                 .clickable { onDismiss() }
                         )
                     }

@@ -1,5 +1,7 @@
 package com.example.townapp.ui.components
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,8 +31,8 @@ fun DailyTaskPanel(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp),
-        shape = RoundedCornerShape(12.dp),
+            .padding(horizontal = AppDimens.paddingMedium),
+        shape = RoundedCornerShape(AppDimens.radiusMedium),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
         ),
@@ -49,7 +51,7 @@ fun DailyTaskPanel(
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                 Text(
                     text = "${tasks.count { it.isCompleted }}/${tasks.size}",
                     fontSize = 12.sp,
@@ -71,7 +73,7 @@ fun DailyTaskPanel(
                 exit = shrinkVertically() + fadeOut()
             ) {
                 Column(
-                    modifier = Modifier.padding(top = 8.dp),
+                    modifier = Modifier.padding(top = AppDimens.paddingSmall),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     tasks.forEach { task ->
@@ -104,7 +106,7 @@ private fun TaskRow(task: DailyTask) {
             text = if (task.isCompleted) "✅" else "  ",
             fontSize = 14.sp
         )
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
 
         Column(modifier = Modifier.weight(1f)) {
             Row(

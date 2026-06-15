@@ -1,5 +1,7 @@
 package com.example.townapp.ui.components
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -34,7 +36,7 @@ fun CognitionDetailPage(
             .fillMaxSize()
             .padding(16.dp)
             .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(AppDimens.paddingLarge)
     ) {
         // ── 返回按钮 ──
         TextButton(onClick = onBack) {
@@ -52,7 +54,7 @@ fun CognitionDetailPage(
         // ── 个人抉择标签（有历史记录时展示） ──
         if (pastDecisions.isNotEmpty()) {
             Surface(
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(AppDimens.radiusMedium),
                 color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -109,7 +111,7 @@ fun CognitionDetailPage(
 
         // ── 小镇寄语 ──
         Surface(
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(AppDimens.radiusMedium),
             color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -120,7 +122,7 @@ fun CognitionDetailPage(
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.primary
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                 Text(
                     text = reflection.townCommentary,
                     fontSize = 14.sp,
@@ -147,14 +149,14 @@ private fun ReflectionSection(
     gameImpact: String
 ) {
     Surface(
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(AppDimens.radiusMedium),
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 2.dp,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(AppDimens.paddingSmall)
         ) {
             Text(
                 text = title,
@@ -184,7 +186,7 @@ private fun ReflectionSection(
             }
             if (gameImpact.isNotBlank()) {
                 Surface(
-                    shape = RoundedCornerShape(8.dp),
+                    shape = RoundedCornerShape(AppDimens.radiusSmall),
                     color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f),
                     modifier = Modifier.fillMaxWidth()
                 ) {

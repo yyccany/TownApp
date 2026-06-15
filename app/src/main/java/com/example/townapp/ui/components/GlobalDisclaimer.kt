@@ -1,5 +1,7 @@
 package com.example.townapp.ui.components
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -34,7 +36,7 @@ fun GlobalDisclaimer(
             modifier = modifier
                 .fillMaxWidth()
                 .background(Color(0xFFF5F5F5))
-                .padding(horizontal = 12.dp, vertical = 6.dp),
+                .padding(horizontal = AppDimens.paddingMedium, vertical = 6.dp),
             horizontalArrangement = Arrangement.Center
         ) {
             Text(
@@ -51,7 +53,7 @@ fun GlobalDisclaimer(
                 .fillMaxWidth()
                 .background(Color(0xFFFAFAFA))
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(AppDimens.paddingSmall)
         ) {
             Text(
                 text = "免责声明",

@@ -1,5 +1,7 @@
 package com.example.townapp.ui.components
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -27,8 +29,8 @@ fun ModeToggle(
         colors = CardDefaults.cardColors(
             containerColor = if (isChildMode) Color(0xFFFFE4C4) else Color(0xFFe0e0e0)
         ),
-        shape = RoundedCornerShape(20.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        shape = RoundedCornerShape(AppDimens.radiusXLarge),
+        elevation = CardDefaults.cardElevation(defaultElevation = AppDimens.cardElevation)
     ) {
         Row(modifier = Modifier.padding(4.dp)) {
             Box(
@@ -36,7 +38,7 @@ fun ModeToggle(
                     .size(70.dp)
                     .background(
                         if (!isChildMode) Color.White else Color.Transparent,
-                        RoundedCornerShape(16.dp)
+                        RoundedCornerShape(AppDimens.radiusLarge)
                     ),
                 contentAlignment = Alignment.Center
             ) {
@@ -50,7 +52,7 @@ fun ModeToggle(
                     .size(70.dp)
                     .background(
                         if (isChildMode) Color.White else Color.Transparent,
-                        RoundedCornerShape(16.dp)
+                        RoundedCornerShape(AppDimens.radiusLarge)
                     ),
                 contentAlignment = Alignment.Center
             ) {

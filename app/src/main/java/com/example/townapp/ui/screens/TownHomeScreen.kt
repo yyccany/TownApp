@@ -1,5 +1,7 @@
 package com.example.townapp.ui.screens
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -47,6 +49,7 @@ import com.example.townapp.ui.viewmodel.WeekEventChoice
 import com.example.townapp.ui.viewmodel.WeeklyEventTier
 import com.example.townapp.ui.components.CareerChoiceDialog
 import com.example.townapp.ui.components.DietPanel
+import com.example.townapp.ui.components.LifePathChoiceDialog
 import com.example.townapp.ui.components.WorkdayPanel
 
 // ============================================
@@ -103,6 +106,7 @@ fun TownHomeScreen(
     var showStatusPanel by remember { mutableStateOf(false) }
     var showWeekEvents by remember { mutableStateOf(false) }
     var showCareerDialog by remember { mutableStateOf(false) }
+    var showLifePathDialog by remember { mutableStateOf(gameDay == 0) }
     var showWeekendPanels by remember { mutableStateOf(false) }
     var showMoreMenu by remember { mutableStateOf(false) }
     var currentSpeed by remember { mutableStateOf(1.0) }
@@ -122,6 +126,7 @@ fun TownHomeScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(BrandColors.background)
+            .statusBarsPadding()
             .navigationBarsPadding()
     ) {
         Column(
@@ -149,7 +154,7 @@ fun TownHomeScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                    .padding(horizontal = AppDimens.paddingLarge, vertical = 4.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -204,8 +209,8 @@ fun TownHomeScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 2.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    .padding(horizontal = AppDimens.paddingLarge, vertical = 2.dp),
+                horizontalArrangement = Arrangement.spacedBy(AppDimens.paddingSmall),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // 人生阶段标签
@@ -213,7 +218,7 @@ fun TownHomeScreen(
                     modifier = Modifier
                         .clip(RoundedCornerShape(6.dp))
                         .background(BrandColors.primary.copy(alpha = 0.1f))
-                        .padding(horizontal = 8.dp, vertical = 3.dp)
+                        .padding(horizontal = AppDimens.paddingSmall, vertical = 3.dp)
                 ) {
                     Text(
                         text = "${lifeStage.label} · ${playerAge}岁",
@@ -233,7 +238,7 @@ fun TownHomeScreen(
                     modifier = Modifier
                         .clip(RoundedCornerShape(6.dp))
                         .background(BrandColors.surface)
-                        .padding(horizontal = 8.dp, vertical = 3.dp)
+                        .padding(horizontal = AppDimens.paddingSmall, vertical = 3.dp)
                 ) {
                     Text(
                         text = loveLabel,
@@ -247,7 +252,7 @@ fun TownHomeScreen(
                         modifier = Modifier
                             .clip(RoundedCornerShape(6.dp))
                             .background(BrandColors.warning.copy(alpha = 0.1f))
-                            .padding(horizontal = 8.dp, vertical = 3.dp)
+                            .padding(horizontal = AppDimens.paddingSmall, vertical = 3.dp)
                     ) {
                         Text(
                             text = "养老金生活",
@@ -263,7 +268,7 @@ fun TownHomeScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                        .padding(horizontal = AppDimens.paddingLarge, vertical = 4.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = when (weeklyEventTier) {
                             com.example.townapp.ui.viewmodel.WeeklyEventTier.MUNDANE -> BrandColors.surface
@@ -323,7 +328,7 @@ fun TownHomeScreen(
                     text = autoLifeSummary,
                     fontSize = 11.sp,
                     color = BrandColors.textMuted.copy(alpha = 0.6f),
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp)
+                    modifier = Modifier.padding(horizontal = AppDimens.paddingLarge, vertical = 2.dp)
                 )
             }
 
@@ -378,22 +383,22 @@ fun TownHomeScreen(
                     .weight(1f)
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 20.dp),
+                    .padding(horizontal = AppDimens.paddingXLarge),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                 SceneDescription(
                     hour = gameHour,
                     roomName = space.addressName,
                     light = space.light,
                     areaSqm = space.areaSqm
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
 
                 // 空间详情卡片（身份绑定后展示）
                 currentBinding?.let { binding ->
                     SpaceDetailCard(space = space, binding = binding)
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                 }
 
                 // 宠物对话卡片（用餐后触发，展示一次后自动清空）
@@ -402,7 +407,7 @@ fun TownHomeScreen(
                         text = dialogue,
                         onDismiss = { viewModel.clearPetDialogue() }
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                 }
 
                 // 事件日志区（空状态时完全隐藏，不占用空间）
@@ -412,7 +417,7 @@ fun TownHomeScreen(
 
                 // 本周消费预估卡片
                 if (weeklyExpense.totalCost > 0) {
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
 
                     // 疾病状态提示
                     if (currentIllness != IllnessType.NONE) {
@@ -426,16 +431,16 @@ fun TownHomeScreen(
                             colors = CardDefaults.cardColors(
                                 containerColor = BrandColors.warning.copy(alpha = 0.1f)
                             ),
-                            shape = RoundedCornerShape(8.dp)
+                            shape = RoundedCornerShape(AppDimens.radiusSmall)
                         ) {
                             Text(
                                 text = "当前状态：$illnessLabel，已计入本周医疗开销",
                                 fontSize = 12.sp,
                                 color = BrandColors.warning,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                                modifier = Modifier.padding(horizontal = AppDimens.paddingMedium, vertical = AppDimens.paddingSmall)
                             )
                         }
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                     }
 
                     WeeklyExpenseCard(
@@ -452,7 +457,7 @@ fun TownHomeScreen(
                         colors = CardDefaults.cardColors(
                             containerColor = BrandColors.cardBackground
                         ),
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(AppDimens.radiusSmall)
                     ) {
                         Row(
                             modifier = Modifier
@@ -463,7 +468,7 @@ fun TownHomeScreen(
                             Text(
                                 text = "🎸",
                                 fontSize = 16.sp,
-                                modifier = Modifier.padding(end = 8.dp)
+                                modifier = Modifier.padding(end = AppDimens.paddingSmall)
                             )
                             Text(
                                 text = event,
@@ -475,7 +480,7 @@ fun TownHomeScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
 
                 // ==========================================
                 // 周末手动精细操作面板（仅周末显示）
@@ -494,14 +499,14 @@ fun TownHomeScreen(
                     }
 
                     if (showWeekendPanels) {
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
 
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             colors = CardDefaults.cardColors(
                                 containerColor = BrandColors.cardBackground
                             ),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(AppDimens.radiusMedium)
                         ) {
                             Column(
                                 modifier = Modifier.padding(12.dp)
@@ -511,7 +516,7 @@ fun TownHomeScreen(
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = BrandColors.textPrimary,
-                                    modifier = Modifier.padding(bottom = 8.dp)
+                                    modifier = Modifier.padding(bottom = AppDimens.paddingSmall)
                                 )
 
                                 // 消费模式切换（周末可手动调整）
@@ -544,7 +549,7 @@ fun TownHomeScreen(
                                         )
                                     }
                                 }
-                                Spacer(modifier = Modifier.height(12.dp))
+                                Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
 
                                 // 医疗偏好切换（周末可手动调整）
                                 Row(
@@ -576,7 +581,7 @@ fun TownHomeScreen(
                                         )
                                     }
                                 }
-                                Spacer(modifier = Modifier.height(12.dp))
+                                Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
 
                                 // 爱好预算档位切换（周末可手动调整）
                                 Row(
@@ -628,7 +633,7 @@ fun TownHomeScreen(
                                 ) {
                                     Text("🎸 练习爱好（提升熟练度）", fontSize = 12.sp)
                                 }
-                                Spacer(modifier = Modifier.height(12.dp))
+                                Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
 
                                 // 社交预算与相亲门槛（周末可手动调整）
                                 Row(
@@ -682,7 +687,7 @@ fun TownHomeScreen(
                                 ) {
                                     Text("🍻 参加社交活动（提升相亲机会）", fontSize = 12.sp)
                                 }
-                                Spacer(modifier = Modifier.height(12.dp))
+                                Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
 
                                 // 饮食计划面板（禁用内部滚动，依赖父级滚动）
                                 DietPanel(
@@ -692,7 +697,7 @@ fun TownHomeScreen(
                                     modifier = Modifier.fillMaxWidth()
                                 )
 
-                                Spacer(modifier = Modifier.height(12.dp))
+                                Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
 
                                 // 晚间活动面板（禁用内部滚动，依赖父级滚动）
                                 WorkdayPanel(
@@ -702,7 +707,7 @@ fun TownHomeScreen(
                                     modifier = Modifier.fillMaxWidth()
                                 )
 
-                                Spacer(modifier = Modifier.height(8.dp))
+                                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
 
                                 // 底部收起按钮
                                 TextButton(
@@ -717,11 +722,11 @@ fun TownHomeScreen(
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
                     }
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
 
                 // 底部辅助入口区（高频操作直接展示，低频收进"更多"）
                 Row(
@@ -742,14 +747,23 @@ fun TownHomeScreen(
                         Text("🌙 今天有点累", fontSize = 13.sp)
                     }
 
-                    // 职业选择入口
+                    // 职业选择入口：未开局显示人生路径，已开局显示跳槽弹窗
                     TextButton(
-                        onClick = { showCareerDialog = true },
+                        onClick = {
+                            if (gameDay == 0) {
+                                showLifePathDialog = true
+                            } else {
+                                showCareerDialog = true
+                            }
+                        },
                         colors = ButtonDefaults.textButtonColors(
                             contentColor = BrandColors.primary.copy(alpha = 0.8f)
                         )
                     ) {
-                        Text("💼 选择职业", fontSize = 13.sp)
+                        Text(
+                            text = if (gameDay == 0) "💼 选择人生路径" else "💼 更换职业",
+                            fontSize = 13.sp
+                        )
                     }
 
                     // 认知觉醒入口
@@ -796,7 +810,7 @@ fun TownHomeScreen(
 
                 // 周计划编辑按钮（仅编辑模式显示）
                 if (isEditMode) {
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                     TextButton(
                         onClick = { viewModel.showWeeklyPlanEditor() },
                         colors = ButtonDefaults.textButtonColors(
@@ -873,7 +887,7 @@ fun TownHomeScreen(
             )
         }
 
-        // 职业选择弹窗
+        // 职业选择弹窗（游戏中跳槽）
         if (showCareerDialog) {
             CareerChoiceDialog(
                 recommendedPath = viewModel.getRecommendedCareerPath(),
@@ -882,6 +896,24 @@ fun TownHomeScreen(
                     showCareerDialog = false
                 },
                 onDismiss = { showCareerDialog = false }
+            )
+        }
+
+        // 开局人生路径选择弹窗
+        if (showLifePathDialog) {
+            LifePathChoiceDialog(
+                onLifePathSelected = { pathId ->
+                    val mappedId = when (pathId) {
+                        "migrant_youth" -> "migrant_worker"
+                        "housewife" -> "fulltime_mother"
+                        "freelancer" -> "freelance_dev"
+                        "shop_owner" -> "small_shop"
+                        else -> pathId
+                    }
+                    viewModel.selectCareer(mappedId)
+                    showLifePathDialog = false
+                },
+                onDismiss = { showLifePathDialog = false }
             )
         }
 
@@ -907,9 +939,8 @@ private fun TopTimeBar(gameDay: Int, gameHour: Int) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .statusBarsPadding()
             .background(BrandColors.surface)
-            .padding(horizontal = 20.dp, vertical = 12.dp),
+            .padding(horizontal = AppDimens.paddingXLarge, vertical = AppDimens.paddingSmall),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -948,14 +979,14 @@ private fun FloatingStatusButton(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(onClick = onToggle)
-                .padding(horizontal = 20.dp, vertical = 8.dp),
+                .padding(horizontal = AppDimens.paddingXLarge, vertical = AppDimens.paddingSmall),
             horizontalArrangement = Arrangement.End
         ) {
             Row(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(AppDimens.radiusMedium))
                     .background(BrandColors.surface)
-                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                    .padding(horizontal = AppDimens.paddingMedium, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
@@ -979,7 +1010,7 @@ private fun FloatingStatusButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(BrandColors.surface)
-                    .padding(horizontal = 20.dp, vertical = 12.dp)
+                    .padding(horizontal = AppDimens.paddingXLarge, vertical = AppDimens.paddingMedium)
             ) {
                 // 状态条：饱腹感、精力、情绪
                 StatusBar(
@@ -1003,7 +1034,7 @@ private fun FloatingStatusButton(
                     color = StatusColors.progress
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
 
                 // 存款行
                 Row(
@@ -1022,7 +1053,7 @@ private fun FloatingStatusButton(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
 
                 // 自动生活开关
                 Row(
@@ -1042,7 +1073,7 @@ private fun FloatingStatusButton(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
 
                 // 自动生活档位选择（仅展开时显示）
                 Row(
@@ -1068,7 +1099,7 @@ private fun FloatingStatusButton(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
 
                 // 时间流速控制
                 Row(
@@ -1163,7 +1194,7 @@ private fun StatusBar(
             )
         }
 
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
 
         Text(
             text = suffix,
@@ -1185,7 +1216,7 @@ private fun SpeedButton(
 ) {
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(AppDimens.radiusSmall))
             .background(if (isSelected) BrandColors.primary else BrandColors.surface)
             .clickable(onClick = onClick)
             .padding(horizontal = 10.dp, vertical = 4.dp),
@@ -1213,7 +1244,7 @@ private fun WeeklyExpenseCard(
         colors = CardDefaults.cardColors(
             containerColor = BrandColors.cardBackground
         ),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(AppDimens.radiusMedium)
     ) {
         Column(
             modifier = Modifier.padding(12.dp)
@@ -1236,7 +1267,7 @@ private fun WeeklyExpenseCard(
                     color = BrandColors.textMuted
                 )
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
 
             // 刚需 vs 溢价
             Row(
@@ -1273,9 +1304,9 @@ private fun WeeklyExpenseCard(
 
             // 五大板块分项
             if (expense.categoryBreakdown.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                 Divider(color = BrandColors.surface, thickness = 1.dp)
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                 val categoryLabels = mapOf(
                     "food" to "饮食", "clothing" to "穿戴", "medical" to "医药",
                     "commute" to "通勤", "hobby" to "爱好"
@@ -1312,9 +1343,9 @@ private fun WeeklyExpenseCard(
 
             // 本周采购清单
             if (expense.shoppingList.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                 Divider(color = BrandColors.surface, thickness = 1.dp)
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                 Text(
                     text = "本周采购清单",
                     fontSize = 12.sp,
@@ -1335,9 +1366,9 @@ private fun WeeklyExpenseCard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
             Divider(color = BrandColors.surface, thickness = 1.dp)
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -1369,7 +1400,7 @@ private fun ShoppingTag(name: String, isPremium: Boolean) {
                 if (isPremium) BrandColors.warning.copy(alpha = 0.12f)
                 else BrandColors.surface
             )
-            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .padding(horizontal = AppDimens.paddingSmall, vertical = 4.dp)
     ) {
         Text(
             text = name,
@@ -1396,7 +1427,7 @@ private fun SceneDescription(
         colors = CardDefaults.cardColors(
             containerColor = BrandColors.cardBackground
         ),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(AppDimens.radiusMedium),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
@@ -1407,7 +1438,7 @@ private fun SceneDescription(
                 text = GentleTextProvider.timeEmoji(hour),
                 fontSize = 28.sp
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
             Text(
                 text = sceneText,
                 fontSize = 14.sp,
@@ -1427,7 +1458,7 @@ private fun EventLogSection(eventLog: List<String>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 8.dp)
+            .padding(top = AppDimens.paddingSmall)
     ) {
         eventLog.take(8).forEach { event ->
             Text(
@@ -1460,7 +1491,7 @@ private fun SpaceDetailCard(
             .fillMaxWidth()
             .clickable { expanded = !expanded },
         colors = CardDefaults.cardColors(containerColor = BrandColors.cardBackground),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(AppDimens.radiusMedium),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
@@ -1590,7 +1621,7 @@ private fun EmptyStateHint(gameDay: Int) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 24.dp),
+            .padding(top = AppDimens.paddingXXLarge),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         val isFirstDay = gameDay <= 1
@@ -1598,7 +1629,7 @@ private fun EmptyStateHint(gameDay: Int) {
             text = if (isFirstDay) "🌱" else "🍃",
             fontSize = 24.sp
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
         Text(
             text = if (isFirstDay) "小镇刚刚开始运转" else "今天很平静，没什么特别的事",
             fontSize = 13.sp,
@@ -1633,7 +1664,7 @@ private fun BottomActionBar(
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = BrandColors.surface,
-        shadowElevation = 4.dp
+        shadowElevation = AppDimens.cardElevation
     ) {
         Column {
             // 计划状态提示
@@ -1656,7 +1687,7 @@ private fun BottomActionBar(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                    .padding(horizontal = AppDimens.paddingLarge, vertical = AppDimens.paddingMedium),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 BottomActionButton(
@@ -1740,7 +1771,7 @@ private fun FoodPickerSheet(
                 .fillMaxWidth()
                 .fillMaxHeight(0.45f)
                 .clickable(enabled = false) {}, // 阻止点击穿透
-            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+            shape = RoundedCornerShape(topStart = AppDimens.radiusLarge, topEnd = AppDimens.radiusLarge),
             colors = CardDefaults.cardColors(containerColor = BrandColors.surface)
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
@@ -1768,7 +1799,7 @@ private fun FoodPickerSheet(
                 // 食物列表
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 16.dp)
+                    contentPadding = PaddingValues(horizontal = AppDimens.paddingLarge)
                 ) {
                     items(foodItems) { food ->
                         val cost = food.pricePer100g * food.typicalServing / 100.0
@@ -1841,7 +1872,7 @@ private fun ComfortTapOverlay(
             modifier = Modifier
                 .padding(32.dp)
                 .clickable(onClick = onTap),
-            shape = RoundedCornerShape(20.dp),
+            shape = RoundedCornerShape(AppDimens.radiusXLarge),
             colors = CardDefaults.cardColors(containerColor = AppColors.CardBackground),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
@@ -1850,7 +1881,7 @@ private fun ComfortTapOverlay(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text("🌱", fontSize = 32.sp)
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
                 Text(
                     text = message,
                     fontSize = 16.sp,
@@ -1858,13 +1889,13 @@ private fun ComfortTapOverlay(
                     textAlign = TextAlign.Center,
                     lineHeight = 26.sp
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
                 Text(
                     text = "点一下，换一句",
                     fontSize = 11.sp,
                     color = BrandColors.textMuted.copy(alpha = 0.5f)
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                 TextButton(onClick = onClose) {
                     Text(
                         text = "好了，我知道了",
@@ -1888,8 +1919,8 @@ private fun PetDialogueCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp),
-        shape = RoundedCornerShape(16.dp),
+            .padding(horizontal = AppDimens.paddingMedium),
+        shape = RoundedCornerShape(AppDimens.radiusLarge),
         colors = CardDefaults.cardColors(
             containerColor = BrandColors.cardBackground
         ),
@@ -1905,14 +1936,14 @@ private fun PetDialogueCard(
                 text = "🐾",
                 fontSize = 20.sp
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
             Text(
                 text = text,
                 fontSize = 14.sp,
                 color = BrandColors.textPrimary,
                 lineHeight = 22.sp
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
             Text(
                 text = "（轻触关闭）",
                 fontSize = 11.sp,
@@ -1956,14 +1987,14 @@ private fun FloatingWeekEventsButton(
     Row(
         modifier = Modifier
             .clickable(onClick = onToggle)
-            .padding(horizontal = 20.dp, vertical = 8.dp),
+            .padding(horizontal = AppDimens.paddingXLarge, vertical = AppDimens.paddingSmall),
         horizontalArrangement = Arrangement.Start
     ) {
         Row(
             modifier = Modifier
-                .clip(RoundedCornerShape(12.dp))
+                .clip(RoundedCornerShape(AppDimens.radiusMedium))
                 .background(BrandColors.surface)
-                .padding(horizontal = 12.dp, vertical = 6.dp),
+                .padding(horizontal = AppDimens.paddingMedium, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
@@ -1999,7 +2030,7 @@ private fun WeekEventsPanel(
         modifier = Modifier
             .fillMaxWidth()
             .background(BrandColors.surface)
-            .padding(horizontal = 20.dp, vertical = 12.dp)
+            .padding(horizontal = AppDimens.paddingXLarge, vertical = AppDimens.paddingMedium)
     ) {
         // 标题行
         Row(
@@ -2022,7 +2053,7 @@ private fun WeekEventsPanel(
             }
         }
         
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
         
         // 事件列表
         if (weeklyEvents.isNotEmpty()) {
@@ -2078,7 +2109,7 @@ private fun WeeklyBriefDialog(
                 .padding(24.dp)
                 .fillMaxWidth()
                 .clickable(enabled = false) {},
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(AppDimens.radiusLarge),
             colors = CardDefaults.cardColors(containerColor = BrandColors.surface)
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
@@ -2095,7 +2126,7 @@ private fun WeeklyBriefDialog(
                     )
                 }
                 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
                 
                 // 周总结
                 if (weeklyStats.summary.isNotEmpty()) {
@@ -2106,13 +2137,13 @@ private fun WeeklyBriefDialog(
                         lineHeight = 22.sp,
                         textAlign = TextAlign.Center
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
                 }
                 
                 // 统计数据
                 Column(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(AppDimens.paddingSmall)
                 ) {
                     StatRow("疲惫累积", "${String.format("%.1f", weeklyStats.totalFatigue)}%")
                     StatRow("平均焦虑", "${String.format("%.1f", weeklyStats.avgAnxiety)}%")
@@ -2121,7 +2152,7 @@ private fun WeeklyBriefDialog(
                     StatRow("可用事件槽", "${weeklyStats.availableActionSlots}个")
                 }
                 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
                 
                 // 关闭按钮
                 Row(
@@ -2134,7 +2165,7 @@ private fun WeeklyBriefDialog(
                             containerColor = BrandColors.primary,
                             contentColor = Color.White
                         ),
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(AppDimens.radiusSmall)
                     ) {
                         Text(text = "知道了", fontSize = 14.sp)
                     }
@@ -2202,7 +2233,7 @@ private fun WeeklyPlanDialog(
                 .fillMaxWidth()
                 .fillMaxHeight(0.85f)
                 .clickable(enabled = false) {},
-            shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+            shape = RoundedCornerShape(topStart = AppDimens.radiusXLarge, topEnd = AppDimens.radiusXLarge),
             colors = CardDefaults.cardColors(containerColor = BrandColors.surface)
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
@@ -2210,7 +2241,7 @@ private fun WeeklyPlanDialog(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                        .padding(horizontal = AppDimens.paddingLarge, vertical = AppDimens.paddingMedium),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -2230,14 +2261,14 @@ private fun WeeklyPlanDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .horizontalScroll(rememberScrollState())
-                        .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        .padding(horizontal = AppDimens.paddingLarge),
+                    horizontalArrangement = Arrangement.spacedBy(AppDimens.paddingSmall)
                 ) {
                     daysOfWeek.forEach { (day, label) ->
                         val isSelected = selectedDay == day
                         Box(
                             modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp))
+                                .clip(RoundedCornerShape(AppDimens.radiusSmall))
                                 .background(if (isSelected) BrandColors.primary else BrandColors.cardBackground)
                                 .clickable {
                                     selectedDay = day
@@ -2251,7 +2282,7 @@ private fun WeeklyPlanDialog(
                                     goOut = newPlan.goOut
                                     notes = newPlan.notes
                                 }
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                                .padding(horizontal = AppDimens.paddingLarge, vertical = AppDimens.paddingSmall)
                         ) {
                             Text(
                                 text = label,
@@ -2265,7 +2296,7 @@ private fun WeeklyPlanDialog(
                 // 内容区域
                 LazyColumn(
                     modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(16.dp)
+                    contentPadding = PaddingValues(AppDimens.paddingLarge)
                 ) {
                     // 快捷操作按钮
                     item {
@@ -2274,7 +2305,7 @@ private fun WeeklyPlanDialog(
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
                             color = BrandColors.textPrimary,
-                            modifier = Modifier.padding(bottom = 8.dp)
+                            modifier = Modifier.padding(bottom = AppDimens.paddingSmall)
                         )
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -2286,7 +2317,7 @@ private fun WeeklyPlanDialog(
                             QuickActionButton("💼", "工作", onClick = { viewModel.work() })
                             QuickActionButton("📚", "学习", onClick = { viewModel.study() })
                         }
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
                     }
                     
                     // 三餐设置
@@ -2296,12 +2327,12 @@ private fun WeeklyPlanDialog(
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
                             color = BrandColors.textPrimary,
-                            modifier = Modifier.padding(bottom = 8.dp)
+                            modifier = Modifier.padding(bottom = AppDimens.paddingSmall)
                         )
                         PlanInput("早餐", breakfast, onValueChange = { breakfast = it })
                         PlanInput("午餐", lunch, onValueChange = { lunch = it })
                         PlanInput("晚餐", dinner, onValueChange = { dinner = it })
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
                     }
                     
                     // 时间安排
@@ -2311,12 +2342,12 @@ private fun WeeklyPlanDialog(
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
                             color = BrandColors.textPrimary,
-                            modifier = Modifier.padding(bottom = 8.dp)
+                            modifier = Modifier.padding(bottom = AppDimens.paddingSmall)
                         )
                         PlanInput("工作时长(小时)", workHours, onValueChange = { workHours = it })
                         PlanInput("学习时长(小时)", studyHours, onValueChange = { studyHours = it })
                         PlanInput("休息时长(小时)", restHours, onValueChange = { restHours = it })
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
                     }
                     
                     // 外出设置
@@ -2340,7 +2371,7 @@ private fun WeeklyPlanDialog(
                                 )
                             )
                         }
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
                     }
                     
                     // 备注
@@ -2350,7 +2381,7 @@ private fun WeeklyPlanDialog(
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
                             color = BrandColors.textPrimary,
-                            modifier = Modifier.padding(bottom = 8.dp)
+                            modifier = Modifier.padding(bottom = AppDimens.paddingSmall)
                         )
                         TextField(
                             value = notes,
@@ -2365,7 +2396,7 @@ private fun WeeklyPlanDialog(
                                 unfocusedIndicatorColor = BrandColors.divider
                             )
                         )
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
                     }
                 }
                 
@@ -2390,7 +2421,7 @@ private fun WeeklyPlanDialog(
                             containerColor = BrandColors.primary,
                             contentColor = Color.White
                         ),
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(AppDimens.radiusSmall)
                     ) {
                         Text(text = "保存计划", fontSize = 14.sp)
                     }
@@ -2420,7 +2451,7 @@ private fun WeekEventChoiceDialog(
                 .padding(24.dp)
                 .fillMaxWidth()
                 .clickable(enabled = false) {},
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(AppDimens.radiusLarge),
             colors = CardDefaults.cardColors(containerColor = BrandColors.surface)
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
@@ -2430,20 +2461,20 @@ private fun WeekEventChoiceDialog(
                     fontWeight = FontWeight.Medium,
                     color = BrandColors.textPrimary
                 )
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
                 Text(
                     text = eventSummary,
                     fontSize = 14.sp,
                     color = BrandColors.textPrimary,
                     lineHeight = 22.sp
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
                 Text(
                     text = "你会怎么选？",
                     fontSize = 13.sp,
                     color = BrandColors.textMuted
                 )
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
                 choices.forEach { choice ->
                     Card(
                         modifier = Modifier

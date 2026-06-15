@@ -1,5 +1,7 @@
 package com.example.townapp.ui.components
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -40,14 +42,14 @@ fun PixelTownMap(
                 fontSize = 28.sp,
                 fontFamily = FontFamily.Monospace,
                 color = Color(0xFF4A3728),
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(bottom = AppDimens.paddingLarge)
             )
 
             LazyVerticalGrid(
                 columns = GridCells.Fixed(4),
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(AppDimens.paddingSmall),
+                verticalArrangement = Arrangement.spacedBy(AppDimens.paddingSmall)
             ) {
                 items(products.size) { index ->
                     val product = products[index]
@@ -72,8 +74,8 @@ fun PixelProductCard(
     Card(
         modifier = Modifier.clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = bgColor),
-        shape = RoundedCornerShape(8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        shape = RoundedCornerShape(AppDimens.radiusSmall),
+        elevation = CardDefaults.cardElevation(defaultElevation = AppDimens.cardElevation)
     ) {
         Box(
             modifier = Modifier.size(80.dp),

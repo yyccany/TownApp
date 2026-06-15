@@ -1,5 +1,7 @@
 package com.example.townapp.ui.components
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -31,7 +33,7 @@ fun WorkdayPanel(
         modifier = modifier
             .fillMaxWidth()
             .then(if (enableInternalScroll) Modifier.verticalScroll(rememberScrollState()) else Modifier),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(AppDimens.paddingMedium)
     ) {
         Text("今晚做什么？", fontSize = 18.sp, fontWeight = FontWeight.Bold)
         Text("选择 1-3 项活动，系统自动计算影响", fontSize = 12.sp,
@@ -101,7 +103,7 @@ fun WorkdayPanel(
         Button(
             onClick = { onActivitiesSelected(selectedActivities) },
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(AppDimens.radiusMedium),
             enabled = selectedActivities.isNotEmpty()
         ) {
             Text("确认今晚计划（${selectedActivities.size}项）")

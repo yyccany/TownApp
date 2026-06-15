@@ -1,5 +1,7 @@
 package com.example.townapp.ui.components
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -39,7 +41,7 @@ fun ExpertModePanel(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .padding(horizontal = AppDimens.paddingLarge, vertical = AppDimens.paddingSmall)
     ) {
         // 展开/收起按钮
         ExpertModeToggleButton(
@@ -52,21 +54,21 @@ fun ExpertModePanel(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 12.dp)
+                    .padding(top = AppDimens.paddingMedium)
             ) {
                 Text(
                     text = "🔬 专家模式",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = BrandColors.TextPrimary,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier.padding(bottom = AppDimens.paddingSmall)
                 )
                 
                 Text(
                     text = "高级分析功能，可能需要更多数据支持",
                     fontSize = 12.sp,
                     color = BrandColors.TextSecondary,
-                    modifier = Modifier.padding(bottom = 12.dp)
+                    modifier = Modifier.padding(bottom = AppDimens.paddingMedium)
                 )
                 
                 // 功能列表
@@ -114,7 +116,7 @@ fun ExpertModeToggleButton(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(AppDimens.radiusMedium))
             .background(
                 brush = Brush.linearGradient(
                     colors = listOf(
@@ -123,7 +125,7 @@ fun ExpertModeToggleButton(
                     )
                 )
             )
-            .border(1.dp, BrandColors.Purple.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+            .border(1.dp, BrandColors.Purple.copy(alpha = 0.3f), RoundedCornerShape(AppDimens.radiusMedium))
             .clickable(role = Role.Button) { onClick() }
             .padding(16.dp)
             .semantics {
@@ -135,7 +137,7 @@ fun ExpertModeToggleButton(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(text = "🔬", fontSize = 20.sp)
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(AppDimens.paddingMedium))
             Text(
                 text = "专家模式",
                 fontSize = 14.sp,
@@ -167,9 +169,9 @@ fun ExpertModeItem(
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 6.dp)
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(AppDimens.radiusMedium))
             .background(Color.White)
-            .border(1.dp, BrandColors.CardBorder, RoundedCornerShape(12.dp))
+            .border(1.dp, BrandColors.CardBorder, RoundedCornerShape(AppDimens.radiusMedium))
             .clickable(role = Role.Button) { onClick() }
             .padding(16.dp)
             .semantics {
@@ -179,7 +181,7 @@ fun ExpertModeItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(text = icon, fontSize = 24.sp)
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(AppDimens.paddingLarge))
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
@@ -209,17 +211,17 @@ fun ExpertModeSwitch(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp)
-            .clip(RoundedCornerShape(12.dp))
+            .padding(horizontal = AppDimens.paddingLarge, vertical = AppDimens.paddingMedium)
+            .clip(RoundedCornerShape(AppDimens.radiusMedium))
             .background(Color.White)
-            .border(1.dp, BrandColors.CardBorder, RoundedCornerShape(12.dp))
+            .border(1.dp, BrandColors.CardBorder, RoundedCornerShape(AppDimens.radiusMedium))
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(text = "🔬", fontSize = 24.sp)
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(AppDimens.paddingLarge))
             Column {
                 Text(
                     text = "专家模式",

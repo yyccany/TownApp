@@ -1,5 +1,7 @@
 package com.example.townapp.ui.components
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,9 +34,9 @@ fun OrdinaryLifeMemorial(
     
     Card(
         modifier = cardModifier,
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(AppDimens.radiusLarge),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF8E7)),
-        elevation = if (onClick != null) CardDefaults.cardElevation(defaultElevation = 4.dp) else CardDefaults.cardElevation(defaultElevation = 0.dp)
+        elevation = if (onClick != null) CardDefaults.cardElevation(defaultElevation = AppDimens.cardElevation) else CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -57,7 +59,7 @@ fun OrdinaryLifeMemorial(
                 }
             }
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
             
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -68,7 +70,7 @@ fun OrdinaryLifeMemorial(
                 StatItem("😴 好觉天数", goodSleepDays.toString())
             }
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
             
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -79,7 +81,7 @@ fun OrdinaryLifeMemorial(
                 StatItem("🏠 居住地点", placesLived.toString())
             }
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
             
             Row(
                 modifier = Modifier.fillMaxWidth(),

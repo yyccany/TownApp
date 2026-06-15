@@ -293,7 +293,7 @@ class TownViewModel(
         _weeklyPlan.value = emptyMap()
         _eveningPlan.value = null
         _gameHour.value = 8
-        _gameDay.value = 1
+        _gameDay.value = 0
         _isEditMode.value = true
         _todayPlanExecuted.value = false
         _isRunning.value = true
@@ -2550,8 +2550,8 @@ class TownViewModel(
     private val _gameHour = MutableStateFlow(8)
     val gameHour: StateFlow<Int> = _gameHour.asStateFlow()
 
-    /** 当前游戏天数 */
-    private val _gameDay = MutableStateFlow(1)
+    /** 当前游戏天数（0=未开局） */
+    private val _gameDay = MutableStateFlow(0)
     val gameDay: StateFlow<Int> = _gameDay.asStateFlow()
 
     /** 当前周计划：每天的计划内容 */
@@ -9496,6 +9496,11 @@ class TownViewModel(
         )
 
         addEventLog("选择了职业：${career.name}，月薪${effect.monthlySalary}元。${if (isRecommended) "系统推荐路线。" else "你选择了自己的路。"}")
+
+        // 未开局状态下选择职业，自动进入第1天
+        if (_gameDay.value == 0) {
+            _gameDay.value = 1
+        }
     }
 
     /** 获取推荐职业路径 */

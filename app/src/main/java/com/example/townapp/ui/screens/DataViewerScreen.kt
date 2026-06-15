@@ -1,5 +1,7 @@
 package com.example.townapp.ui.screens
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -104,7 +106,7 @@ fun FoodDataView(onUse: (Int) -> Unit) {
                     .fillMaxWidth()
                     .padding(8.dp)
                     .clickable { onUse(food.id) },
-                elevation = 4.dp
+                elevation = AppDimens.cardElevation
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
@@ -134,7 +136,7 @@ fun SpaceDataView(onUse: (String) -> Unit) {
                     .fillMaxWidth()
                     .padding(8.dp)
                     .clickable { onUse(space.id) },
-                elevation = 4.dp
+                elevation = AppDimens.cardElevation
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
@@ -163,7 +165,7 @@ fun EventDataView() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp),
-                elevation = 4.dp
+                elevation = AppDimens.cardElevation
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(
@@ -182,7 +184,7 @@ fun EventDataView() {
                             }
                         )
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                     Text(text = event.description, fontSize = 14.sp, color = Color.Gray)
                 }
             }
@@ -206,13 +208,13 @@ fun IdiomDataView() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp),
-                elevation = 4.dp
+                elevation = AppDimens.cardElevation
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(text = idiom.idiom, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(text = "释义: ${idiom.traditionalMeaning}", fontSize = 14.sp, color = Color.Gray)
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                     Text(text = "小镇解读: ${idiom.townPerspective}", fontSize = 14.sp)
                 }
             }
@@ -235,11 +237,11 @@ fun CognitionDataView() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp),
-                elevation = 4.dp
+                elevation = AppDimens.cardElevation
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(text = dissection.title, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                     Text(text = dissection.summary, fontSize = 14.sp, color = Color.Gray)
                 }
             }
@@ -258,7 +260,7 @@ fun TransportDataView() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp),
-                elevation = 4.dp
+                elevation = AppDimens.cardElevation
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(
@@ -269,7 +271,7 @@ fun TransportDataView() {
                         Text(text = vehicle.name, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                         Text(text = "¥${vehicle.costPerKm}/km", fontSize = 14.sp, color = Color.Gray)
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                     Text(text = vehicle.description, fontSize = 14.sp)
                 }
             }
@@ -288,7 +290,7 @@ fun ClothingDataView() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp),
-                elevation = 4.dp
+                elevation = AppDimens.cardElevation
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(text = category.name, fontWeight = FontWeight.Bold, fontSize = 18.sp)

@@ -1,5 +1,7 @@
 package com.example.townapp.ui.screens
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -169,7 +171,7 @@ fun RandomTaskScreen(
                     colors = CardDefaults.cardColors(
                         containerColor = Color(0xFF2D2D44).copy(alpha = 0.5f)
                     ),
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(AppDimens.radiusLarge)
                 ) {
                     Column(
                         modifier = Modifier.padding(16.dp),
@@ -181,7 +183,7 @@ fun RandomTaskScreen(
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFFFFD93D)
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                         Text(
                             text = "没有打卡，没有完成按钮，没有奖励。\n你做了就做了，没做就没做。\n没有人会知道，没有人会评判你。",
                             fontSize = 12.sp,
@@ -254,22 +256,22 @@ private fun TaskDisplay(
             fontSize = 80.sp
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(AppDimens.paddingXXLarge))
 
         // 分类标签
         Surface(
             color = getCategoryColor(task.category).copy(alpha = 0.2f),
-            shape = RoundedCornerShape(20.dp)
+            shape = RoundedCornerShape(AppDimens.radiusXLarge)
         ) {
             Text(
                 text = task.category.displayName,
                 fontSize = 12.sp,
                 color = getCategoryColor(task.category),
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                modifier = Modifier.padding(horizontal = AppDimens.paddingMedium, vertical = 6.dp)
             )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(AppDimens.paddingXXLarge))
 
         // 小事内容
         Card(
@@ -277,7 +279,7 @@ private fun TaskDisplay(
             colors = CardDefaults.cardColors(
                 containerColor = Color(0xFF2D2D44)
             ),
-            shape = RoundedCornerShape(20.dp)
+            shape = RoundedCornerShape(AppDimens.radiusXLarge)
         ) {
             Text(
                 text = task.content,
@@ -290,7 +292,7 @@ private fun TaskDisplay(
             )
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
 
         // 时间和难度提示
         Text(
@@ -304,7 +306,7 @@ private fun TaskDisplay(
         // 按钮组
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(AppDimens.paddingLarge)
         ) {
             // 再来一次
             OutlinedButton(
@@ -321,7 +323,7 @@ private fun TaskDisplay(
                         )
                     )
                 ),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(AppDimens.radiusMedium)
             ) {
                 Text(text = "🎲 再来一次")
             }
@@ -333,13 +335,13 @@ private fun TaskDisplay(
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF4ECDC4)
                 ),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(AppDimens.radiusMedium)
             ) {
                 Text(text = "✨ 知道了")
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
 
         // 温柔提示
         Text(

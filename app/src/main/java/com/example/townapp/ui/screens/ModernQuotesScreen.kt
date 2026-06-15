@@ -1,5 +1,7 @@
 package com.example.townapp.ui.screens
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -157,15 +159,15 @@ fun ModernQuotesScreen(
                     .fillMaxSize()
                     .padding(padding)
                     .background(Color(0xFFF5F5F5)),
-                contentPadding = PaddingValues(16.dp),
+                contentPadding = PaddingValues(AppDimens.paddingLarge),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 item {
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 8.dp),
-                        shape = RoundedCornerShape(16.dp),
+                            .padding(bottom = AppDimens.paddingSmall),
+                        shape = RoundedCornerShape(AppDimens.radiusLarge),
                         colors = CardDefaults.cardColors(containerColor = Color.White)
                     ) {
                         Column(
@@ -173,7 +175,7 @@ fun ModernQuotesScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text("💬", fontSize = 48.sp)
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
                             Text(
                                 "现代清醒语录",
                                 fontSize = 20.sp,
@@ -221,25 +223,25 @@ fun QuoteCategoryHeader(category: String, icon: String, count: Int, color: Color
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .padding(vertical = AppDimens.paddingSmall),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(icon, fontSize = 16.sp)
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
         Box(
             modifier = Modifier
                 .size(8.dp)
                 .clip(RoundedCornerShape(4.dp))
                 .background(color)
         )
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
         Text(
             text = category,
             fontSize = 15.sp,
             fontWeight = FontWeight.Bold,
             color = Color(0xFF333333)
         )
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
         Text(
             text = "${count}条",
             fontSize = 12.sp,
@@ -272,7 +274,7 @@ fun QuoteCard(
                 onClick()
             },
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(AppDimens.radiusMedium),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
@@ -286,7 +288,7 @@ fun QuoteCard(
                 color = Color(0xFF333333),
                 lineHeight = 22.sp
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -299,7 +301,7 @@ fun QuoteCard(
                 ) {
                     Text(quote.categoryIcon, fontSize = 12.sp)
                 }
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                 Text(
                     text = "小镇解读 →",
                     fontSize = 12.sp,
@@ -342,8 +344,8 @@ fun QuoteDetailScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .background(Color(0xFFF5F5F5)),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            contentPadding = PaddingValues(AppDimens.paddingLarge),
+            verticalArrangement = Arrangement.spacedBy(AppDimens.paddingMedium)
         ) {
             item {
                 AnimatedVisibility(
@@ -353,14 +355,14 @@ fun QuoteDetailScreen(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = Color.White),
-                        shape = RoundedCornerShape(20.dp)
+                        shape = RoundedCornerShape(AppDimens.radiusXLarge)
                     ) {
                         Column(
                             modifier = Modifier.padding(24.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(quote.categoryIcon, fontSize = 48.sp)
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
                             Text(
                                 quote.category,
                                 fontSize = 14.sp,
@@ -380,12 +382,12 @@ fun QuoteDetailScreen(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = Color.White),
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(AppDimens.radiusLarge)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text("📝", fontSize = 18.sp)
-                                Spacer(modifier = Modifier.width(8.dp))
+                                Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                                 Text(
                                     "原话",
                                     fontWeight = FontWeight.Bold,
@@ -393,7 +395,7 @@ fun QuoteDetailScreen(
                                     color = Color(0xFF666666)
                                 )
                             }
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                             Text(
                                 quote.original,
                                 fontSize = 15.sp,
@@ -413,12 +415,12 @@ fun QuoteDetailScreen(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = quote.categoryColor.copy(alpha = 0.1f)),
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(AppDimens.radiusLarge)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text("🏘️", fontSize = 18.sp)
-                                Spacer(modifier = Modifier.width(8.dp))
+                                Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                                 Text(
                                     "小镇解读",
                                     fontWeight = FontWeight.Bold,
@@ -426,7 +428,7 @@ fun QuoteDetailScreen(
                                     color = quote.categoryColor
                                 )
                             }
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                             Text(
                                 quote.townInterpretation,
                                 fontSize = 15.sp,
@@ -447,7 +449,7 @@ fun QuoteDetailScreen(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = Color(0xFFF3F4F6)),
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(AppDimens.radiusLarge)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(
@@ -456,7 +458,7 @@ fun QuoteDetailScreen(
                                 fontSize = 14.sp,
                                 color = Color(0xFF666666)
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                             Text(
                                 "小镇不告诉你「你应该怎么想」，只陈述客观事实。你怎么理解，怎么选择，完全由你自己决定。",
                                 fontSize = 14.sp,

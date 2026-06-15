@@ -1,5 +1,7 @@
 package com.example.townapp.ui.components
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -39,7 +41,7 @@ fun SectionTitle(title: String) {
         fontSize = 15.sp,
         fontWeight = FontWeight.Bold,
         color = BrandColors.TextPrimary,
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+        modifier = Modifier.padding(horizontal = AppDimens.paddingLarge, vertical = AppDimens.paddingMedium)
     )
 }
 
@@ -55,7 +57,7 @@ fun InfoRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .padding(vertical = AppDimens.paddingSmall),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(text = label, fontSize = 13.sp, color = BrandColors.TextSecondary)
@@ -76,10 +78,10 @@ fun StatCard(
     Box(
         modifier = modifier
             .padding(4.dp)
-            .shadow(4.dp, RoundedCornerShape(20.dp))
-            .clip(RoundedCornerShape(20.dp))
+            .shadow(4.dp, RoundedCornerShape(AppDimens.radiusXLarge))
+            .clip(RoundedCornerShape(AppDimens.radiusXLarge))
             .background(Color.White)
-            .border(1.dp, BrandColors.CardBorder, RoundedCornerShape(20.dp))
+            .border(1.dp, BrandColors.CardBorder, RoundedCornerShape(AppDimens.radiusXLarge))
             .padding(16.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -139,7 +141,7 @@ fun NutrientProgressBar(
                 modifier = Modifier.fillMaxWidth(progress).height(6.dp).background(color, RoundedCornerShape(3.dp))
             )
         }
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
         Text(text = "${nrvPercent.roundToInt()}% NRV", fontSize = 10.sp, color = BrandColors.TextTertiary)
     }
 }
@@ -191,12 +193,12 @@ fun RiskItem(name: String, level: String, ratio: Double, color: Color, descripti
 fun ScamBreakdownItem(name: String, value: Int, color: Color, description: String) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Box(modifier = Modifier.size(8.dp).clip(RoundedCornerShape(2.dp)).background(color))
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
         Text(text = name, fontSize = 12.sp, color = BrandColors.TextPrimary, modifier = Modifier.weight(1f))
         Text(text = "${value}分", fontSize = 12.sp, color = color, fontWeight = FontWeight.Medium)
     }
     Spacer(modifier = Modifier.height(2.dp))
-    Text(text = description, fontSize = 11.sp, color = BrandColors.TextSecondary, modifier = Modifier.padding(start = 16.dp))
+    Text(text = description, fontSize = 11.sp, color = BrandColors.TextSecondary, modifier = Modifier.padding(start = AppDimens.paddingLarge))
 }
 
 /**
@@ -225,9 +227,9 @@ fun DetailSection(title: String, content: @Composable () -> Unit) {
         Text(
             text = title, fontSize = 16.sp, fontWeight = FontWeight.Bold,
             color = BrandColors.TextPrimary,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+            modifier = Modifier.padding(horizontal = AppDimens.paddingLarge, vertical = AppDimens.paddingMedium)
         )
-        ReportCard(modifier = Modifier.padding(horizontal = 16.dp)) { content() }
+        ReportCard(modifier = Modifier.padding(horizontal = AppDimens.paddingLarge)) { content() }
     }
 }
 
@@ -242,7 +244,7 @@ fun SectionCard(
     content: @Composable () -> Unit
 ) {
     ReportCard(
-        modifier = modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+        modifier = modifier.padding(horizontal = AppDimens.paddingLarge, vertical = 6.dp),
         highlightColor = highlightColor
     ) {
         Text(
@@ -251,7 +253,7 @@ fun SectionCard(
             fontWeight = FontWeight.Bold,
             color = BrandColors.TextPrimary
         )
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
         content()
     }
 }
@@ -267,10 +269,10 @@ fun ReportCard(
 ) {
     Box(
         modifier = modifier
-            .shadow(4.dp, RoundedCornerShape(20.dp))
-            .clip(RoundedCornerShape(20.dp))
+            .shadow(4.dp, RoundedCornerShape(AppDimens.radiusXLarge))
+            .clip(RoundedCornerShape(AppDimens.radiusXLarge))
             .background(Color.White)
-            .border(1.dp, BrandColors.CardBorder, RoundedCornerShape(20.dp))
+            .border(1.dp, BrandColors.CardBorder, RoundedCornerShape(AppDimens.radiusXLarge))
     ) {
         // 渐变高光层（如报告中的 highlight-gradient）
         if (highlightColor != Color.Transparent) {
@@ -306,7 +308,7 @@ fun SettingItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(role = Role.Button) { onClick() }
-            .padding(horizontal = 16.dp, vertical = 14.dp)
+            .padding(horizontal = AppDimens.paddingLarge, vertical = 14.dp)
             .semantics {
                 this.contentDescription = contentDescription
                 role = Role.Button
@@ -359,7 +361,7 @@ fun PrimaryButton(
             disabledContainerColor = BrandColors.Blue.copy(alpha = 0.4f),
             disabledContentColor = Color.White.copy(alpha = 0.6f)
         ),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(AppDimens.radiusMedium),
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 4.dp,
             pressedElevation = 8.dp,
@@ -388,7 +390,7 @@ fun SecondaryButton(
             this.contentDescription = contentDescription
             role = Role.Button
         },
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(AppDimens.radiusMedium),
         colors = ButtonDefaults.outlinedButtonColors(
             contentColor = BrandColors.Blue,
             disabledContentColor = BrandColors.TextTertiary
@@ -428,7 +430,7 @@ fun DimensionCard(
                 this.contentDescription = contentDescription
                 role = Role.Button
             },
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(AppDimens.radiusXLarge),
         colors = CardDefaults.cardColors(
             containerColor = if (isLocked) BrandColors.TagBg else Color.White,
             contentColor = BrandColors.TextPrimary
@@ -446,12 +448,12 @@ fun DimensionCard(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(text = icon, fontSize = 32.sp)
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
             Text(text = name, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = if (isLocked) BrandColors.TextSecondary else BrandColors.TextPrimary)
             Spacer(modifier = Modifier.height(4.dp))
             Text(text = if (isLocked) "即将开放" else desc, fontSize = 12.sp, color = BrandColors.TextSecondary)
             if (!isLocked) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                 Text(text = "$count 件", fontSize = 13.sp, color = color, fontWeight = FontWeight.Bold)
             }
         }

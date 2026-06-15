@@ -1,5 +1,7 @@
 package com.example.townapp.ui.components
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
@@ -463,7 +465,7 @@ fun DiagonalComposition() {
                         .size(60.dp)
                         .background(
                             TownAestheticDesign.ColorPalette.success.copy(alpha = 0.25f),
-                            RoundedCornerShape(12.dp)
+                            RoundedCornerShape(AppDimens.radiusMedium)
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -475,7 +477,7 @@ fun DiagonalComposition() {
                         .size(70.dp)
                         .background(
                             TownAestheticDesign.ColorPalette.accent.copy(alpha = 0.25f),
-                            RoundedCornerShape(12.dp)
+                            RoundedCornerShape(AppDimens.radiusMedium)
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -499,7 +501,7 @@ fun ForegroundComposition() {
         ) {
             Card(
                 modifier = Modifier.size(200.dp),
-                shape = RoundedCornerShape(16.dp)
+                shape = RoundedCornerShape(AppDimens.radiusLarge)
             ) {
                 Box(
                     contentAlignment = Alignment.Center
@@ -566,7 +568,7 @@ fun SymmetricComposition() {
             ) {
                 Card(
                     modifier = Modifier.size(70.dp),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(AppDimens.radiusLarge),
                     colors = CardDefaults.cardColors(containerColor = TownAestheticDesign.ColorPalette.accent.copy(alpha = 0.2f))
                 ) {
                     Box(contentAlignment = Alignment.Center) {
@@ -596,7 +598,7 @@ fun SymmetricComposition() {
             ) {
                 Card(
                     modifier = Modifier.size(70.dp),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(AppDimens.radiusLarge),
                     colors = CardDefaults.cardColors(containerColor = TownAestheticDesign.ColorPalette.accent.copy(alpha = 0.2f))
                 ) {
                     Box(contentAlignment = Alignment.Center) {

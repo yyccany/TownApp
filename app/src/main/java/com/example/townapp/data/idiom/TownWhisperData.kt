@@ -219,77 +219,91 @@ object TownWhisperLibrary {
         )
     )
 
-    // 🌍 世界观
+    // 🌍 世界观 - 小镇的信念
     private val worldviewWhispers = listOf(
         TownWhisper(
             id = "worldview_1",
             type = WhisperType.WORLDVIEW,
-            subtitle = "关于成功",
-            content = "成功没有定义，幸福才是答案",
-            tag = "价值观"
+            subtitle = "小镇宗旨",
+            content = "以人为本，自由、平等、公正",
+            tag = "宗旨"
         ),
         TownWhisper(
             id = "worldview_2",
             type = WhisperType.WORLDVIEW,
-            subtitle = "关于社会",
-            content = "不是所有人都要走同一条路",
-            tag = "多元"
+            subtitle = "关于评判",
+            content = "任何人生选择，不分好坏优劣",
+            tag = "包容"
         ),
         TownWhisper(
             id = "worldview_3",
             type = WhisperType.WORLDVIEW,
-            subtitle = "关于竞争",
-            content = "你不需要赢过所有人",
-            tag = "竞争"
+            subtitle = "关于答案",
+            content = "没有正确答案，没有最优解",
+            tag = "多元"
         ),
         TownWhisper(
             id = "worldview_4",
             type = WhisperType.WORLDVIEW,
-            subtitle = "关于规则",
-            content = "规则是为人服务的，不是人为规则服务",
-            tag = "规则"
+            subtitle = "关于存在",
+            content = "你存在本身就值得",
+            tag = "自我价值"
         ),
         TownWhisper(
             id = "worldview_5",
             type = WhisperType.WORLDVIEW,
-            subtitle = "关于集体",
-            content = "没有个体的幸福，就没有集体的意义",
-            tag = "个体"
+            subtitle = "关于底气",
+            content = "你这样就很好",
+            tag = "接纳"
         ),
         TownWhisper(
             id = "worldview_6",
             type = WhisperType.WORLDVIEW,
-            subtitle = "关于价值",
-            content = "你的价值不需要别人来定义",
-            tag = "自我价值"
+            subtitle = "关于被看见",
+            content = "你不用优秀、不用正确，就足够被看见",
+            tag = "看见"
         ),
         TownWhisper(
             id = "worldview_7",
             type = WhisperType.WORLDVIEW,
-            subtitle = "关于公平",
-            content = "公平不是平均，是机会均等",
-            tag = "公平"
+            subtitle = "关于小镇的承诺",
+            content = "不管你是谁、带着什么来、活成什么样子，我认得你",
+            tag = "承诺"
         ),
         TownWhisper(
             id = "worldview_8",
             type = WhisperType.WORLDVIEW,
-            subtitle = "关于进步",
-            content = "进步不是为了超越别人，是为了成为更好的自己",
-            tag = "成长"
+            subtitle = "关于陪伴",
+            content = "你想来就来，想走就走，小镇永远在原地",
+            tag = "陪伴"
         ),
         TownWhisper(
             id = "worldview_9",
             type = WhisperType.WORLDVIEW,
-            subtitle = "关于财富",
-            content = "钱是工具，不是目的",
-            tag = "金钱"
+            subtitle = "关于比较",
+            content = "你不用比任何人好，你是你自己就够了",
+            tag = "自我"
         ),
         TownWhisper(
             id = "worldview_10",
             type = WhisperType.WORLDVIEW,
-            subtitle = "关于梦想",
-            content = "梦想可以变，方向可以改",
-            tag = "梦想"
+            subtitle = "关于证明",
+            content = "你选什么路、过得好不好，都不用向谁证明",
+            tag = "自由"
+        ),
+        TownWhisper(
+            id = "worldview_11",
+            type = WhisperType.WORLDVIEW,
+            subtitle = "关于选择",
+            content = "不同的选择，对应不同的状态与代价",
+            tag = "选择"
+        ),
+        TownWhisper(
+            id = "worldview_12",
+            type = WhisperType.WORLDVIEW,
+            subtitle = "关于人生",
+            content = "不教你怎么活，只陈述客观事实",
+            tag = "尊重"
         )
     )
 

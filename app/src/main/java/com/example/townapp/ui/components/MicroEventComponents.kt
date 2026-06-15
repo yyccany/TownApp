@@ -1,5 +1,7 @@
 package com.example.townapp.ui.components
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -91,7 +93,7 @@ fun MicroEventBubble(
                     Text(
                         text = event.character.emoji,
                         fontSize = 48.sp,
-                        modifier = Modifier.padding(bottom = 8.dp)
+                        modifier = Modifier.padding(bottom = AppDimens.paddingSmall)
                     )
                     
                     // 角色名称
@@ -99,7 +101,7 @@ fun MicroEventBubble(
                         text = event.character.displayName,
                         fontSize = 14.sp,
                         color = Color.White.copy(alpha = 0.8f),
-                        modifier = Modifier.padding(bottom = 12.dp)
+                        modifier = Modifier.padding(bottom = AppDimens.paddingMedium)
                     )
                     
                     // 内容
@@ -109,10 +111,10 @@ fun MicroEventBubble(
                         color = Color.White,
                         textAlign = TextAlign.Center,
                         lineHeight = 26.sp,
-                        modifier = Modifier.padding(horizontal = 8.dp)
+                        modifier = Modifier.padding(horizontal = AppDimens.paddingSmall)
                     )
                     
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
                     
                     // 轻触关闭提示
                     Text(
@@ -168,7 +170,7 @@ fun NavigationTipBubble(
                 colors = CardDefaults.cardColors(
                     containerColor = Color.Transparent
                 ),
-                shape = RoundedCornerShape(20.dp),
+                shape = RoundedCornerShape(AppDimens.radiusXLarge),
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
                 Column(
@@ -191,7 +193,7 @@ fun NavigationTipBubble(
                         Text(
                             text = tip.character.emoji,
                             fontSize = 36.sp,
-                            modifier = Modifier.padding(end = 12.dp)
+                            modifier = Modifier.padding(end = AppDimens.paddingMedium)
                         )
                         
                         Column {
@@ -212,7 +214,7 @@ fun NavigationTipBubble(
                         }
                     }
                     
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
                     
                     // 内容
                     Text(
@@ -222,7 +224,7 @@ fun NavigationTipBubble(
                         lineHeight = 24.sp
                     )
                     
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(AppDimens.paddingXLarge))
                     
                     // 知道了按钮
                     Button(
@@ -231,7 +233,7 @@ fun NavigationTipBubble(
                         colors = ButtonDefaults.buttonColors(
                             containerColor = getCharacterColor(tip.character)
                         ),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(AppDimens.radiusMedium)
                     ) {
                         Text(
                             text = tip.actionText,
@@ -240,7 +242,7 @@ fun NavigationTipBubble(
                         )
                     }
                     
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                     
                     Text(
                         text = "或轻触任意处关闭",
@@ -364,7 +366,7 @@ fun TownStatusCard(
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFF2D2D44).copy(alpha = 0.9f)
         ),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(AppDimens.radiusLarge)
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -376,7 +378,7 @@ fun TownStatusCard(
                 color = Color.White
             )
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
             
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -428,7 +430,7 @@ fun TownStatusCard(
                 }
             }
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
             
             // 环境状态
             Row(
@@ -462,7 +464,7 @@ fun CharacterSelector(
 ) {
     Row(
         modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(AppDimens.paddingMedium)
     ) {
         TownCharacter.entries.forEach { character ->
             CharacterButton(
@@ -486,7 +488,7 @@ private fun CharacterButton(
         modifier = modifier
             .size(56.dp)
             .clickable { onClick() },
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(AppDimens.radiusLarge),
         color = getCharacterColor(character)
     ) {
         Box(

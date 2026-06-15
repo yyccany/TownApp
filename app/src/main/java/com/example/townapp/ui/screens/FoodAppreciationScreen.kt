@@ -1,5 +1,7 @@
 package com.example.townapp.ui.screens
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
@@ -54,15 +56,15 @@ fun FoodAppreciationScreen(
                     .fillMaxSize()
                     .padding(padding)
                     .background(Color(0xFFFFF8E7)),
-                contentPadding = PaddingValues(16.dp),
+                contentPadding = PaddingValues(AppDimens.paddingLarge),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 item {
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 8.dp),
-                        shape = RoundedCornerShape(16.dp),
+                            .padding(bottom = AppDimens.paddingSmall),
+                        shape = RoundedCornerShape(AppDimens.radiusLarge),
                         colors = CardDefaults.cardColors(containerColor = Color.White)
                     ) {
                         Column(
@@ -70,7 +72,7 @@ fun FoodAppreciationScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text("🍜", fontSize = 48.sp)
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
                             Text(
                                 "美食赏析",
                                 fontSize = 20.sp,
@@ -126,7 +128,7 @@ fun CuisineHeader(cuisine: String, count: Int) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .padding(vertical = AppDimens.paddingSmall),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -135,14 +137,14 @@ fun CuisineHeader(cuisine: String, count: Int) {
                 .clip(RoundedCornerShape(4.dp))
                 .background(color)
         )
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
         Text(
             text = cuisine,
             fontSize = 15.sp,
             fontWeight = FontWeight.Bold,
             color = Color(0xFF5D4E37)
         )
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
         Text(
             text = "${count}道菜",
             fontSize = 12.sp,
@@ -183,7 +185,7 @@ fun FoodCard(
                 onClick()
             },
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(AppDimens.radiusMedium),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
@@ -212,7 +214,7 @@ fun FoodCard(
                     modifier = Modifier
                         .clip(RoundedCornerShape(6.dp))
                         .background(riskColor.copy(alpha = 0.15f))
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                        .padding(horizontal = AppDimens.paddingSmall, vertical = 4.dp)
                 ) {
                     Text(
                         text = getRiskLabel(food.healthRisk),
@@ -229,7 +231,7 @@ fun FoodCard(
                 )
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
             Text("→", fontSize = 16.sp, color = Color(0xFFA0896D))
         }
     }
@@ -291,8 +293,8 @@ fun FoodDetailScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .background(Color(0xFFFFF8E7)),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            contentPadding = PaddingValues(AppDimens.paddingLarge),
+            verticalArrangement = Arrangement.spacedBy(AppDimens.paddingLarge)
         ) {
             // 标题卡片
             item {
@@ -303,14 +305,14 @@ fun FoodDetailScreen(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = Color.White),
-                        shape = RoundedCornerShape(20.dp)
+                        shape = RoundedCornerShape(AppDimens.radiusXLarge)
                     ) {
                         Column(
                             modifier = Modifier.padding(24.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text("🍜", fontSize = 48.sp)
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
                             Text(
                                 food.name,
                                 fontWeight = FontWeight.Bold,
@@ -337,7 +339,7 @@ fun FoodDetailScreen(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = riskColor.copy(alpha = 0.1f)),
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(AppDimens.radiusLarge)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Row(
@@ -358,7 +360,7 @@ fun FoodDetailScreen(
                                     color = riskColor
                                 )
                             }
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                             LinearProgressIndicator(
                                 progress = { (food.nutritionScore.toFloat() / 50f).coerceIn(0f, 1f) },
                                 modifier = Modifier
@@ -368,7 +370,7 @@ fun FoodDetailScreen(
                                 color = riskColor,
                                 trackColor = riskColor.copy(alpha = 0.2f)
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                             Text(
                                 "推荐频率：${food.recommendedFrequency}",
                                 fontSize = 13.sp,
@@ -388,7 +390,7 @@ fun FoodDetailScreen(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9)),
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(AppDimens.radiusLarge)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(
@@ -397,14 +399,14 @@ fun FoodDetailScreen(
                                 fontSize = 14.sp,
                                 color = Color(0xFF2E7D32)
                             )
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
                             
                             NutritionRow("油脂", food.oil, "g", food.oil > 80)
                             NutritionRow("盐分", food.salt, "g", food.salt > 5)
                             NutritionRow("糖分", food.sugar, "g", food.sugar > 20)
                             NutritionRow("胆固醇", food.cholesterol, "mg", food.cholesterol > 150)
                             
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -441,7 +443,7 @@ fun FoodDetailScreen(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF8E1)),
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(AppDimens.radiusLarge)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(
@@ -450,7 +452,7 @@ fun FoodDetailScreen(
                                 fontSize = 14.sp,
                                 color = Color(0xFFF57F17)
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                             Text(
                                 food.description,
                                 fontSize = 14.sp,
@@ -471,7 +473,7 @@ fun FoodDetailScreen(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD)),
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(AppDimens.radiusLarge)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(
@@ -480,7 +482,7 @@ fun FoodDetailScreen(
                                 fontSize = 14.sp,
                                 color = Color(0xFF1565C0)
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                             
                             val advice = when (food.healthRisk) {
                                 "LOW" -> "这道菜营养均衡，可以经常享用。享受美食的同时，也别忘了多样化饮食哦。"
@@ -510,7 +512,7 @@ fun FoodDetailScreen(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = Color(0xFFF3E5F5)),
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(AppDimens.radiusLarge)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(
@@ -519,7 +521,7 @@ fun FoodDetailScreen(
                                 fontSize = 14.sp,
                                 color = Color(0xFF7B1FA2)
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                             Text(
                                 "小镇不告诉你「应该吃什么」或「不应该吃什么」。这些数据只是客观事实，选择权始终在你手中。想吃就吃，不想吃就不吃，都是你的自由。",
                                 fontSize = 14.sp,

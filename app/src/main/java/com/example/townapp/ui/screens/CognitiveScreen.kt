@@ -1,5 +1,7 @@
 package com.example.townapp.ui.screens
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.draw.clip
@@ -29,13 +31,13 @@ fun CognitiveScreen(
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(AppDimens.paddingLarge),
             verticalArrangement = Arrangement.Top
         ) {
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(AppDimens.radiusLarge),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9)),
                     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
@@ -48,7 +50,7 @@ fun CognitiveScreen(
                             textAlign = TextAlign.Center,
                             modifier = Modifier.fillMaxWidth()
                         )
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
                         Text(
                             "在这里，你可以探索不同的认知视角，挑战传统观念，找到属于自己的思考方式。",
                             fontSize = 14.sp,
@@ -61,7 +63,7 @@ fun CognitiveScreen(
                 }
             }
 
-            item { Spacer(modifier = Modifier.height(24.dp)) }
+            item { Spacer(modifier = Modifier.height(AppDimens.paddingXXLarge)) }
 
             item {
                 Text(
@@ -69,15 +71,15 @@ fun CognitiveScreen(
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color(0xFF37474F),
-                    modifier = Modifier.padding(start = 8.dp)
+                    modifier = Modifier.padding(start = AppDimens.paddingSmall)
                 )
             }
 
-            item { Spacer(modifier = Modifier.height(16.dp)) }
+            item { Spacer(modifier = Modifier.height(AppDimens.paddingLarge)) }
 
             item {
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(AppDimens.paddingMedium)
                 ) {
                     NavigationButton(
                         icon = "🔪",
@@ -107,13 +109,13 @@ fun CognitiveScreen(
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(AppDimens.radiusMedium),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
                     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text("💡 自由探索", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF37474F))
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                         Text(
                             "这里没有「必须」和「应该」。你可以随时离开，随时回来。你的时间，由你自己支配。",
                             fontSize = 13.sp,
@@ -140,7 +142,7 @@ fun NavigationButton(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() },
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(AppDimens.radiusLarge),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFF5E6D3)),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -158,7 +160,7 @@ fun NavigationButton(
                 Text(icon, fontSize = 28.sp)
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(AppDimens.paddingLarge))
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(

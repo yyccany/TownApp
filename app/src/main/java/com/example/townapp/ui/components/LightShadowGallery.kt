@@ -1,5 +1,7 @@
 package com.example.townapp.ui.components
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -40,8 +42,8 @@ fun LightShadowGallery() {
             .fillMaxWidth()
             .padding(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        shape = RoundedCornerShape(AppDimens.radiusLarge),
+        elevation = CardDefaults.cardElevation(defaultElevation = AppDimens.cardElevation)
     ) {
         Column(
             modifier = Modifier.padding(24.dp)
@@ -55,7 +57,7 @@ fun LightShadowGallery() {
                     text = "💡",
                     fontSize = 24.sp
                 )
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(AppDimens.paddingMedium))
                 Text(
                     text = "光影魔法师",
                     fontSize = 20.sp,
@@ -64,7 +66,7 @@ fun LightShadowGallery() {
                 )
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
             
             LightShadowPreview(
                 lightDirection = selectedLight,
@@ -72,21 +74,21 @@ fun LightShadowGallery() {
                 animationEnabled = animationEnabled
             )
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
             
             LightDirectionSelector(
                 selected = selectedLight,
                 onSelect = { selectedLight = it }
             )
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
             
             ShadowIntensitySelector(
                 selected = shadowIntensity,
                 onSelect = { shadowIntensity = it }
             )
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
             
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -101,7 +103,7 @@ fun LightShadowGallery() {
                         checkedTrackColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.3f)
                     )
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                 Text(
                     text = "动态光影",
                     fontSize = 14.sp,
@@ -109,7 +111,7 @@ fun LightShadowGallery() {
                 )
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
             
             LightShadowDescription(selectedLight, shadowIntensity)
         }
@@ -155,7 +157,7 @@ fun LightShadowPreview(
             .fillMaxWidth()
             .height(280.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(AppDimens.radiusMedium)
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -414,7 +416,7 @@ fun LightDirectionSelector(
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = AppDimens.paddingSmall)
             )
             
             Column(
@@ -507,8 +509,8 @@ fun LightButton(
     Card(
         modifier = Modifier
             .size(48.dp),
-        shape = RoundedCornerShape(12.dp),
-        elevation = if (selected) CardDefaults.cardElevation(defaultElevation = 4.dp) else CardDefaults.cardElevation(defaultElevation = 0.dp),
+        shape = RoundedCornerShape(AppDimens.radiusMedium),
+        elevation = if (selected) CardDefaults.cardElevation(defaultElevation = AppDimens.cardElevation) else CardDefaults.cardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (selected) 
                 MaterialTheme.colorScheme.secondary 
@@ -550,7 +552,7 @@ fun ShadowIntensitySelector(
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = AppDimens.paddingSmall)
             )
             
             Row(
@@ -589,8 +591,8 @@ fun ShadowIntensityButton(
             else 
                 MaterialTheme.colorScheme.surface
         ),
-        shape = RoundedCornerShape(12.dp),
-        elevation = if (selected) CardDefaults.cardElevation(defaultElevation = 4.dp) else CardDefaults.cardElevation(defaultElevation = 0.dp)
+        shape = RoundedCornerShape(AppDimens.radiusMedium),
+        elevation = if (selected) CardDefaults.cardElevation(defaultElevation = AppDimens.cardElevation) else CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
             modifier = Modifier
@@ -651,7 +653,7 @@ fun LightShadowDescription(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF8E1)),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(AppDimens.radiusMedium)
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -663,7 +665,7 @@ fun LightShadowDescription(
                     text = "✨",
                     fontSize = 18.sp
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                 Text(
                     text = "$lightDescription + $shadowDescription",
                     fontSize = 14.sp,
@@ -672,7 +674,7 @@ fun LightShadowDescription(
                 )
             }
             
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
             
             Text(
                 text = "光影技巧小贴士",

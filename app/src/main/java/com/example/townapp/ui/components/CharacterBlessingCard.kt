@@ -1,5 +1,7 @@
 package com.example.townapp.ui.components
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -58,8 +60,8 @@ fun CharacterBlessingCard(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clip(RoundedCornerShape(16.dp))
+            .padding(horizontal = AppDimens.paddingLarge, vertical = AppDimens.paddingSmall)
+            .clip(RoundedCornerShape(AppDimens.radiusLarge))
             .background(
                 brush = Brush.linearGradient(
                     colors = listOf(
@@ -68,7 +70,7 @@ fun CharacterBlessingCard(
                     )
                 )
             )
-            .border(1.5.dp, themeColor.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+            .border(1.5.dp, themeColor.copy(alpha = 0.5f), RoundedCornerShape(AppDimens.radiusLarge))
             .clickable(role = Role.Button) { onClick() }
             .padding(16.dp)
             .semantics {
@@ -80,7 +82,7 @@ fun CharacterBlessingCard(
             // 顶部类型标签
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = AppDimens.paddingSmall)
             ) {
                 Text(text = typeIcon, fontSize = 16.sp)
                 Spacer(modifier = Modifier.width(6.dp))
@@ -95,7 +97,7 @@ fun CharacterBlessingCard(
             // 祝福主体
             Row(verticalAlignment = Alignment.Top) {
                 Text(text = blessing.characterEmoji, fontSize = 40.sp)
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(AppDimens.paddingMedium))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = blessing.characterName,
@@ -117,7 +119,7 @@ fun CharacterBlessingCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 12.dp),
+                    .padding(top = AppDimens.paddingMedium),
                 horizontalArrangement = Arrangement.End
             ) {
                 TextButton(
@@ -172,8 +174,8 @@ fun AnniversaryInfoCard(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp)
-            .clip(RoundedCornerShape(12.dp))
+            .padding(horizontal = AppDimens.paddingLarge, vertical = 4.dp)
+            .clip(RoundedCornerShape(AppDimens.radiusMedium))
             .background(
                 brush = Brush.linearGradient(
                     colors = listOf(

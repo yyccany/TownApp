@@ -1,5 +1,7 @@
 package com.example.townapp.ui.screens
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -137,7 +139,7 @@ fun SimulationScreen(
             // 角色信息卡片
             CharacterInfoCard(player)
 
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
+            Divider(modifier = Modifier.padding(vertical = AppDimens.paddingSmall))
 
             // 状态面板
             StatePanel(
@@ -172,7 +174,7 @@ fun SimulationScreen(
             AssetPanel(player)
             SpacePanel(spaceState)
 
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
+            Divider(modifier = Modifier.padding(vertical = AppDimens.paddingSmall))
 
             // 行为按钮网格
             ActionButtonsGrid(
@@ -253,14 +255,14 @@ fun SimulationScreen(
                         .fillMaxWidth()
                         .padding(16.dp),
                     backgroundColor = AppColors.Success,
-                    shape = RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(AppDimens.radiusSmall)
                 ) {
                     Row(
                         modifier = Modifier.padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color.White)
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                         Text(actionResult, color = Color.White, modifier = Modifier.weight(1f))
                         IconButton(onClick = { vm.clearActionResult() }) {
                             Icon(Icons.Default.Close, contentDescription = "关闭", tint = Color.White)
@@ -295,11 +297,11 @@ fun SetupScreen(
         Spacer(modifier = Modifier.height(32.dp))
         
         Text("选择你的人生", fontSize = 28.sp, fontWeight = FontWeight.Bold)
-        Text("每个人都在过自己的日子。有些被看见了，有些安静发生着。", fontSize = 14.sp, color = Color.Gray, modifier = Modifier.padding(bottom = 24.dp))
+        Text("每个人都在过自己的日子。有些被看见了，有些安静发生着。", fontSize = 14.sp, color = Color.Gray, modifier = Modifier.padding(bottom = AppDimens.paddingXXLarge))
         
         // 人生路径选择
         Text("1. 选择人生路径", fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.Start))
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
         
         mainPaths.forEach { path ->
             LifePathCard(
@@ -307,16 +309,16 @@ fun SetupScreen(
                 isSelected = selectedLifePath.id == path.id,
                 onSelect = { onLifePathChange(path) }
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
         }
         
         // 特殊路径（可选展开）
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { showSpecial.value = !showSpecial.value }
-                .padding(vertical = 8.dp),
+                .padding(vertical = AppDimens.paddingSmall),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
@@ -334,15 +336,15 @@ fun SetupScreen(
                     isSelected = selectedLifePath.id == path.id,
                     onSelect = { onLifePathChange(path) }
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
             }
         }
         
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(AppDimens.paddingXXLarge))
         
         // 年龄选择
         Text("2. 选择年龄", fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.Start))
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
         
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -357,7 +359,7 @@ fun SetupScreen(
             }
         }
         
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
         Text(
             when {
                 selectedAge == 20 -> "🎓 刚步入社会，充满理想"
@@ -377,7 +379,7 @@ fun SetupScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(AppDimens.radiusMedium)
         ) {
             Text("开始人生模拟", fontSize = 18.sp)
         }
@@ -398,7 +400,7 @@ fun LifePathCard(
             .clickable { onSelect() },
         backgroundColor = if (isSelected) AppColors.SelectedBackground else Color.White,
         elevation = if (isSelected) 4.dp else 1.dp,
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(AppDimens.radiusMedium)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -423,7 +425,7 @@ fun LifePathCard(
                 fontWeight = FontWeight.Medium
             )
             
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
             Text(
                 path.sceneDescription.take(60) + "...",
                 fontSize = 12.sp,
@@ -438,12 +440,12 @@ fun LifePathCard(
 fun AgeChip(ageValue: Int, isSelected: Boolean, onSelect: () -> Unit) {
     Surface(
         modifier = Modifier.clickable { onSelect() },
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(AppDimens.radiusXLarge),
         color = if (isSelected) MaterialTheme.colors.primary else Color.LightGray.copy(alpha = 0.3f)
     ) {
         Text(
             "${ageValue}岁",
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            modifier = Modifier.padding(horizontal = AppDimens.paddingLarge, vertical = AppDimens.paddingSmall),
             color = if (isSelected) Color.White else Color.Black,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
         )
@@ -459,7 +461,7 @@ fun CharacterInfoCard(player: PlayerState) {
             .fillMaxWidth()
             .padding(8.dp),
         backgroundColor = AppColors.SurfaceVariant,
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(AppDimens.radiusMedium)
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
@@ -475,7 +477,7 @@ fun CharacterInfoCard(player: PlayerState) {
                 },
                 fontSize = 32.sp
             )
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(AppDimens.paddingMedium))
             Column {
                 Text(
                     "${career?.name ?: "未知职业"} · ${player.age}岁",
@@ -494,14 +496,14 @@ fun CharacterInfoCard(player: PlayerState) {
 
 @Composable
 fun StatePanel(title: String, icon: androidx.compose.ui.graphics.vector.ImageVector, items: List<Pair<String, Double>>) {
-    Card(modifier = Modifier.fillMaxWidth().padding(8.dp), elevation = 2.dp, shape = RoundedCornerShape(12.dp)) {
+    Card(modifier = Modifier.fillMaxWidth().padding(8.dp), elevation = 2.dp, shape = RoundedCornerShape(AppDimens.radiusMedium)) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(icon, contentDescription = title, tint = MaterialTheme.colors.primary)
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                 Text(title, fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
             Column {
                 items.forEach { (label, value) ->
                     Row(
@@ -518,7 +520,7 @@ fun StatePanel(title: String, icon: androidx.compose.ui.graphics.vector.ImageVec
                         )
                         Text(String.format("%.0f", value), fontSize = 14.sp, modifier = Modifier.width(30.dp), textAlign = TextAlign.End)
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                 }
             }
         }
@@ -535,21 +537,21 @@ fun getProgressColor(value: Double): Color {
 
 @Composable
 fun AssetPanel(player: PlayerState) {
-    Card(modifier = Modifier.fillMaxWidth().padding(8.dp), elevation = 2.dp, shape = RoundedCornerShape(12.dp)) {
+    Card(modifier = Modifier.fillMaxWidth().padding(8.dp), elevation = 2.dp, shape = RoundedCornerShape(AppDimens.radiusMedium)) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.AccountBox, contentDescription = "资产", tint = MaterialTheme.colors.primary)
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                 Text("资产状态", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
                 AssetItem("余额", "¥${String.format("%.0f", player.money)}", Icons.Default.ShoppingCart)
                 AssetItem("技能", "${player.skillLevel.toInt()}", Icons.Default.Star)
                 AssetItem("压力", "${player.generationalPressure.toInt()}", Icons.Default.Warning)
             }
             if (player.housingDebt > 0) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                 Text("房贷: ¥${String.format("%.0f", player.housingDebt)}", color = Color.Red, fontSize = 12.sp, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
             }
         }
@@ -567,14 +569,14 @@ fun AssetItem(label: String, value: String, icon: androidx.compose.ui.graphics.v
 
 @Composable
 fun SpacePanel(spaceState: SpaceState) {
-    Card(modifier = Modifier.fillMaxWidth().padding(8.dp), elevation = 2.dp, shape = RoundedCornerShape(12.dp)) {
+    Card(modifier = Modifier.fillMaxWidth().padding(8.dp), elevation = 2.dp, shape = RoundedCornerShape(AppDimens.radiusMedium)) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.Home, contentDescription = "空间", tint = MaterialTheme.colors.primary)
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                 Text("居住环境", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
                 SpaceItem("采光", spaceState.light)
                 SpaceItem("噪音", 100 - spaceState.noise)
@@ -635,7 +637,7 @@ fun ActionButtonsGrid(
     var durationOptions by remember { mutableStateOf(listOf(1, 2, 4, 8)) }
 
     Column(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
-        Text("日常行为", fontWeight = FontWeight.Bold, fontSize = 16.sp, modifier = Modifier.padding(bottom = 8.dp))
+        Text("日常行为", fontWeight = FontWeight.Bold, fontSize = 16.sp, modifier = Modifier.padding(bottom = AppDimens.paddingSmall))
 
         // 第一行：基本生存
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
@@ -644,7 +646,7 @@ fun ActionButtonsGrid(
             ActionButtonSim("💼", "工作", onClick = { durationCallback = onWork; durationOptions = listOf(2, 4, 6, 8); showDurationDialog = true })
             ActionButtonSim("📚", "学习", onClick = { durationCallback = onStudy; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true })
         }
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
 
         // 第二行：身心健康
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
@@ -653,7 +655,7 @@ fun ActionButtonsGrid(
             ActionButtonSim("🏃", "运动", onClick = { durationCallback = onExercise; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true })
             ActionButtonSim("👥", "社交", onClick = { durationCallback = onSocialize; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true })
         }
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
 
         // 第三行：生活娱乐
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
@@ -662,7 +664,7 @@ fun ActionButtonsGrid(
             ActionButtonSim("🍳", "烹饪", onClick = { durationCallback = onCook; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true })
             ActionButtonSim("🧹", "整理", onClick = { durationCallback = onOrganize; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true })
         }
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
 
         // 第四行：休闲与经济
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
@@ -671,7 +673,7 @@ fun ActionButtonsGrid(
             ActionButtonSim("🌱", "植物", onClick = onTendPlant)
             ActionButtonSim("📝", "日记", onClick = { durationCallback = onJournal; durationOptions = listOf(10, 20, 30, 60); showDurationDialog = true })
         }
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
 
         // 第五行：其他
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
@@ -699,7 +701,7 @@ fun ActionButtonSim(emoji: String, label: String, onClick: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Surface(
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(AppDimens.radiusMedium),
             color = AppColors.SurfaceVariant,
             modifier = Modifier.size(56.dp)
         ) {
@@ -771,11 +773,11 @@ fun FastForwardButtons(onFastForward: (Int) -> Unit) {
         onClick = { showDialog = true },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = AppDimens.paddingLarge, vertical = AppDimens.paddingSmall),
         colors = ButtonDefaults.buttonColors(backgroundColor = AppColors.PrimaryBlue)
     ) {
         Icon(Icons.Default.DateRange, contentDescription = null)
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
         Text("快进时间", color = Color.White)
     }
 }
@@ -808,14 +810,14 @@ fun FoodSelectorDialog(
                     modifier = Modifier.fillMaxWidth(),
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) }
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                 Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
                     FilterChip("全部", selectedCategory.value == null) { selectedCategory.value = null }
                     categories.forEach { category ->
                         FilterChip(category, selectedCategory.value == category) { selectedCategory.value = category }
                     }
                 }
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                 Box(modifier = Modifier.height(300.dp)) {
                     LazyColumn {
                         items(filteredFoods) { food ->
@@ -838,12 +840,12 @@ fun FilterChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
         modifier = Modifier
             .padding(4.dp)
             .clickable { onClick() },
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(AppDimens.radiusLarge),
         color = if (isSelected) MaterialTheme.colors.primary else Color.LightGray.copy(alpha = 0.3f)
     ) {
         Text(
             label,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            modifier = Modifier.padding(horizontal = AppDimens.paddingMedium, vertical = 6.dp),
             color = if (isSelected) Color.White else Color.Black,
             fontSize = 12.sp
         )
@@ -877,7 +879,7 @@ fun SpaceSelectorDialog(
         title = { Text("选择居住空间") },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
-                Text("当前余额: ¥${String.format("%.2f", currentMoney)}", modifier = Modifier.padding(bottom = 8.dp))
+                Text("当前余额: ¥${String.format("%.2f", currentMoney)}", modifier = Modifier.padding(bottom = AppDimens.paddingSmall))
                 Box(modifier = Modifier.height(300.dp)) {
                     LazyColumn {
                         items(spaces) { space ->
@@ -977,14 +979,14 @@ fun CharacterDetailDialog(player: PlayerState, onDismiss: () -> Unit) {
                     },
                     fontSize = 32.sp
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                 Text("${career?.name ?: "未知职业"}档案")
             }
         },
         text = {
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                 Text(career?.description ?: "", fontSize = 14.sp, color = Color.Gray)
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
                 
                 DetailItem("路线", career?.pathType?.label ?: "未知")
                 DetailItem("年龄", "${player.age}岁")
@@ -1032,8 +1034,8 @@ fun DailyEventsPanel(
             .fillMaxWidth()
             .padding(8.dp),
         backgroundColor = AppColors.WarningBackground,
-        elevation = 4.dp,
-        shape = RoundedCornerShape(12.dp)
+        elevation = AppDimens.cardElevation,
+        shape = RoundedCornerShape(AppDimens.radiusMedium)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -1043,7 +1045,7 @@ fun DailyEventsPanel(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("✨", fontSize = 20.sp)
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                     Text("今日发生的事", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
                 TextButton(onClick = onDismiss) {
@@ -1051,7 +1053,7 @@ fun DailyEventsPanel(
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
 
             events.forEach { event ->
                 val isIdiom = event.contains("成语")
@@ -1079,7 +1081,7 @@ fun DailyEventsPanel(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 4.dp),
-                    shape = RoundedCornerShape(8.dp),
+                    shape = RoundedCornerShape(AppDimens.radiusSmall),
                     color = bgColor
                 ) {
                     Row(
@@ -1087,7 +1089,7 @@ fun DailyEventsPanel(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(icon, fontSize = 20.sp)
-                        Spacer(modifier = Modifier.width(12.dp))
+                        Spacer(modifier = Modifier.width(AppDimens.paddingMedium))
                         Text(
                             event,
                             fontSize = 14.sp,

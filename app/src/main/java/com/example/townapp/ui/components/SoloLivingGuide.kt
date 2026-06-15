@@ -1,5 +1,7 @@
 package com.example.townapp.ui.components
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.graphics.graphicsLayer
@@ -67,8 +69,8 @@ fun SoloLivingGuide() {
             .fillMaxSize()
             .background(Color(0xFFF5F5F5))
             .graphicsLayer { clip = true },
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        contentPadding = PaddingValues(AppDimens.paddingLarge),
+        verticalArrangement = Arrangement.spacedBy(AppDimens.paddingLarge)
     ) {
         item {
             WelcomeCard()
@@ -108,7 +110,7 @@ fun WelcomeCard() {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color(0x153498DB)),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(AppDimens.radiusLarge)
     ) {
         Column(
             modifier = Modifier.padding(20.dp)
@@ -117,7 +119,7 @@ fun WelcomeCard() {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text("🌱", fontSize = 28.sp)
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(AppDimens.paddingMedium))
                 Text(
                     "独居青年正向引导",
                     fontSize = 20.sp,
@@ -126,7 +128,7 @@ fun WelcomeCard() {
                 )
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
             
             Text(
                 "独居不是缺陷，是一种选择。一个人生活，也可以过得很好，很精彩，很有尊严。你不需要别人来拯救你，你自己就是自己的英雄。",
@@ -135,7 +137,7 @@ fun WelcomeCard() {
                 lineHeight = 24.sp
             )
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
             
             Text(
                 "我们不会把奶嘴从你嘴里抢走，然后说'你不许哭'。我们会给你提供同样满足你需求，但更健康、更持久、更有价值的替代方案。",
@@ -154,7 +156,7 @@ fun StageSelector(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(AppDimens.radiusLarge)
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -166,7 +168,7 @@ fun StageSelector(
                 color = Color(0xFF3498DB)
             )
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
             
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -192,8 +194,8 @@ fun StageButton(
 ) {
     Card(
         modifier = Modifier.clickable(onClick = onClick),
-        shape = RoundedCornerShape(12.dp),
-        elevation = if (isSelected) CardDefaults.cardElevation(defaultElevation = 4.dp) else CardDefaults.cardElevation(defaultElevation = 1.dp),
+        shape = RoundedCornerShape(AppDimens.radiusMedium),
+        elevation = if (isSelected) CardDefaults.cardElevation(defaultElevation = AppDimens.cardElevation) else CardDefaults.cardElevation(defaultElevation = 1.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (isSelected) 
                 Color(0xFF3498DB) 
@@ -258,7 +260,7 @@ fun StageContent(
 fun AcceptanceContent() {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(AppDimens.radiusLarge)
     ) {
         Column(
             modifier = Modifier.padding(20.dp)
@@ -267,7 +269,7 @@ fun AcceptanceContent() {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text("💚", fontSize = 24.sp)
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(AppDimens.paddingMedium))
                 Text(
                     "接纳期：0-30天",
                     fontSize = 18.sp,
@@ -276,7 +278,7 @@ fun AcceptanceContent() {
                 )
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
             
             Text(
                 "你不需要立刻戒掉所有的赛博奶嘴，也不需要立刻变成完美的人。我们唯一的要求是：每天刷Doro/短视频/直播的时间，减少10分钟。",
@@ -285,7 +287,7 @@ fun AcceptanceContent() {
                 lineHeight = 24.sp
             )
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
             
             InfoBox(
                 icon = "💡",
@@ -293,7 +295,7 @@ fun AcceptanceContent() {
                 content = "减少10分钟虚拟内容时间。哪怕只有10分钟，也是值得庆祝的改变。"
             )
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
             
             InfoBox(
                 icon = "🏆",
@@ -317,12 +319,12 @@ fun ExperimentContent(
     onShortVideoAlternativeChange: (Int) -> Unit
 ) {
     Column(
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(AppDimens.paddingLarge)
     ) {
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = Color(0x0A27AE60)),
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(AppDimens.radiusLarge)
         ) {
             Column(
                 modifier = Modifier.padding(20.dp)
@@ -331,7 +333,7 @@ fun ExperimentContent(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text("🔬", fontSize = 24.sp)
-                    Spacer(modifier = Modifier.width(12.dp))
+                    Spacer(modifier = Modifier.width(AppDimens.paddingMedium))
                     Text(
                         "尝试期：30-90天",
                         fontSize = 18.sp,
@@ -340,7 +342,7 @@ fun ExperimentContent(
                     )
                 }
                 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
                 
                 Text(
                     "选择一个替代方案，每天坚持10分钟。从最简单的开始，慢慢找到真正适合你的。",
@@ -387,7 +389,7 @@ fun AlternativeSelector(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(AppDimens.radiusLarge)
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -399,7 +401,7 @@ fun AlternativeSelector(
                 color = Color(0xFF3498DB)
             )
             
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
             
             Text(
                 subtitle,
@@ -407,10 +409,10 @@ fun AlternativeSelector(
                 color = Color(0xFF555555)
             )
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
             
             Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(AppDimens.paddingSmall)
             ) {
                 options.forEachIndexed { index, option ->
                     AlternativeCard(
@@ -434,8 +436,8 @@ fun AlternativeCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(12.dp),
-        elevation = if (isSelected) CardDefaults.cardElevation(defaultElevation = 4.dp) else CardDefaults.cardElevation(defaultElevation = 1.dp),
+        shape = RoundedCornerShape(AppDimens.radiusMedium),
+        elevation = if (isSelected) CardDefaults.cardElevation(defaultElevation = AppDimens.cardElevation) else CardDefaults.cardElevation(defaultElevation = 1.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (isSelected) Color(0x153498DB) else MaterialTheme.colorScheme.surface
         )
@@ -446,7 +448,7 @@ fun AlternativeCard(
         ) {
             Text(option.icon, fontSize = 28.sp)
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(AppDimens.paddingMedium))
 
             Column(
                 modifier = Modifier.weight(1f)
@@ -461,7 +463,7 @@ fun AlternativeCard(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(AppDimens.paddingMedium)
                 ) {
                     InfoChip("💰", option.cost)
                     InfoChip("⏱️", option.timePerDay)
@@ -473,14 +475,14 @@ fun AlternativeCard(
                 colors = CardDefaults.cardColors(
                     containerColor = Color(0xFF6B7280)
                 ),
-                shape = RoundedCornerShape(8.dp)
+                shape = RoundedCornerShape(AppDimens.radiusSmall)
             ) {
                 Text(
                     "数值 ${option.valueDensity}",
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    modifier = Modifier.padding(horizontal = AppDimens.paddingSmall, vertical = 4.dp)
                 )
             }
         }
@@ -505,7 +507,7 @@ fun InfoChip(icon: String, text: String) {
 fun GrowthContent() {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(AppDimens.radiusLarge)
     ) {
         Column(
             modifier = Modifier.padding(20.dp)
@@ -514,7 +516,7 @@ fun GrowthContent() {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text("🌱", fontSize = 24.sp)
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(AppDimens.paddingMedium))
                 Text(
                     "成长期：90-180天",
                     fontSize = 18.sp,
@@ -523,7 +525,7 @@ fun GrowthContent() {
                 )
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
             
             Text(
                 "每天完成3件微小但确定的小事。建立稳定的生活习惯，重新获得对生活的掌控感。",
@@ -532,7 +534,7 @@ fun GrowthContent() {
                 lineHeight = 24.sp
             )
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
             
             DailyTaskList()
         }
@@ -553,7 +555,7 @@ fun DailyTaskList() {
     
     Card(
         colors = CardDefaults.cardColors(containerColor = Color(0x0AF39C12)),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(AppDimens.radiusMedium)
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -565,7 +567,7 @@ fun DailyTaskList() {
                 color = Color(0xFFF39C12)
             )
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
             
             tasks.take(3).forEach { task ->
                 Row(
@@ -579,7 +581,7 @@ fun DailyTaskList() {
                             checkedColor = Color(0xFF27AE60)
                         )
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                     Text(
                         task,
                         fontSize = 14.sp,
@@ -588,7 +590,7 @@ fun DailyTaskList() {
                 }
             }
             
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
             
             Text(
                 "每完成一件小事，获得5点觉醒值，2点幸福度。",
@@ -604,7 +606,7 @@ fun AwakeningContent() {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color(0x10F1C40F)),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(AppDimens.radiusLarge)
     ) {
         Column(
             modifier = Modifier.padding(20.dp)
@@ -613,7 +615,7 @@ fun AwakeningContent() {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text("✨", fontSize = 24.sp)
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(AppDimens.paddingMedium))
                 Text(
                     "觉醒期：180天以上",
                     fontSize = 18.sp,
@@ -622,7 +624,7 @@ fun AwakeningContent() {
                 )
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
             
             Text(
                 "找到自己真正热爱的事情，实现自我价值。这时候，虚拟世界对你来说，只是娱乐，不再是逃避。",
@@ -631,7 +633,7 @@ fun AwakeningContent() {
                 lineHeight = 24.sp
             )
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
             
             InfoBox(
                 icon = "🎨",
@@ -646,7 +648,7 @@ fun AwakeningContent() {
 fun SoloAestheticPrinciplesCard() {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(AppDimens.radiusLarge)
     ) {
         Column(
             modifier = Modifier.padding(20.dp)
@@ -655,7 +657,7 @@ fun SoloAestheticPrinciplesCard() {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text("🎨", fontSize = 24.sp)
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(AppDimens.paddingMedium))
                 Text(
                     "独居审美三原则",
                     fontSize = 18.sp,
@@ -664,7 +666,7 @@ fun SoloAestheticPrinciplesCard() {
                 )
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
             
             AestheticPrincipleItem(
                 number = "1",
@@ -692,7 +694,7 @@ fun AestheticPrincipleItem(number: String, title: String, description: String) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color(0x083498DB)),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(AppDimens.radiusMedium)
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
@@ -700,18 +702,18 @@ fun AestheticPrincipleItem(number: String, title: String, description: String) {
         ) {
             Card(
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF3498DB)),
-                shape = RoundedCornerShape(8.dp)
+                shape = RoundedCornerShape(AppDimens.radiusSmall)
             ) {
                 Text(
                     number,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    modifier = Modifier.padding(horizontal = AppDimens.paddingSmall, vertical = 4.dp)
                 )
             }
             
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(AppDimens.paddingMedium))
             
             Column {
                 Text(
@@ -737,7 +739,7 @@ fun RealLifeExamplesCard() {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color(0x0827AE60)),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(AppDimens.radiusLarge)
     ) {
         Column(
             modifier = Modifier.padding(20.dp)
@@ -746,7 +748,7 @@ fun RealLifeExamplesCard() {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text("🌟", fontSize = 24.sp)
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(AppDimens.paddingMedium))
                 Text(
                     "真实的例子",
                     fontSize = 18.sp,
@@ -755,7 +757,7 @@ fun RealLifeExamplesCard() {
                 )
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
             
             InfoBox(
                 icon = "🐱",
@@ -763,7 +765,7 @@ fun RealLifeExamplesCard() {
                 content = "每天下班，都会去喂楼下的流浪猫。现在，它们看到我就会过来蹭我的腿。这种被需要的感觉，比什么都真实。"
             )
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
             
             InfoBox(
                 icon = "🌱",
@@ -771,7 +773,7 @@ fun RealLifeExamplesCard() {
                 content = "从一盆绿萝开始，现在家里有了10盆。看着它们长出新叶子，那种成就感是刷短视频永远给不了的。"
             )
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
             
             InfoBox(
                 icon = "✍️",
@@ -788,7 +790,7 @@ fun InfoBox(icon: String, title: String, content: String) {
         verticalAlignment = Alignment.Top
     ) {
         Text(icon, fontSize = 24.sp)
-        Spacer(modifier = Modifier.width(12.dp))
+        Spacer(modifier = Modifier.width(AppDimens.paddingMedium))
         Column {
             Text(
                 title,

@@ -1,5 +1,7 @@
 package com.example.townapp.ui.screens
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -51,13 +53,13 @@ fun SettingsScreen(
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = AppColors.TextDark,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                    modifier = Modifier.padding(horizontal = AppDimens.paddingLarge, vertical = AppDimens.paddingMedium)
                 )
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    shape = RoundedCornerShape(12.dp),
+                        .padding(horizontal = AppDimens.paddingLarge),
+                    shape = RoundedCornerShape(AppDimens.radiusMedium),
                     colors = CardDefaults.cardColors(containerColor = AppColors.SuccessBackground),
                     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
@@ -74,7 +76,7 @@ fun SettingsScreen(
                         ) {
                             Text("🌱", fontSize = 24.sp)
                         }
-                        Spacer(modifier = Modifier.width(12.dp))
+                        Spacer(modifier = Modifier.width(AppDimens.paddingMedium))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "当前运行模式",
@@ -91,7 +93,7 @@ fun SettingsScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingXXLarge))
 
                 // 🏠 平凡生活纪念馆
                 Text(
@@ -99,7 +101,7 @@ fun SettingsScreen(
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = AppColors.TextDark,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                    modifier = Modifier.padding(horizontal = AppDimens.paddingLarge, vertical = AppDimens.paddingMedium)
                 )
                 val mealCount by viewModel.memorialMealCount.collectAsState()
                 val instantNoodleCount by viewModel.memorialInstantNoodleCount.collectAsState()
@@ -118,10 +120,10 @@ fun SettingsScreen(
                     moneyDelta = moneyDelta,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
+                        .padding(horizontal = AppDimens.paddingLarge)
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingXXLarge))
 
                 // 后台面板入口
                 Text(
@@ -129,14 +131,14 @@ fun SettingsScreen(
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = AppColors.TextDark,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                    modifier = Modifier.padding(horizontal = AppDimens.paddingLarge, vertical = AppDimens.paddingMedium)
                 )
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
+                        .padding(horizontal = AppDimens.paddingLarge)
                         .clickable { onNavigateToAdminPanel() },
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(AppDimens.radiusMedium),
                     colors = CardDefaults.cardColors(containerColor = AppColors.LightOrangeBackground),
                     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
@@ -153,7 +155,7 @@ fun SettingsScreen(
                         ) {
                             Text("⚙️", fontSize = 24.sp)
                         }
-                        Spacer(modifier = Modifier.width(12.dp))
+                        Spacer(modifier = Modifier.width(AppDimens.paddingMedium))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "后台隐藏面板",
@@ -171,7 +173,7 @@ fun SettingsScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingXXLarge))
 
                 // 世界观可折叠卡片
                 var expandWorldView by remember { mutableStateOf(false) }
@@ -181,13 +183,13 @@ fun SettingsScreen(
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = AppColors.TextDark,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                    modifier = Modifier.padding(horizontal = AppDimens.paddingLarge, vertical = AppDimens.paddingMedium)
                 )
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    shape = RoundedCornerShape(12.dp),
+                        .padding(horizontal = AppDimens.paddingLarge),
+                    shape = RoundedCornerShape(AppDimens.radiusMedium),
                     border = BorderStroke(1.dp, AppColors.BorderLight),
                     colors = CardDefaults.cardColors(containerColor = AppColors.OffWhiteBackground)
                 ) {
@@ -216,7 +218,7 @@ fun SettingsScreen(
                         
                         // 展开内容
                         if (expandWorldView) {
-                            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                            Column(modifier = Modifier.padding(horizontal = AppDimens.paddingLarge)) {
                                 // 核心宗旨
                                 Text(
                                     text = "小镇宗旨",
@@ -225,11 +227,11 @@ fun SettingsScreen(
                                     color = AppColors.WarmBrown
                                 )
                                 Text(
-                                    text = "以人为本，自由、平等、公正、法制。不教你怎么活，只陈述客观事实。",
+                                    text = "以人为本，自由、平等、公正。不教你怎么活，只陈述客观事实，看见个体闪光点。",
                                     fontSize = 14.sp,
                                     color = AppColors.TextSecondary,
                                     lineHeight = 20.sp,
-                                    modifier = Modifier.padding(vertical = 8.dp)
+                                    modifier = Modifier.padding(vertical = AppDimens.paddingSmall)
                                 )
 
                                 // 三大准则
@@ -238,13 +240,13 @@ fun SettingsScreen(
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = AppColors.WarmBrown,
-                                    modifier = Modifier.padding(top = 16.dp)
+                                    modifier = Modifier.padding(top = AppDimens.paddingLarge)
                                 )
 
                                 val principles = listOf(
                                     Pair("自由", "你可以选择任何生活方式，不被任何规训强制约束"),
-                                    Pair("平等", "忙碌与躺平、努力与休息，没有任何优劣之分"),
-                                    Pair("实事求是", "只陈述客观事实，不灌输焦虑，不输出指令")
+                                    Pair("平等", "忙碌与躺平、各类职业岗位没有优劣之分，每个人拥有独属于自身的天赋长处"),
+                                    Pair("实事求是", "只陈述客观事实，不灌输焦虑，不输出指令，客观展现生活利弊")
                                 )
 
                                 principles.forEach { (title, desc) ->
@@ -259,7 +261,7 @@ fun SettingsScreen(
                                             text = desc,
                                             fontSize = 13.sp,
                                             color = AppColors.TextSecondary,
-                                            modifier = Modifier.padding(start = 16.dp)
+                                            modifier = Modifier.padding(start = AppDimens.paddingLarge)
                                         )
                                     }
                                 }
@@ -277,7 +279,7 @@ fun SettingsScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingXXLarge))
 
                 // 📚 文档资料入口
                 Text(
@@ -285,14 +287,14 @@ fun SettingsScreen(
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = AppColors.TextDark,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                    modifier = Modifier.padding(horizontal = AppDimens.paddingLarge, vertical = AppDimens.paddingMedium)
                 )
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
+                        .padding(horizontal = AppDimens.paddingLarge)
                         .clickable { onNavigateToDocument() },
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(AppDimens.radiusMedium),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFFF3E5F5)),
                     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
@@ -309,7 +311,7 @@ fun SettingsScreen(
                         ) {
                             Text("📖", fontSize = 24.sp)
                         }
-                        Spacer(modifier = Modifier.width(12.dp))
+                        Spacer(modifier = Modifier.width(AppDimens.paddingMedium))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "小镇全量文案文档",
@@ -327,20 +329,20 @@ fun SettingsScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingXXLarge))
 
                 Text(
                     text = "关于",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = AppColors.TextDark,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                    modifier = Modifier.padding(horizontal = AppDimens.paddingLarge, vertical = AppDimens.paddingMedium)
                 )
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    shape = RoundedCornerShape(12.dp),
+                        .padding(horizontal = AppDimens.paddingLarge),
+                    shape = RoundedCornerShape(AppDimens.radiusMedium),
                     colors = CardDefaults.cardColors(containerColor = AppColors.CardBackgroundLight)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
@@ -359,12 +361,12 @@ fun SettingsScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingXXLarge))
 
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
+                        .padding(horizontal = AppDimens.paddingLarge)
                         .clickable { openCredits.value = true },
                     colors = CardDefaults.cardColors(containerColor = AppColors.LightOrangeBackground),
                     shape = RoundedCornerShape(14.dp),
@@ -373,7 +375,7 @@ fun SettingsScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 20.dp, vertical = 18.dp),
+                            .padding(horizontal = AppDimens.paddingXLarge, vertical = 18.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Row(
@@ -383,7 +385,7 @@ fun SettingsScreen(
                                 text = "💛",
                                 fontSize = 22.sp
                             )
-                            Spacer(modifier = Modifier.width(8.dp))
+                            Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                             Text(
                                 text = "小镇的小家伙们",
                                 fontSize = 16.sp,

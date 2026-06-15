@@ -1,5 +1,7 @@
 package com.example.townapp.ui.components
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -22,9 +24,9 @@ fun SelfCareHintCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = AppDimens.paddingLarge),
         colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.1f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = AppDimens.cardElevation)
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -34,7 +36,7 @@ fun SelfCareHintCard(
                 text = emoji,
                 fontSize = 28.sp
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
             Text(
                 text = hint,
                 fontSize = 14.sp,

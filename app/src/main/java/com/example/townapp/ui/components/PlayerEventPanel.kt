@@ -1,5 +1,7 @@
 package com.example.townapp.ui.components
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,7 +29,7 @@ fun PlayerEventPanel(
         modifier = modifier
             .fillMaxWidth()
             .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(AppDimens.paddingMedium)
     ) {
         Text("主动规划事件", fontSize = 18.sp, fontWeight = FontWeight.Bold)
         Text("选择你想主动触发的事件，立刻结算效果", fontSize = 12.sp,
@@ -68,8 +70,8 @@ fun PlayerEventPanel(
                             }
                             Button(
                                 onClick = { onEventTrigger(event.id) },
-                                shape = RoundedCornerShape(8.dp),
-                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                                shape = RoundedCornerShape(AppDimens.radiusSmall),
+                                contentPadding = PaddingValues(horizontal = AppDimens.paddingMedium, vertical = 6.dp)
                             ) {
                                 Text("触发", fontSize = 13.sp)
                             }

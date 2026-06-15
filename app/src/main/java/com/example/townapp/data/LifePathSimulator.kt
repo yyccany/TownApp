@@ -3,17 +3,23 @@ package com.example.townapp.data
 /**
  * 极简单线多选择文字人生模拟器 —— 小镇版
  *
- * 设计原则（对齐小镇 DNA 三角 + 三层过滤器）：
- * - 同一个主角，不同选择走向不同人生 → 认得的是这个人，不评判哪种人生更好
- * - 物品闪光点只记录陪伴，不夸价格不夸功能 → 珍视陪伴的价值
- * - 纯浏览、无数值、无评判、无催促 → 用户完全掌控节奏
- * - 每条人生分支取材于当下中国普通人的真实生活 → 接地气、被看见
+ * 小镇宗旨：以人为本，自由、平等、公正
+ * 不教你怎么活，只陈述客观事实，看见个体闪光点。
  *
- * 小镇的态度：
- * - 不做对错判断，只做「看见」
- * - 不说「你应该」，只说「你这样就很好」
- * - 不定义成功失败，只记录陪伴和坚持
- * - 每一种活法都值得被认真对待
+ * 三大准则：
+ * - 自由：你可以选择任何生活方式，不被任何规训强制约束
+ * - 平等：忙碌与躺平、各类职业岗位没有优劣之分，每个人拥有独属于自身的天赋长处
+ * - 实事求是：只陈述客观事实，不灌输焦虑，不输出指令，客观展现生活利弊
+ *
+ * 设计原则：
+ * - 不做对错判断，只做「看见」—— 任何人生选择，不分好坏优劣
+ * - 不说「你应该」，只说「你这样就很好」—— 没有正确答案，没有最优解
+ * - 不定义成功失败，只记录陪伴和坚持 —— 你存在本身就值得
+ * - 每一种活法都值得被认真对待 —— 你不用优秀、不用正确，就足够被看见
+ *
+ * 小镇承诺：
+ * 不管你是谁、带着什么来、活成什么样子，我认得你。
+ * 你想来就来，想走就走，小镇永远在原地。
  */
 
 // ============================================
@@ -26,6 +32,7 @@ data class LifePath(
     val title: String,           // 选择项的标题
     val subtitle: String,        // 副标题 —— 一句话勾勒这个人群
     val sceneDescription: String, // 进入后的场景描述
+    val talent: String? = null,  // 闪光点天赋（中性描述，不评判优劣）
     val items: List<LifeItem>    // 场景内可查看的物品
 )
 
@@ -52,6 +59,7 @@ object LifePathData {
             title = "外出打工青年",
             subtitle = "离家千里，把乡愁压在枕头底下",
             sceneDescription = "你二十出头，背上行囊离开了老家的小县城。在南方一座工厂的流水线上，每天站十个钟头。车间里永远亮着白炽灯，分不清白天黑夜。你偶尔会想想老家的爸妈，想想那条走了十几年的泥巴路。",
+            talent = "抗压韧劲",
             items = listOf(
                 LifeItem(
                     name = "工牌",
@@ -82,6 +90,7 @@ object LifePathData {
             title = "全职妈妈",
             subtitle = "没有工资、没有下班时间，但每天都在上班",
             sceneDescription = "你每天早上六点起床，晚上十一点才能坐下。孩子的作业、老公的衬衫、家里的地板、冰箱里的菜——这些就是你的KPI。没人给你发工资，没人给你评绩效。有时候你会想：我除了「妈妈」这个身份，还剩下什么？",
+            talent = "细心统筹",
             items = listOf(
                 LifeItem(
                     name = "围裙",
@@ -112,6 +121,7 @@ object LifePathData {
             title = "外卖骑手",
             subtitle = "风里雨里，把热饭送到别人手上",
             sceneDescription = "你每天早上开完早会就骑上电动车出发。系统一直在响，倒计时一直在跳。下雨天最忙，大太阳底下也得出车。你跑过这座城市每一条小巷子，比导航还熟悉。你送出去的热饭热菜连起来能绕城好几圈，但你自己吃饭从来不按时。",
+            talent = "方向敏锐",
             items = listOf(
                 LifeItem(
                     name = "头盔",
@@ -142,6 +152,7 @@ object LifePathData {
             title = "应届毕业生",
             subtitle = "投了一百份简历，还在等一个回音",
             sceneDescription = "你刚刚毕业，租了一间很小的合租房。每天打开招聘软件，海投、笔试、面试、等通知。有时候一天跑三场面试，在地铁上啃面包。你不知道自己到底值多少钱，不知道自己能不能留在这座城市。你只是不想让家里失望。",
+            talent = "快速学习",
             items = listOf(
                 LifeItem(
                     name = "简历",
@@ -172,6 +183,7 @@ object LifePathData {
             title = "工地工人",
             subtitle = "烈日下弯腰的人，建起了城市的脊梁",
             sceneDescription = "你每天早上六点上工，安全帽一扣就是一天。钢筋水泥、风吹日晒，身上永远是一层灰和一层汗。午餐蹲在工地边上吃盒饭，晚上睡在活动板房里。你盖过写字楼、商场、住宅小区，但那些地方和你没什么关系。你只是路过。",
+            talent = "吃苦耐劳",
             items = listOf(
                 LifeItem(
                     name = "安全帽",
@@ -202,6 +214,7 @@ object LifePathData {
             title = "小店店主",
             subtitle = "守着几平米的小铺子，养活一家老小",
             sceneDescription = "你早上六点开门，晚上十点关门。进货、理货、算账、招呼客人——一天下来腿是肿的。有时候一整天没几个人进门，有时候忙得连喝口水的时间都没有。你开的是烟酒杂货店、早餐铺、小五金——不管哪种，都是拿时间换钱。",
+            talent = "精打细算",
             items = listOf(
                 LifeItem(
                     name = "收款码",
@@ -232,6 +245,7 @@ object LifePathData {
             title = "全职儿女",
             subtitle = "选择回家照顾父母，也是一种人生",
             sceneDescription = "你辞了大城市的工作，回到老家。每天给爸妈做饭、量血压、陪他们去医院。同学群里大家在聊升职加薪，你在研究医保报销比例。有人觉得你「可惜了」，有人觉得你「没出息」。但你看着爸妈的白头发，知道有些东西比事业重要。",
+            talent = "温和陪伴",
             items = listOf(
                 LifeItem(
                     name = "药盒",
@@ -262,6 +276,7 @@ object LifePathData {
             title = "退休工人",
             subtitle = "干了一辈子，终于可以慢慢过日子了",
             sceneDescription = "你在厂里干了三十多年，去年办了退休。不用五点半起床赶公交了，也不用盯着考勤表了。日子一下子慢下来，有时候还真不习惯。早上买买菜，下午去公园坐坐，晚上看看电视。退休金不多，但够用了。",
+            talent = "从容经验",
             items = listOf(
                 LifeItem(
                     name = "搪瓷茶缸",
@@ -292,6 +307,7 @@ object LifePathData {
             title = "自由职业者",
             subtitle = "没有人给你发工资，你就是自己的老板",
             sceneDescription = "你没有固定的工位，也没有固定的上下班时间。接单、赶稿、改方案——有时候忙到凌晨三点，有时候连着几天没活干。收入不稳定，社保自己交。家里人不一定懂你在做什么，只是问你「怎么还不找个正经工作」。",
+            talent = "自律驱动",
             items = listOf(
                 LifeItem(
                     name = "笔记本电脑",
@@ -322,6 +338,7 @@ object LifePathData {
             title = "基层公务员",
             subtitle = "别人眼里「稳定」，自己知道「不容易」",
             sceneDescription = "你在一个小县城的单位里上班。工资不高也不低，福利还算可以。有时候觉得在体制里一眼能看到头，有时候又觉得给老百姓办事挺有意义的。你知道自己不是那种「往上爬」的人，但你在自己的位置上做好了每一件小事。",
+            talent = "稳健踏实",
             items = listOf(
                 LifeItem(
                     name = "保温杯",
@@ -352,6 +369,7 @@ object LifePathData {
             title = "回望童年的自己",
             subtitle = "苦难没有消失，但细碎的甜一直在",
             sceneDescription = "很多年后长大的你，回头望向十年前的孩童时期。那时的你住在一个普通的小城，家里不算宽裕，但日子还算过得去。从前的辛苦真实存在——这一次，我们为那段时光，添一点细碎的甜。",
+            talent = "纯真好奇",
             items = listOf(
                 LifeItem(
                     name = "旧塑料玩具",
@@ -382,6 +400,7 @@ object LifePathData {
             title = "优渥家境青年",
             subtitle = "含着金钥匙出生，却还在寻找自己的钥匙",
             sceneDescription = "你出生在一线城市一个富裕家庭。从小有最好的教育资源，钢琴、马术、海外游学——别人羡慕的一切，你都有。但从小到大，人生路线都被家人安排妥当了。你偶尔会想：如果没有这些规划，我自己会选什么路？",
+            talent = "视野开阔",
             items = listOf(
                 LifeItem(
                     name = "定制钢笔",
@@ -412,6 +431,7 @@ object LifePathData {
             title = "天赋高智商青年",
             subtitle = "所有人都觉得你应该是赢家，但你没告诉他们你也怕输",
             sceneDescription = "你从小就是「别人家的孩子」。学什么都比别人快，考试从来不费力。师长寄予厚望，同学羡慕不已。但没人知道——你做完所有题之后面对空白时间的那种空虚，和深夜失眠时「万一我其实没那么厉害」的恐惧。",
+            talent = "深度专注",
             items = listOf(
                 LifeItem(
                     name = "专业书籍",
@@ -442,6 +462,7 @@ object LifePathData {
             title = "先天体魄强健的乡村青年",
             subtitle = "一把好力气撑起了生活，但身体的极限也需要被看见",
             sceneDescription = "你天生就力气大，别人搬两趟的活你一趟就干完了。在山区的村子里，有力气就有饭吃。你从小帮家里干农活，劈柴、挑水、扛粮食，从来不知道什么叫累。但有时候腰隐隐作痛，你也没太在意——身体好嘛，休息一下就好了。",
+            talent = "体魄耐劳",
             items = listOf(
                 LifeItem(
                     name = "耐磨劳保绳索",
@@ -472,6 +493,7 @@ object LifePathData {
             title = "先天肢体残障青年",
             subtitle = "走得慢一点，但每一步都踩得很稳",
             sceneDescription = "你出生在一个普通县城，先天肢体存在不便。从小到大，别人走十分钟的路你要走半小时。出行需要依靠器具，很多公共场所对你不算友好。但你从来没有抱怨过——你只是习惯了比别人多花一点力气做同样的事。这份习惯，磨出了你身上一种特别的韧。",
+            talent = "意志坚韧",
             items = listOf(
                 LifeItem(
                     name = "便携助行器具",
@@ -502,6 +524,7 @@ object LifePathData {
             title = "中产原创科研人员",
             subtitle = "有人替你挡住了风雨，你替世界探索未知",
             sceneDescription = "你出生在城市中产家庭，从小教育资源充足，家庭可以兜底漫长的求学周期。实验室是你的第二个家，数据和论文构成了你的日常世界。你不需要为房租发愁，可以把全部精力投入研究——但有时候你也会忘记，不是所有人都有这样的从容。",
+            talent = "原创探索",
             items = listOf(
                 LifeItem(
                     name = "实验记录本",
@@ -532,6 +555,7 @@ object LifePathData {
             title = "寒门应用型科研者",
             subtitle = "从泡面和奖学金里长出来的研究者",
             sceneDescription = "你出生在县城普通家庭，靠奖学金和助学贷款走完了求学路。读博期间周末做家教、寒暑假打工，每一分钱都要掰成两半花。你的研究不是为了发顶刊——是为了让技术变得更便宜、让更多人用得起。",
+            talent = "务实钻研",
             items = listOf(
                 LifeItem(
                     name = "二手专业书",
@@ -562,6 +586,7 @@ object LifePathData {
             title = "技术经纪人",
             subtitle = "在实验室和工厂之间，替技术找一条出路",
             sceneDescription = "你出生在城市家庭，商业敏锐度高。你的工作是发现技术的价值，把它从论文里「翻译」成产品。科研人员不擅长卖东西，你补上了这个环节。有人觉得你太商业化，但没有你，再好的技术也只是实验室里的一个数据。",
+            talent = "连接整合",
             items = listOf(
                 LifeItem(
                     name = "名片夹",
@@ -592,6 +617,7 @@ object LifePathData {
             title = "学阀圈层内部人员",
             subtitle = "你站在巨人的肩膀上，但请记得巨人脚下还有很多人",
             sceneDescription = "你出生在中产或富裕家庭，家族学术人脉深厚。从读博那天起，设备、经费、期刊渠道一应俱全。你不需要理解圈外科研者为什么举步维艰——因为你从未在那样的环境里待过。这不是傲慢，是环境给的盲区。",
+            talent = "规则洞察",
             items = listOf(
                 LifeItem(
                     name = "实验室门禁卡",
@@ -622,6 +648,7 @@ object LifePathData {
             title = "程序员",
             subtitle = "屏幕前的世界很大，但你眼前的这行代码，是你此刻的全部",
             sceneDescription = "你坐在工位上，屏幕的光映在脸上。机械键盘的咔嗒声从早响到晚，需求改了又改，bug修了又来。你很少在太阳落山前离开公司，工位上的折叠床已经睡过不知多少个夜晚。你知道这个行业在透支身体，但你也知道——你写出的每一行代码，都在一点点堆成某个产品的模样。",
+            talent = "逻辑构建",
             items = listOf(
                 LifeItem(
                     name = "机械键盘",
@@ -652,6 +679,7 @@ object LifePathData {
             title = "产品经理",
             subtitle = "你是所有人的接头人，也是那个最后才走的人",
             sceneDescription = "你的微信永远有几十条未读消息，需求文档里的字删了又写。你周旋在开发、设计、老板之间，把一团乱麻的需求理成别人能看懂的话。会议室里你据理力争过，也沉默听过别人的数落。你不是每次都能赢，但每次都尽力把话说清楚。",
+            talent = "协调推进",
             items = listOf(
                 LifeItem(
                     name = "需求文档",
@@ -682,6 +710,7 @@ object LifePathData {
             title = "公立教师",
             subtitle = "三尺讲台，一站就是几十年",
             sceneDescription = "你每天早上七点前到学校，批改作业、备课、上课。讲台上的粉笔灰落了又擦，润喉茶泡了一杯又一杯。你教过的学生换了一茬又一茬，有人还记得你，有人早已走远。但你每天还是站在那间教室里，把该讲的话讲完。",
+            talent = "耐心传递",
             items = listOf(
                 LifeItem(
                     name = "红笔",
@@ -712,6 +741,7 @@ object LifePathData {
             title = "国企职员",
             subtitle = "不求轰轰烈烈，但求稳稳当当",
             sceneDescription = "你每天早上八点前到单位，泡一杯茶，翻开台历，开始一天的工作。流程、报表、会议——日子像台历一样一页一页撕过去。食堂的午饭热热乎乎，工会的福利按时发放。没有什么惊心动魄的大事，但每一天都踏踏实实。",
+            talent = "稳定尽责",
             items = listOf(
                 LifeItem(
                     name = "饭卡",
@@ -742,6 +772,7 @@ object LifePathData {
             title = "内容创作者",
             subtitle = "一个人就是一个团队，更新是你唯一的打卡",
             sceneDescription = "你对着手机屏幕说话，三脚架是唯一固定不动的观众。选题、写稿、拍摄、剪辑——这条路上没有同事，没有固定工资，也没有人能告诉你坚持下去会不会有结果。但你还是充满电出门，拍了一堆素材，回家剪到深夜。",
+            talent = "表达敏锐",
             items = listOf(
                 LifeItem(
                     name = "手机",
@@ -765,6 +796,40 @@ object LifePathData {
                 )
             )
         )
+    )
+
+    data class CareerParams(
+        val baseSalary: Double,      // 月薪
+        val salaryGrowth: Double,    // 年增长率
+        val overtimeRate: Double,    // 加班概率
+        val layoffRisk: Double       // 裁员风险
+    )
+
+    val careerParams: Map<String, CareerParams> = mapOf(
+        "migrant_youth" to CareerParams(3500.0, 0.05, 0.5, 0.3),
+        "housewife" to CareerParams(0.0, 0.0, 0.1, 0.25),
+        "delivery_rider" to CareerParams(5000.0, 0.03, 0.6, 0.2),
+        "fresh_graduate" to CareerParams(4000.0, 0.08, 0.4, 0.25),
+        "construction_worker" to CareerParams(4500.0, 0.04, 0.5, 0.2),
+        "shop_owner" to CareerParams(3000.0, 0.20, 0.6, 0.4),
+        "adult_child" to CareerParams(0.0, 0.0, 0.1, 0.3),
+        "retired_worker" to CareerParams(2000.0, 0.0, 0.0, 0.0),
+        "freelancer" to CareerParams(4000.0, 0.12, 0.3, 0.15),
+        "civil_servant" to CareerParams(5000.0, 0.03, 0.2, 0.1),
+        "childhood_self" to CareerParams(0.0, 0.0, 0.0, 0.0),
+        "affluent_youth" to CareerParams(0.0, 0.0, 0.0, 0.0),
+        "gifted_youth" to CareerParams(8000.0, 0.10, 0.4, 0.2),
+        "strong_rural" to CareerParams(4000.0, 0.05, 0.5, 0.25),
+        "disabled_youth" to CareerParams(2500.0, 0.03, 0.2, 0.3),
+        "researcher_affluent" to CareerParams(15000.0, 0.06, 0.5, 0.15),
+        "researcher_poor" to CareerParams(10000.0, 0.05, 0.45, 0.2),
+        "tech_broker" to CareerParams(12000.0, 0.08, 0.4, 0.25),
+        "academic_insider" to CareerParams(20000.0, 0.04, 0.3, 0.05),
+        "programmer" to CareerParams(12000.0, 0.08, 0.7, 0.35),
+        "product_manager" to CareerParams(10000.0, 0.07, 0.6, 0.3),
+        "public_teacher" to CareerParams(4500.0, 0.03, 0.3, 0.05),
+        "state_employee" to CareerParams(6000.0, 0.04, 0.25, 0.08),
+        "content_creator" to CareerParams(3000.0, 0.15, 0.4, 0.2)
     )
 
     // ============================================

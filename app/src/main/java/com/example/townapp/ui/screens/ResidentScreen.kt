@@ -1,5 +1,7 @@
 package com.example.townapp.ui.screens
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.animation.core.*
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -172,7 +174,7 @@ fun ResidentScreen(
                     top = 8.dp,
                     bottom = 100.dp  // 为底部安全区域留空间
                 ),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
+                verticalArrangement = Arrangement.spacedBy(AppDimens.paddingXLarge)
             ) {
                 // ============================================
                 // 开场语 —— 温暖的邀请
@@ -193,7 +195,7 @@ fun ResidentScreen(
                 item {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(AppDimens.paddingMedium)
                     ) {
                         // 吃了什么 - 塔菲喵的颜色
                         RecordEntryCard(
@@ -299,7 +301,7 @@ fun ResidentScreen(
                             colors = CardDefaults.cardColors(
                                 containerColor = Color(0xFFFFFBF5)
                             ),
-                            shape = RoundedCornerShape(16.dp),
+                            shape = RoundedCornerShape(AppDimens.radiusLarge),
                             border = BorderStroke(1.dp, Color(0xFFF0E6D8))
                         ) {
                             Column(
@@ -307,7 +309,7 @@ fun ResidentScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Text("还没有记录呢~", fontSize = 14.sp, color = Color(0xFF8B7B6F))
-                                Spacer(modifier = Modifier.height(8.dp))
+                                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                                 Text(
                                     "不用急着记录什么\n三个小家伙只是想陪着你",
                                     fontSize = 13.sp,
@@ -324,7 +326,7 @@ fun ResidentScreen(
                 // 三个小家伙 —— 永远的陪伴
                 // ============================================
                 item {
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                     Text(
                         "💛 三个小家伙",
                         fontSize = 16.sp,
@@ -341,7 +343,7 @@ fun ResidentScreen(
                 // 底部温暖语
                 // ============================================
                 item {
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(AppDimens.paddingXXLarge))
                     Text(
                         "不管你做了什么，没做什么\n三个小家伙都会陪着你\n你值得被爱，不是因为做了什么，而是因为你就是你",
                         fontSize = 13.sp,
@@ -478,7 +480,7 @@ fun RecordEntryCard(
                 indication = LocalIndication.current
             ) { onClick() },
         colors = CardDefaults.cardColors(containerColor = backgroundColor),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(AppDimens.radiusLarge),
         border = BorderStroke(1.dp, borderColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
@@ -558,7 +560,7 @@ fun RecordItemCard(
                 indication = LocalIndication.current
             ) { onRemove() },
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(AppDimens.radiusMedium),
         border = BorderStroke(1.dp, companionColor.copy(alpha = 0.3f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
@@ -576,7 +578,7 @@ fun RecordItemCard(
                     .clip(RoundedCornerShape(2.dp))
                     .background(companionColor.copy(alpha = 0.6f))
             )
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(AppDimens.paddingMedium))
             
             Text(record.emoji, fontSize = 24.sp)
             Spacer(modifier = Modifier.width(10.dp))
@@ -626,7 +628,7 @@ fun CompanionCard(companion: Companion) {
         colors = CardDefaults.cardColors(
             containerColor = companion.lightColor.copy(alpha = 0.2f)
         ),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(AppDimens.radiusLarge),
         border = BorderStroke(1.dp, companion.accentColor.copy(alpha = 0.2f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
@@ -725,10 +727,10 @@ fun CompanionReactionBubble(
                     colors = CardDefaults.cardColors(
                         containerColor = companion.lightColor.copy(alpha = 0.95f)
                     ),
-                    shape = RoundedCornerShape(20.dp)
+                    shape = RoundedCornerShape(AppDimens.radiusXLarge)
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 14.dp),
+                        modifier = Modifier.padding(horizontal = AppDimens.paddingXLarge, vertical = 14.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(companion.emoji, fontSize = 22.sp)
@@ -907,7 +909,7 @@ fun FoodSelectionDialog(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp)
+                    .padding(vertical = AppDimens.paddingSmall)
             ) {
                 if (selectedCategory == null) {
                     // 搜索框 - 直接搜索所有食物
@@ -916,7 +918,7 @@ fun FoodSelectionDialog(
                         onValueChange = { searchQuery = it },
                         placeholder = { Text("搜索食物名称...", fontSize = 13.sp) },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(AppDimens.radiusMedium),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFFE8DCC8),
                             unfocusedBorderColor = Color(0xFFF0E6D8)
@@ -924,12 +926,12 @@ fun FoodSelectionDialog(
                         singleLine = true
                     )
                     
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
                     
                     // 如果有搜索结果，显示搜索结果
                     if (searchQuery.isNotEmpty() && filteredFoods.isNotEmpty()) {
                         Text("搜索结果", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF5A4A3A))
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                         LazyColumn(
                             modifier = Modifier.height(180.dp),
                             verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -972,7 +974,7 @@ fun FoodSelectionDialog(
                         color = Color(0xFF6A5A4A)
                     )
                     
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
                     
                     // 搜索框
                     OutlinedTextField(
@@ -980,7 +982,7 @@ fun FoodSelectionDialog(
                         onValueChange = { searchQuery = it },
                         placeholder = { Text("搜索食物...", fontSize = 12.sp) },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(8.dp),
+                        shape = RoundedCornerShape(AppDimens.radiusSmall),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFFE8DCC8),
                             unfocusedBorderColor = Color(0xFFF0E6D8)
@@ -988,7 +990,7 @@ fun FoodSelectionDialog(
                         singleLine = true
                     )
                     
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
                     
                     // 食物列表
                     val displayItems = if (searchQuery.isEmpty()) {
@@ -1011,9 +1013,9 @@ fun FoodSelectionDialog(
                     }
                     
                     // 分量选择
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
                     Text("份量", fontSize = 13.sp, color = Color(0xFF7A6A5A))
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -1049,7 +1051,7 @@ fun FoodSelectionDialog(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFFE8DCC8)
                     ),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(AppDimens.radiusMedium)
                 ) {
                     Text("记录", fontSize = 15.sp, color = Color(0xFF4A3A2A))
                 }
@@ -1085,7 +1087,7 @@ fun MedicineDetailDialog(
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(medicine.emoji, fontSize = 24.sp)
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                 Text(medicine.name, fontWeight = FontWeight.Bold, fontSize = 18.sp)
             }
         },
@@ -1093,7 +1095,7 @@ fun MedicineDetailDialog(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp)
+                    .padding(vertical = AppDimens.paddingSmall)
             ) {
                 // 价值密度标签
                 Row(
@@ -1102,9 +1104,9 @@ fun MedicineDetailDialog(
                 ) {
                     Box(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
+                            .clip(RoundedCornerShape(AppDimens.radiusSmall))
                             .background(Color(0xFFD4C4B0))
-                            .padding(horizontal = 12.dp, vertical = 4.dp)
+                            .padding(horizontal = AppDimens.paddingMedium, vertical = 4.dp)
                     ) {
                         Text(
                             "${medicine.category.emoji} ${medicine.category.displayName} · 价值密度 ${medicine.valueDensity}",
@@ -1115,18 +1117,18 @@ fun MedicineDetailDialog(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
 
                 // 宣传vs实测对比
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(AppDimens.paddingSmall)
                 ) {
                     // 实测（左侧）
                     Card(
                         modifier = Modifier.weight(1f),
                         colors = CardDefaults.cardColors(containerColor = Color(0xFF4A3728)),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(AppDimens.radiusMedium)
                     ) {
                         Column(
                             modifier = Modifier.padding(12.dp)
@@ -1139,7 +1141,7 @@ fun MedicineDetailDialog(
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.fillMaxWidth()
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                             Text(
                                 medicine.actualContent,
                                 fontSize = 12.sp,
@@ -1154,7 +1156,7 @@ fun MedicineDetailDialog(
                     Card(
                         modifier = Modifier.weight(1f),
                         colors = CardDefaults.cardColors(containerColor = Color(0xFF8B7355)),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(AppDimens.radiusMedium)
                     ) {
                         Column(
                             modifier = Modifier.padding(12.dp)
@@ -1167,7 +1169,7 @@ fun MedicineDetailDialog(
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.fillMaxWidth()
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                             Text(
                                 medicine.claimedContent,
                                 fontSize = 12.sp,
@@ -1179,13 +1181,13 @@ fun MedicineDetailDialog(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
 
                 // 小家伙反应预览
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(AppDimens.radiusMedium)
                 ) {
                     Column(
                         modifier = Modifier.padding(12.dp),
@@ -1212,7 +1214,7 @@ fun MedicineDetailDialog(
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFFE8DCC8)
                 ),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(AppDimens.radiusMedium)
             ) {
                 Text("记录", fontSize = 15.sp, color = Color(0xFF4A3A2A))
             }
@@ -1263,7 +1265,7 @@ fun ClothingSelectionDialog(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp)
+                    .padding(vertical = AppDimens.paddingSmall)
             ) {
                 if (selectedCategory == null) {
                     LazyColumn(
@@ -1293,7 +1295,7 @@ fun ClothingSelectionDialog(
                         }
                     }
                     
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
                     
                     LazyColumn(
                         modifier = Modifier.height(180.dp),
@@ -1326,7 +1328,7 @@ fun ClothingSelectionDialog(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFFE8DCC8)
                     ),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(AppDimens.radiusMedium)
                 ) {
                     Text("记录", fontSize = 15.sp, color = Color(0xFF4A3A2A))
                 }
@@ -1378,7 +1380,7 @@ fun DailySelectionDialog(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp)
+                    .padding(vertical = AppDimens.paddingSmall)
             ) {
                 if (selectedCategory == null) {
                     LazyColumn(
@@ -1408,7 +1410,7 @@ fun DailySelectionDialog(
                         }
                     }
                     
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
                     
                     LazyColumn(
                         modifier = Modifier.height(180.dp),
@@ -1441,7 +1443,7 @@ fun DailySelectionDialog(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFFE8DCC8)
                     ),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(AppDimens.radiusMedium)
                 ) {
                     Text("记录", fontSize = 15.sp, color = Color(0xFF4A3A2A))
                 }
@@ -1474,7 +1476,7 @@ fun CategoryCard(
                 indication = LocalIndication.current
             ) { onClick() },
         colors = CardDefaults.cardColors(containerColor = category.color.copy(alpha = 0.6f)),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(AppDimens.radiusMedium),
         border = BorderStroke(1.dp, category.color.copy(alpha = 0.3f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
@@ -1483,7 +1485,7 @@ fun CategoryCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(category.emoji, fontSize = 22.sp)
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(AppDimens.paddingMedium))
             Text(
                 category.name,
                 fontSize = 15.sp,
@@ -1512,7 +1514,7 @@ fun FoodItemCard(
         colors = CardDefaults.cardColors(
             containerColor = if (isSelected) Color(0xFFE8DCC8) else Color.White
         ),
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(AppDimens.radiusSmall),
         border = if (isSelected) BorderStroke(2.dp, Color(0xFF8B7355)) else BorderStroke(1.dp, Color(0xFFF0E6D8)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
@@ -1549,7 +1551,7 @@ fun RowScope.AmountCard(
         colors = CardDefaults.cardColors(
             containerColor = if (isSelected) Color(0xFFD4C4B0) else Color.White
         ),
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(AppDimens.radiusSmall),
         border = if (isSelected) BorderStroke(1.dp, Color(0xFF8B7355)) else BorderStroke(1.dp, Color(0xFFF0E6D8)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {

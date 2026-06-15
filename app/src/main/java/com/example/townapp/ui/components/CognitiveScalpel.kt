@@ -1,5 +1,7 @@
 package com.example.townapp.ui.components
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -187,21 +189,21 @@ fun CognitiveScalpel() {
             .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(AppDimens.paddingLarge)
     ) {
         // 标题
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(AppDimens.radiusLarge),
             colors = CardDefaults.cardColors(containerColor = Color(0xFF1E88E5).copy(alpha = 0.1f))
         ) {
             Column(
                 modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(AppDimens.paddingMedium)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(AppDimens.paddingMedium)
                 ) {
                     Text("🔪", fontSize = 32.sp)
                     Text(
@@ -234,7 +236,7 @@ fun CognitiveScalpel() {
                 analysisAnswers = List(5) { "" }
             },
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(AppDimens.radiusMedium)
         ) {
             Text("🔍 开始新分析", fontSize = 16.sp)
         }
@@ -243,7 +245,7 @@ fun CognitiveScalpel() {
         Button(
             onClick = { showCaseStudies = true },
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(AppDimens.radiusMedium),
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
         ) {
             Text("📚 查看实战案例", fontSize = 16.sp)
@@ -269,7 +271,7 @@ fun CognitiveScalpel() {
 
 @Composable
 fun CaseStudiesSection(caseStudies: List<CaseStudy>) {
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(AppDimens.paddingLarge)) {
         Text(
             "实战演练",
             fontSize = 20.sp,
@@ -287,15 +289,15 @@ fun CaseStudiesSection(caseStudies: List<CaseStudy>) {
 fun CaseStudyCard(case: CaseStudy) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(AppDimens.radiusLarge)
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(AppDimens.paddingMedium)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(AppDimens.paddingMedium)
             ) {
                 Text(case.icon, fontSize = 28.sp)
                 Text(
@@ -320,7 +322,7 @@ fun CaseStudyCard(case: CaseStudy) {
                     else 
                         Color(0xFFFF9800).copy(alpha = 0.1f)
                 ),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(AppDimens.radiusMedium)
             ) {
                 Column(
                     modifier = Modifier.padding(12.dp),
@@ -375,7 +377,7 @@ fun AnalysisSection(
     onTargetChange: (String) -> Unit,
     onAnswerChange: (Int, String) -> Unit
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(AppDimens.paddingLarge)) {
         // 分析目标输入
         if (analysisTarget.isEmpty()) {
             OutlinedTextField(
@@ -384,18 +386,18 @@ fun AnalysisSection(
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("你想分析什么？") },
                 placeholder = { Text("例如：买新手机、学钢琴、参加培训...") },
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(AppDimens.radiusMedium)
             )
         } else {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF4CAF50).copy(alpha = 0.1f)),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(AppDimens.radiusMedium)
             ) {
                 Row(
                     modifier = Modifier.padding(12.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(AppDimens.paddingSmall)
                 ) {
                     Text("🎯", fontSize = 20.sp)
                     Text(
@@ -430,13 +432,13 @@ fun AnalysisSection(
                 // 导航按钮
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(AppDimens.paddingMedium)
                 ) {
                     if (currentStep > 0) {
                         Button(
                             onClick = { onStepChange(currentStep - 1) },
                             modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(AppDimens.radiusMedium)
                         ) {
                             Text("← 上一步")
                         }
@@ -450,7 +452,7 @@ fun AnalysisSection(
                             }
                         },
                         modifier = if (currentStep > 0) Modifier.weight(1f) else Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(AppDimens.radiusMedium)
                     ) {
                         Text(if (currentStep < 4) "下一步 →" else "✅ 生成分析结果")
                     }
@@ -473,7 +475,7 @@ fun StepIndicator(
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(AppDimens.paddingSmall)
     ) {
         repeat(totalSteps) { index ->
             val isActive = index == currentStep
@@ -489,7 +491,7 @@ fun StepIndicator(
                     else 
                         MaterialTheme.colorScheme.surface
                 ),
-                shape = RoundedCornerShape(8.dp)
+                shape = RoundedCornerShape(AppDimens.radiusSmall)
             ) {
                 Column(
                     modifier = Modifier.padding(8.dp),
@@ -527,12 +529,12 @@ fun StepContent(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(AppDimens.radiusLarge),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1E88E5).copy(alpha = 0.05f))
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(AppDimens.paddingMedium)
         ) {
             Text(
                 step.title,
@@ -546,7 +548,7 @@ fun StepContent(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
 
             Text(
                 "思考问题：",
@@ -558,7 +560,7 @@ fun StepContent(
             step.questions.forEach { question ->
                 Row(
                     verticalAlignment = Alignment.Top,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(AppDimens.paddingSmall)
                 ) {
                     Text("•", fontSize = 16.sp, color = MaterialTheme.colorScheme.secondary)
                     Text(
@@ -570,7 +572,7 @@ fun StepContent(
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
 
             OutlinedTextField(
                 value = answer,
@@ -580,7 +582,7 @@ fun StepContent(
                 placeholder = { Text("把你的想法写下来，这是元认知的开始") },
                 minLines = 4,
                 maxLines = 8,
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(AppDimens.radiusMedium)
             )
         }
     }
@@ -594,16 +596,16 @@ fun AnalysisResult(target: String, answers: List<String>) {
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(AppDimens.radiusLarge),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF4CAF50).copy(alpha = 0.1f))
     ) {
         Column(
             modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(AppDimens.paddingLarge)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(AppDimens.paddingMedium)
             ) {
                 Text("🎉", fontSize = 28.sp)
                 Text(
@@ -625,7 +627,7 @@ fun AnalysisResult(target: String, answers: List<String>) {
                 if (answer.isNotEmpty()) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(AppDimens.radiusMedium)
                     ) {
                         Column(
                             modifier = Modifier.padding(12.dp),
@@ -648,16 +650,16 @@ fun AnalysisResult(target: String, answers: List<String>) {
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFFFFD700).copy(alpha = 0.1f)),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(AppDimens.radiusMedium)
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(AppDimens.paddingSmall)
                 ) {
                     Text(
                         "✨ 恭喜你",

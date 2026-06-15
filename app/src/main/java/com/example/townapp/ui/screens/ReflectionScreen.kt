@@ -1,5 +1,7 @@
 package com.example.townapp.ui.screens
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.foundation.background
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.layout.*
@@ -87,8 +89,8 @@ fun ReflectionScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .graphicsLayer { clip = true },
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            contentPadding = PaddingValues(AppDimens.paddingLarge),
+            verticalArrangement = Arrangement.spacedBy(AppDimens.paddingMedium)
         ) {
             // 阶段概览头部
             item {
@@ -142,7 +144,7 @@ fun ReflectionScreen(
 
             // 第三阶段：AI 时代新认知
             item {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                 StageSectionHeader(
                     title = "🤖 第三阶段 · AI 时代新认知",
                     subtitle = "觉醒值 ≥ 5000 解锁 · AI 时代的人类认知锚点",
@@ -172,7 +174,7 @@ private fun StageHeader(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1B4B)),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(AppDimens.radiusLarge)
     ) {
         Column(
             modifier = Modifier.padding(20.dp),
@@ -183,14 +185,14 @@ private fun StageHeader(
                 fontSize = 14.sp,
                 color = Color(0xFFA5B4FC)
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
             Text(
                 text = currentStage,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
             )
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
@@ -209,7 +211,7 @@ private fun StageHeader(
                 }
             }
             if (nextThreshold != null) {
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
                 val progress = (totalPoints.toFloat() / nextThreshold).coerceAtMost(1f)
                 LinearProgressIndicator(
                     progress = { progress },
@@ -230,7 +232,7 @@ private fun StageSectionHeader(
     subtitle: String,
     isActive: Boolean
 ) {
-    Column(modifier = Modifier.padding(vertical = 8.dp)) {
+    Column(modifier = Modifier.padding(vertical = AppDimens.paddingSmall)) {
         Text(
             text = title,
             fontSize = 18.sp,

@@ -1,5 +1,7 @@
 package com.example.townapp.ui.screens
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.animation.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -75,7 +77,7 @@ fun LifeArchiveScreen(
                             tint = Color(0xFFFFD93D),
                             modifier = Modifier.size(24.dp)
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                         Text(
                             text = "🔐 人生存档",
                             fontSize = 20.sp,
@@ -105,7 +107,7 @@ fun LifeArchiveScreen(
                 colors = CardDefaults.cardColors(
                     containerColor = Color(0xFF2D2D44)
                 ),
-                shape = RoundedCornerShape(16.dp)
+                shape = RoundedCornerShape(AppDimens.radiusLarge)
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
@@ -115,7 +117,7 @@ fun LifeArchiveScreen(
                         text = "🔐",
                         fontSize = 36.sp
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                     Text(
                         text = "这里是只属于你的秘密基地",
                         fontSize = 16.sp,
@@ -150,7 +152,7 @@ fun LifeArchiveScreen(
                             fontSize = 16.sp,
                             color = Color.White.copy(alpha = 0.5f)
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                         Text(
                             text = "点击下方 + 写下你的第一句话吧",
                             fontSize = 13.sp,
@@ -163,9 +165,9 @@ fun LifeArchiveScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
-                        .padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(vertical = 8.dp)
+                        .padding(horizontal = AppDimens.paddingLarge),
+                    verticalArrangement = Arrangement.spacedBy(AppDimens.paddingMedium),
+                    contentPadding = PaddingValues(vertical = AppDimens.paddingSmall)
                 ) {
                     items(archives.size) { index ->
                         ArchiveCard(
@@ -184,7 +186,7 @@ fun LifeArchiveScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 8.dp),
+                    .padding(horizontal = AppDimens.paddingXXLarge, vertical = AppDimens.paddingSmall),
                 contentAlignment = Alignment.Center
             ) {
                 Button(
@@ -202,7 +204,7 @@ fun LifeArchiveScreen(
                         imageVector = Icons.Default.Add,
                         contentDescription = null
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                     Text(
                         text = "写点什么",
                         fontSize = 16.sp,
@@ -215,12 +217,12 @@ fun LifeArchiveScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 8.dp)
+                    .padding(horizontal = AppDimens.paddingXXLarge, vertical = AppDimens.paddingSmall)
             ) {
                 ChildhoodReflectionSection()
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
         }
 
         // 编辑对话框
@@ -261,7 +263,7 @@ private fun ArchiveCard(
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFF2D2D44)
         ),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(AppDimens.radiusLarge)
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -277,18 +279,18 @@ private fun ArchiveCard(
                         text = emoji,
                         fontSize = 24.sp
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                 }
                 archive.mood?.let { mood ->
                     Surface(
                         color = getMoodColor(mood).copy(alpha = 0.2f),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(AppDimens.radiusMedium)
                     ) {
                         Text(
                             text = getMoodText(mood),
                             fontSize = 11.sp,
                             color = getMoodColor(mood),
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            modifier = Modifier.padding(horizontal = AppDimens.paddingSmall, vertical = 4.dp)
                         )
                     }
                 }
@@ -319,7 +321,7 @@ private fun ArchiveCard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
 
             // 内容
             Text(
@@ -329,7 +331,7 @@ private fun ArchiveCard(
                 lineHeight = 24.sp
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
 
             // 时间
             Text(
@@ -345,7 +347,7 @@ private fun ArchiveCard(
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
             containerColor = Color(0xFF2D2D44),
-            shape = RoundedCornerShape(20.dp),
+            shape = RoundedCornerShape(AppDimens.radiusXLarge),
             title = {
                 Text(
                     text = "确定要删除吗？",
@@ -368,7 +370,7 @@ private fun ArchiveCard(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFFE57373)
                     ),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(AppDimens.radiusMedium)
                 ) {
                     Text("删除")
                 }
@@ -430,11 +432,11 @@ private fun ArchiveEditorDialog(
                     fontSize = 13.sp,
                     color = Color.White.copy(alpha = 0.6f)
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(AppDimens.paddingSmall)
                 ) {
                     moods.take(4).forEach { (key, label) ->
                         FilterChip(
@@ -453,7 +455,7 @@ private fun ArchiveEditorDialog(
                 }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(AppDimens.paddingSmall)
                 ) {
                     moods.drop(4).forEach { (key, label) ->
                         FilterChip(
@@ -471,7 +473,7 @@ private fun ArchiveEditorDialog(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
 
                 // Emoji选择
                 Text(
@@ -479,7 +481,7 @@ private fun ArchiveEditorDialog(
                     fontSize = 13.sp,
                     color = Color.White.copy(alpha = 0.6f)
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -504,7 +506,7 @@ private fun ArchiveEditorDialog(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
 
                 // 内容输入
                 OutlinedTextField(
@@ -527,7 +529,7 @@ private fun ArchiveEditorDialog(
                         unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
                         cursorColor = Color(0xFF667EEA)
                     ),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(AppDimens.radiusMedium)
                 )
             }
         },
@@ -538,7 +540,7 @@ private fun ArchiveEditorDialog(
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF4ECDC4)
                 ),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(AppDimens.radiusMedium)
             ) {
                 Text("保存")
             }

@@ -1,5 +1,7 @@
 package com.example.townapp.ui.screens
 
+import com.example.townapp.ui.theme.AppDimens
+
 import android.util.Log
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
@@ -14,19 +16,93 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+
+/**
+ * 清洗文档/文件夹名称，去除序号前缀、md后缀、前置小数点，用于UI展示
+ * 原始示例：05‑饮食健康系统.md → 输出：饮食健康系统
+ */
+fun cleanDocDisplayName(rawName: String): String {
+    return rawName
+        .replace(Regex("^\\d{1,2}[-‑.]\\s*"), "")       // 01-  01.
+        .replace(Regex("^\\(\\d{1,2}\\)\\s*"), "")      // (1)
+        .replace(Regex("^\\[\\d{1,2}]\\s*"), "")        // [01]
+        .replace(Regex("^[①②③④⑤⑥⑦⑧⑨⑩]\\s*"), "")   // ①
+        .replace(Regex("^\\."), "")                      // .hidden
+        .replace(Regex("\\.md$"), "")                    // 去掉md后缀
+        .trim()
+}
+
+/**
+ * 清洗 Markdown 正文内容，去除标题行首的数字序号符号
+ * 示例：## 05‑基础设定 → ## 基础设定
+ */
+fun cleanMarkdownContent(rawMdText: String): String {
+    val lineList = rawMdText.lines().map { line ->
+        // 匹配标题行，去除标题后的数字序号
+        if (line.startsWith("#")) {
+            line.replace(Regex("^(#{1,6}\\s*)\\d{1,2}[.‑]\\s*"), "$1")
+                .replace(Regex("^(#{1,6}\\s*)\\(\\d{1,2}\\)\\s*"), "$1")
+                .replace(Regex("^(#{1,6}\\s*)\\[\\d{1,2}]\\s*"), "$1")
+                .replace(Regex("^(#{1,6}\\s*)[①②③④⑤⑥⑦⑧⑨⑩]\\s*"), "$1")
+        } else line
+    }
+    return lineList.joinToString("\n")
+}
+
+/**
+ * 计算文本中关键词匹配次数（忽略大小写）
+ */
+private fun countMatches(text: String, query: String): Int {
+    if (query.isBlank()) return 0
+    var count = 0
+    var idx = text.lowercase().indexOf(query.lowercase())
+    while (idx >= 0) {
+        count++
+        idx = text.lowercase().indexOf(query.lowercase(), idx + query.length)
+    }
+    return count
+}
+
+/**
+ * 构建带高亮样式的 AnnotatedString
+ */
+private fun buildHighlightedString(text: String, query: String): AnnotatedString {
+    if (query.isBlank()) return AnnotatedString(text)
+    val lowerQuery = query.lowercase()
+    val lowerText = text.lowercase()
+    return buildAnnotatedString {
+        var lastIndex = 0
+        var idx = lowerText.indexOf(lowerQuery)
+        while (idx >= 0) {
+            append(text.substring(lastIndex, idx))
+            withStyle(style = SpanStyle(background = Color(0xFFFFF176), color = Color.Black)) {
+                append(text.substring(idx, idx + query.length))
+            }
+            lastIndex = idx + query.length
+            idx = lowerText.indexOf(lowerQuery, lastIndex)
+        }
+        append(text.substring(lastIndex))
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,10 +125,18 @@ fun DocumentScreen(
     var selectedPath by remember { mutableStateOf("") }
     // 当前文档名称（用于顶部栏显示）
     var currentDocName by remember { mutableStateOf("小镇文档") }
+    // 当前所在文件夹名称（用于面包屑）
+    var currentFolder by remember { mutableStateOf("") }
     // MD正文内容
     var mdContent by remember { mutableStateOf("") }
     // 加载状态
     var isLoading by remember { mutableStateOf(false) }
+    // 搜索框显隐
+    var showSearch by remember { mutableStateOf(false) }
+    // 搜索关键词
+    var searchQuery by remember { mutableStateOf("") }
+    // 文档内容缓存：路径 -> 清洗后内容
+    val docCache = remember { mutableStateMapOf<String, String>() }
 
     // 初始化：读取一级文件夹 + 每个文件夹下的md文件（必须在IO线程）
     LaunchedEffect(Unit) {
@@ -65,7 +149,7 @@ fun DocumentScreen(
                 rootFolders.forEach { folder ->
                     try {
                         val files = context.assets.list("docs/$folder")
-                            ?.filter { it.endsWith(".md") }?.sorted() ?: emptyList()
+                            ?.filter { it.endsWith(".md") && !it.startsWith(".") }?.sorted() ?: emptyList()
                         tempMap[folder] = files
                     } catch (e: Exception) {
                         Log.e("DocumentScreen", "读取文件夹失败: docs/$folder", e)
@@ -84,6 +168,18 @@ fun DocumentScreen(
         if (selectedPath.isBlank()) return@LaunchedEffect
         
         isLoading = true
+        
+        // 提取文件夹名用于面包屑
+        currentFolder = selectedPath.removePrefix("docs/").substringBefore("/")
+        
+        // 优先使用缓存，避免重复IO
+        val cached = docCache[selectedPath]
+        if (cached != null) {
+            mdContent = cached
+            isLoading = false
+            return@LaunchedEffect
+        }
+        
         launch(Dispatchers.IO) {
             try {
                 // 输出完整路径日志，便于核对
@@ -93,8 +189,11 @@ fun DocumentScreen(
                     .bufferedReader(charset = Charsets.UTF_8)
                     .readText()
                 
+                val cleaned = cleanMarkdownContent(content)
+                // 写入缓存
+                docCache[selectedPath] = cleaned
                 // 状态更新在主线程执行（Compose快照系统会自动处理）
-                mdContent = content
+                mdContent = cleaned
                 isLoading = false
                 Log.d("DocumentScreen", "文件读取成功，长度: ${content.length}")
             } catch (e: Exception) {
@@ -127,7 +226,7 @@ fun DocumentScreen(
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxHeight()
-                        .padding(vertical = 8.dp),
+                        .padding(vertical = AppDimens.paddingSmall),
                     state = rememberLazyListState()
                 ) {
                     items(folderList) { folderName ->
@@ -138,7 +237,7 @@ fun DocumentScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable { expandState[folderName] = !isExpand }
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                                .padding(horizontal = AppDimens.paddingLarge, vertical = AppDimens.paddingMedium),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
@@ -147,8 +246,8 @@ fun DocumentScreen(
                                 color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.width(20.dp)
                             )
-                            // 剔除数字前缀，只显示中文
-                            val showName = folderName.drop(3)
+                            // 清洗文件夹名称，剔除数字前缀等
+                            val showName = cleanDocDisplayName(folderName)
                             Text(
                                 text = showName,
                                 fontSize = 16.sp,
@@ -172,7 +271,7 @@ fun DocumentScreen(
                                             .clickable {
                                                 // 优先更新文件路径
                                                 selectedPath = fullPath
-                                                currentDocName = fileName.removeSuffix(".md")
+                                                currentDocName = cleanDocDisplayName(fileName)
                                                 
                                                 // 延迟关闭抽屉，避免状态冲突
                                                 scope.launch {
@@ -183,10 +282,10 @@ fun DocumentScreen(
                                             .padding(start = 36.dp, top = 4.dp, bottom = 4.dp, end = 16.dp)
                                     ) {
                                         Text(
-                                            text = fileName.removeSuffix(".md"),
+                                            text = cleanDocDisplayName(fileName),
                                             fontSize = 14.sp,
                                             color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
+                                            modifier = Modifier.padding(horizontal = AppDimens.paddingSmall, vertical = AppDimens.paddingSmall)
                                         )
                                     }
                                 }
@@ -215,49 +314,114 @@ fun DocumentScreen(
                                 }
                             }
                         }
+                    },
+                    actions = {
+                        // 搜索按钮（后续迭代再启用）
+                        // IconButton(onClick = { showSearch = !showSearch }) { ... }
                     }
                 )
             }
         ) { paddingValues ->
-            // 主阅读区 - 使用独立的滚动状态
-            Box(
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
+                    .navigationBarsPadding()
             ) {
-                when {
-                    isLoading -> {
-                        // 加载中状态
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = "正在加载...",
-                                fontSize = 16.sp,
-                                color = Color.Gray
-                            )
+                // 面包屑导航
+                if (selectedPath.isNotBlank()) {
+                    val breadcrumb = buildString {
+                        append("文档")
+                        if (currentFolder.isNotBlank()) {
+                            append(" / ${cleanDocDisplayName(currentFolder)}")
+                        }
+                        if (currentDocName.isNotBlank() && currentDocName != "小镇文档") {
+                            append(" / $currentDocName")
                         }
                     }
-                    mdContent.isNotBlank() -> {
-                        // 文档内容区域 - 使用独立的滚动状态
-                        MarkdownContent(
-                            content = mdContent
+                    Text(
+                        text = breadcrumb,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = AppDimens.paddingXLarge, vertical = AppDimens.paddingSmall)
+                    )
+                }
+                
+                // 搜索框
+                if (showSearch) {
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        placeholder = { Text("搜索当前文档...") },
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = AppDimens.paddingXLarge),
+                        trailingIcon = {
+                            if (searchQuery.isNotEmpty()) {
+                                IconButton(onClick = { searchQuery = "" }) {
+                                    Icon(Icons.Default.Close, contentDescription = "清空", modifier = Modifier.size(18.dp))
+                                }
+                            }
+                        }
+                    )
+                    
+                    // 匹配计数提示
+                    if (searchQuery.isNotBlank()) {
+                        val matchCount = countMatches(mdContent, searchQuery)
+                        Text(
+                            text = if (matchCount > 0) "找到 $matchCount 处匹配" else "无匹配结果",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (matchCount > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(horizontal = AppDimens.paddingXLarge, vertical = AppDimens.paddingSmall)
                         )
                     }
-                    else -> {
-                        // 空白状态提示
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = "点击左上角菜单选择文档",
-                                fontSize = 16.sp,
-                                color = Color.Gray
+                }
+                
+                // 主阅读区
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                ) {
+                    when {
+                        isLoading -> {
+                            // 加载中状态
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = "正在加载...",
+                                    fontSize = 16.sp,
+                                    color = Color.Gray
+                                )
+                            }
+                        }
+                        mdContent.isNotBlank() -> {
+                            // 文档内容区域 - 使用独立的滚动状态
+                            MarkdownContent(
+                                content = mdContent,
+                                highlightQuery = searchQuery,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(horizontal = AppDimens.paddingMedium)
                             )
+                        }
+                        else -> {
+                            // 空白状态提示
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = "点击左上角菜单选择文档",
+                                    fontSize = 16.sp,
+                                    color = Color.Gray
+                                )
+                            }
                         }
                     }
                 }
@@ -268,7 +432,9 @@ fun DocumentScreen(
 
 @Composable
 private fun MarkdownContent(
-    content: String
+    content: String,
+    highlightQuery: String = "",
+    modifier: Modifier = Modifier
 ) {
     val blocks = remember(content) { parseMarkdown(content) }
     
@@ -292,18 +458,18 @@ private fun MarkdownContent(
     }
     
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .fillMaxHeight()
             .verticalScroll(scrollState)
-            .padding(horizontal = 20.dp, vertical = 16.dp)
+            .padding(horizontal = AppDimens.paddingXLarge, vertical = AppDimens.paddingLarge)
     ) {
         // 自动滚动控制按钮（演示功能，正式版本可注释）
         Button(
             onClick = { autoScroll = !autoScroll },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp)
+                .padding(bottom = AppDimens.paddingLarge)
         ) {
             Text(if (autoScroll) "停止滚动" else "开启自动滚动")
         }
@@ -312,25 +478,25 @@ private fun MarkdownContent(
         blocks.forEach { block ->
             when (block) {
                 is MdBlock.Heading1 -> Text(
-                    text = block.text,
+                    text = buildHighlightedString(block.text, highlightQuery),
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 16.dp)
+                        .padding(vertical = AppDimens.paddingLarge)
                 )
                 is MdBlock.Heading2 -> Text(
-                    text = block.text,
+                    text = buildHighlightedString(block.text, highlightQuery),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 12.dp)
+                        .padding(vertical = AppDimens.paddingMedium)
                 )
                 is MdBlock.Heading3 -> Text(
-                    text = block.text,
+                    text = buildHighlightedString(block.text, highlightQuery),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -339,22 +505,22 @@ private fun MarkdownContent(
                         .padding(vertical = 10.dp)
                 )
                 is MdBlock.Heading4 -> Text(
-                    text = block.text,
+                    text = buildHighlightedString(block.text, highlightQuery),
                     fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 8.dp)
+                        .padding(vertical = AppDimens.paddingSmall)
                 )
                 is MdBlock.Paragraph -> Text(
-                    text = block.text,
+                    text = buildHighlightedString(block.text, highlightQuery),
                     fontSize = 15.sp,
                     color = MaterialTheme.colorScheme.onSurface,
                     lineHeight = 24.sp,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 8.dp)
+                        .padding(vertical = AppDimens.paddingSmall)
                 )
                 is MdBlock.ListItems -> {
                     Column(
@@ -370,7 +536,7 @@ private fun MarkdownContent(
                             ) {
                                 Text("• ", fontSize = 15.sp, color = MaterialTheme.colorScheme.primary)
                                 Text(
-                                    text = item,
+                                    text = buildHighlightedString(item, highlightQuery),
                                     fontSize = 15.sp,
                                     color = MaterialTheme.colorScheme.onSurface,
                                     lineHeight = 24.sp,
@@ -383,12 +549,12 @@ private fun MarkdownContent(
                 is MdBlock.Quote -> Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 8.dp),
+                        .padding(vertical = AppDimens.paddingSmall),
                     color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
                     shape = MaterialTheme.shapes.small
                 ) {
                     Text(
-                        text = block.text,
+                        text = buildHighlightedString(block.text, highlightQuery),
                         fontSize = 14.sp,
                         color = MaterialTheme.colorScheme.primary,
                         lineHeight = 22.sp,
@@ -398,12 +564,12 @@ private fun MarkdownContent(
                 is MdBlock.Code -> Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 8.dp),
+                        .padding(vertical = AppDimens.paddingSmall),
                     color = MaterialTheme.colorScheme.surfaceVariant,
                     shape = MaterialTheme.shapes.small
                 ) {
                     Text(
-                        text = block.text,
+                        text = buildHighlightedString(block.text, highlightQuery),
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(16.dp)
@@ -420,8 +586,9 @@ private fun MarkdownContent(
                         fontSize = 15.sp,
                         color = if (block.checked) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = " ${block.text}",
+                        text = buildHighlightedString(block.text, highlightQuery),
                         fontSize = 15.sp,
                         color = if (block.checked) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
                         lineHeight = 24.sp,
@@ -430,12 +597,12 @@ private fun MarkdownContent(
                 }
                 is MdBlock.Table -> {
                     // 表格区域单独处理横向滚动，不影响整体布局
-                    TableContent(rows = block.rows)
+                    TableContent(rows = block.rows, highlightQuery = highlightQuery)
                 }
                 is MdBlock.HorizontalRule -> HorizontalDivider(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 16.dp),
+                        .padding(vertical = AppDimens.paddingLarge),
                     color = MaterialTheme.colorScheme.outline
                 )
             }
@@ -445,7 +612,8 @@ private fun MarkdownContent(
 
 @Composable
 private fun TableContent(
-    rows: List<List<String>>
+    rows: List<List<String>>,
+    highlightQuery: String = ""
 ) {
     if (rows.isEmpty()) return
 
@@ -453,7 +621,7 @@ private fun TableContent(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
+            .padding(vertical = AppDimens.paddingSmall)
     ) {
         Column(
             modifier = Modifier
@@ -477,7 +645,7 @@ private fun TableContent(
                                 .padding(12.dp)
                         ) {
                             Text(
-                                text = cell,
+                                text = buildHighlightedString(cell, highlightQuery),
                                 fontSize = 14.sp,
                                 color = if (rowIndex == 0) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontWeight = if (rowIndex == 0) FontWeight.SemiBold else FontWeight.Normal,

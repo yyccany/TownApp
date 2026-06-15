@@ -1,5 +1,7 @@
 package com.example.townapp.ui.components
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -21,7 +23,7 @@ fun ChildhoodReflectionSection() {
     
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(AppDimens.radiusLarge),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -46,7 +48,7 @@ fun ChildhoodReflectionSection() {
             }
             
             AnimatedVisibility(visible = isExpanded.value) {
-                Column(modifier = Modifier.padding(top = 12.dp)) {
+                Column(modifier = Modifier.padding(top = AppDimens.paddingMedium)) {
                     TextField(
                         value = message.value,
                         onValueChange = { message.value = it },
@@ -58,7 +60,7 @@ fun ChildhoodReflectionSection() {
                             unfocusedContainerColor = Color.White
                         )
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                     Row(horizontalArrangement = Arrangement.End) {
                         Button(
                             onClick = {
@@ -80,7 +82,7 @@ fun ChildhoodReflectionSection() {
                     text = "\"${message.value.take(20)}${if (message.value.length > 20) "..." else "\""}",
                     fontSize = 14.sp,
                     color = Color(0xFF666666),
-                    modifier = Modifier.padding(top = 8.dp)
+                    modifier = Modifier.padding(top = AppDimens.paddingSmall)
                 )
             }
         }

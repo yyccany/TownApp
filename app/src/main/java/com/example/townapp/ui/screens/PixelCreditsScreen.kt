@@ -1,5 +1,7 @@
 package com.example.townapp.ui.screens
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -237,7 +239,7 @@ fun PixelCreditsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = AppDimens.paddingXXLarge),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             thankYouLines.forEachIndexed { index, line ->
@@ -246,7 +248,7 @@ fun PixelCreditsScreen(
                         text = if (index == 10) "+" else "+",
                         fontSize = 32.sp,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(vertical = 8.dp)
+                        modifier = Modifier.padding(vertical = AppDimens.paddingSmall)
                     )
                 }
                 Text(

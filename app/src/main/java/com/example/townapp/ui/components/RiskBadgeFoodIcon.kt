@@ -1,5 +1,7 @@
 package com.example.townapp.ui.components
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -46,7 +48,7 @@ fun RiskBadgeFoodIcon(
         Box(
             modifier = Modifier
                 .size(size)
-                .clip(RoundedCornerShape(12.dp))
+                .clip(RoundedCornerShape(AppDimens.radiusMedium))
                 .background(categoryColor.copy(alpha = 0.3f))
                 .align(Alignment.BottomStart),
             contentAlignment = Alignment.Center

@@ -1,5 +1,7 @@
 package com.example.townapp.ui.components
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.foundation.background
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.layout.*
@@ -54,7 +56,7 @@ fun CyberPacifierDashboard() {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(text = "🍼", fontSize = 24.sp)
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                         Text(
                             text = "赛博奶嘴监测站",
                             fontWeight = FontWeight.Bold
@@ -74,8 +76,8 @@ fun CyberPacifierDashboard() {
                 .padding(padding)
                 .background(TownAestheticDesign.ColorPalette.background)
                 .graphicsLayer { clip = true },
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            contentPadding = PaddingValues(AppDimens.paddingLarge),
+            verticalArrangement = Arrangement.spacedBy(AppDimens.paddingMedium)
         ) {
             item {
                 AddictionLevelCard(addictionLevel, valueDensity)
@@ -174,8 +176,8 @@ enum class AddictionLevel(val label: String, val color: Color, val emoji: String
 fun AddictionLevelCard(level: AddictionLevel, valueDensity: Double) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = AppDimens.cardElevation),
+        shape = RoundedCornerShape(AppDimens.radiusLarge),
         colors = CardDefaults.cardColors(containerColor = level.color.copy(alpha = 0.1f))
     ) {
         Column(
@@ -190,7 +192,7 @@ fun AddictionLevelCard(level: AddictionLevel, valueDensity: Double) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(text = level.emoji, fontSize = 32.sp)
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                     Text(
                         text = "成瘾等级",
                         fontSize = 16.sp,
@@ -200,19 +202,19 @@ fun AddictionLevelCard(level: AddictionLevel, valueDensity: Double) {
                 }
                 Card(
                     colors = CardDefaults.cardColors(containerColor = level.color),
-                    shape = RoundedCornerShape(20.dp)
+                    shape = RoundedCornerShape(AppDimens.radiusXLarge)
                 ) {
                     Text(
                         text = level.label,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                        modifier = Modifier.padding(horizontal = AppDimens.paddingMedium, vertical = 6.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
 
             Text(
                 text = getAddictionDescription(level),
@@ -221,7 +223,7 @@ fun AddictionLevelCard(level: AddictionLevel, valueDensity: Double) {
                 lineHeight = 1.5.sp
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -276,8 +278,8 @@ fun UsageInputCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        shape = RoundedCornerShape(16.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = AppDimens.cardElevation),
+        shape = RoundedCornerShape(AppDimens.radiusLarge)
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -286,7 +288,7 @@ fun UsageInputCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(text = "📊", fontSize = 20.sp)
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                 Text(
                     text = "虚拟偶像使用情况",
                     fontSize = 16.sp,
@@ -295,7 +297,7 @@ fun UsageInputCard(
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
 
             UsageSlider(
                 label = "🐕 Doro每日使用时间",
@@ -389,8 +391,8 @@ fun RecoveryProgressCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = AppDimens.cardElevation),
+        shape = RoundedCornerShape(AppDimens.radiusLarge),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF27AE60).copy(alpha = 0.1f))
     ) {
         Column(
@@ -400,7 +402,7 @@ fun RecoveryProgressCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(text = "🌱", fontSize = 20.sp)
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                 Text(
                     text = "现实生活恢复进度",
                     fontSize = 16.sp,
@@ -409,7 +411,7 @@ fun RecoveryProgressCard(
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
 
             UsageSlider(
                 label = "👥 每周现实社交时间",
@@ -445,17 +447,17 @@ fun RecoveryProgressCard(
             )
 
             if (daysSinceVirtualContent >= 7) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
                 Card(
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF27AE60).copy(alpha = 0.2f)),
-                    shape = RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(AppDimens.radiusSmall)
                 ) {
                     Row(
                         modifier = Modifier.padding(8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(text = "🎉", fontSize = 20.sp)
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                         Text(
                             text = "恭喜！你已经完成7天戒断！'现实觉醒日'事件已触发！",
                             fontSize = 12.sp,
@@ -515,8 +517,8 @@ fun CostAnalysisCard(
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = AppDimens.cardElevation),
+        shape = RoundedCornerShape(AppDimens.radiusLarge),
         colors = CardDefaults.cardColors(containerColor = TownAestheticDesign.ColorPalette.danger.copy(alpha = 0.1f))
     ) {
         Column(
@@ -526,7 +528,7 @@ fun CostAnalysisCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(text = "💸", fontSize = 20.sp)
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                 Text(
                     text = "年度薪俸成本分析",
                     fontSize = 16.sp,
@@ -535,7 +537,7 @@ fun CostAnalysisCard(
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -546,11 +548,11 @@ fun CostAnalysisCard(
                 CostItem("健康成本", "${healthCostHours.toInt()}小时", Color(0xFF8B0000))
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
 
             Card(
                 colors = CardDefaults.cardColors(containerColor = TownAestheticDesign.ColorPalette.danger),
-                shape = RoundedCornerShape(8.dp)
+                shape = RoundedCornerShape(AppDimens.radiusSmall)
             ) {
                 Column(
                     modifier = Modifier
@@ -577,7 +579,7 @@ fun CostAnalysisCard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
 
             Text(
                 text = "💡 你每年在虚拟偶像上花费了相当于 ${workDaysEquivalent.toInt()} 个工作日的生命，这些时间本可以用于真实的社交、恋爱、工作和自我提升。",
@@ -615,8 +617,8 @@ fun AwakeningTipsCard(level: AddictionLevel) {
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = AppDimens.cardElevation),
+        shape = RoundedCornerShape(AppDimens.radiusLarge),
         colors = CardDefaults.cardColors(containerColor = TownAestheticDesign.ColorPalette.gold.copy(alpha = 0.1f))
     ) {
         Column(
@@ -626,7 +628,7 @@ fun AwakeningTipsCard(level: AddictionLevel) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(text = "✨", fontSize = 20.sp)
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                 Text(
                     text = "觉醒建议",
                     fontSize = 16.sp,
@@ -635,7 +637,7 @@ fun AwakeningTipsCard(level: AddictionLevel) {
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
 
             tips.forEach { tip ->
                 Row(

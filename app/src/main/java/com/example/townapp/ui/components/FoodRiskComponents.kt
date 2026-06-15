@@ -1,5 +1,7 @@
 package com.example.townapp.ui.components
 
+import com.example.townapp.ui.theme.AppDimens
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -59,12 +61,12 @@ fun NutritionFactTable(
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(AppDimens.radiusMedium),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text("\u8425\u517B\u6210\u5206\u8868\uFF08\u6BCF100g\uFF09", fontSize = 14.sp, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
             HorizontalDivider()
 
             NutritionRow("\u70ED\u91CF", "${nutrition.calorie.toInt()} kcal", Color(0xFFE74C3C))
@@ -85,7 +87,7 @@ fun NutritionFactTable(
             HorizontalDivider()
             NutritionRow("\u77FF\u7269\u8D28\u8BC4\u5206", "${nutrition.mineralScore.toInt()}/100", Color(0xFF8E44AD))
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
             // 综合营养评分进度条
             val score = calculateNutritionScore(nutrition)
             val scoreColor = when {
@@ -99,7 +101,7 @@ fun NutritionFactTable(
                 Box(modifier = Modifier.weight(1f).height(8.dp).background(Color(0xFFE0E0E0), RoundedCornerShape(4.dp))) {
                     Box(modifier = Modifier.fillMaxWidth((score / 100f).toFloat()).height(8.dp).background(scoreColor, RoundedCornerShape(4.dp)))
                 }
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                 Text("${score.toInt()}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = scoreColor)
             }
         }
@@ -124,7 +126,7 @@ fun FoodRiskCard(
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(AppDimens.radiusMedium),
         colors = CardDefaults.cardColors(
             containerColor = when(risk.riskLevel) {
                 RiskLevel.LOW -> Color(0xFFF1F8E9)
@@ -137,7 +139,7 @@ fun FoodRiskCard(
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("\u98CE\u9669\u8BC4\u7EA7", fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                 RiskBadge(riskLevel = risk.riskLevel)
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(risk.riskLevel.label, fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
@@ -148,7 +150,7 @@ fun FoodRiskCard(
                         RiskLevel.CRITICAL -> Color(0xFFF44336)
                     })
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
 
             if (risk.greaseSugar > 0) RiskFactorBar("\u7CD6\u6CB9\u98CE\u9669", risk.greaseSugar, Color(0xFFF39C12))
             if (risk.heavyMetal > 0) RiskFactorBar("\u91CD\u91D1\u5C5E\u6C61\u67D3", risk.heavyMetal, Color(0xFFE74C3C))
@@ -206,7 +208,7 @@ fun BodyStateIndicator(
 
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(AppDimens.radiusMedium),
         colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.1f))
     ) {
         Row(
@@ -214,7 +216,7 @@ fun BodyStateIndicator(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(emoji, fontSize = 28.sp)
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(AppDimens.paddingMedium))
             Column {
                 Text(bodyLevel.label, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = color)
                 Text(bodyLevel.description, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -222,7 +224,7 @@ fun BodyStateIndicator(
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("\u6BD2\u7D20\u7D2F\u79EF", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
                         Box(modifier = Modifier.width(60.dp).height(6.dp).background(Color(0xFFE0E0E0), RoundedCornerShape(3.dp))) {
                             Box(modifier = Modifier.fillMaxWidth((toxinAccumulation / 100f).toFloat()).height(6.dp).background(Color(0xFFE74C3C), RoundedCornerShape(3.dp)))
                         }
@@ -242,12 +244,12 @@ fun EmotionModifierDisplay(
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(AppDimens.radiusMedium),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFF3E5F5).copy(alpha = 0.3f))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text("\u60C5\u7EEA\u5F71\u54CD\u8BC4\u4F30", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF9B59B6))
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("\uD83D\uDE0A \u60C5\u7EEA\u53D8\u5316: ", fontSize = 13.sp)
@@ -287,7 +289,7 @@ fun AdultChildModeToggle(
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(AppDimens.paddingSmall)
     ) {
         Text("\uD83D\uDC76", fontSize = 16.sp)
         Switch(
