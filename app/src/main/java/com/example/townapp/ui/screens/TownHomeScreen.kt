@@ -1304,38 +1304,43 @@ private fun WeeklyExpenseCard(
 
             // 五大板块分项
             if (expense.categoryBreakdown.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
+                Spacer(modifier = Modifier.height(8.dp))
                 Divider(color = BrandColors.surface, thickness = 1.dp)
-                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
+                Spacer(modifier = Modifier.height(8.dp))
                 val categoryLabels = mapOf(
                     "food" to "饮食", "clothing" to "穿戴", "medical" to "医药",
                     "commute" to "通勤", "hobby" to "爱好"
                 )
-                expense.categoryBreakdown.toList().chunked(3).forEach { rowItems ->
+                // 补齐到6项，确保两行各3个
+                val items = expense.categoryBreakdown.toList().toMutableList()
+                while (items.size < 6) {
+                    items.add("" to 0.0)
+                }
+                items.chunked(3).forEach { rowItems ->
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
                         rowItems.forEach { (cat, amount) ->
-                            val label = categoryLabels[cat] ?: cat
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = label,
-                                    fontSize = 11.sp,
-                                    color = BrandColors.textMuted
-                                )
-                                Text(
-                                    text = "¥${amount.toInt()}",
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = BrandColors.textPrimary
-                                )
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                if (cat.isNotEmpty()) {
+                                    Text(
+                                        text = categoryLabels[cat] ?: cat,
+                                        fontSize = 11.sp,
+                                        color = BrandColors.textMuted
+                                    )
+                                    Text(
+                                        text = "¥${amount.toInt()}",
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = BrandColors.textPrimary,
+                                        modifier = Modifier.padding(top = 2.dp)
+                                    )
+                                }
                             }
-                        }
-                    }
-                    if (rowItems.size < 3) {
-                        repeat(3 - rowItems.size) {
-                            Spacer(modifier = Modifier.weight(1f))
                         }
                     }
                 }
@@ -1343,26 +1348,34 @@ private fun WeeklyExpenseCard(
 
             // 本周采购清单
             if (expense.shoppingList.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
+                Spacer(modifier = Modifier.height(8.dp))
                 Divider(color = BrandColors.surface, thickness = 1.dp)
-                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "本周采购清单",
                     fontSize = 12.sp,
                     color = BrandColors.textMuted,
-                    modifier = Modifier.padding(bottom = 6.dp)
+                    modifier = Modifier.padding(bottom = 8.dp)
                 )
-                val flowItems = expense.shoppingList.chunked(3)
-                flowItems.forEach { row ->
+                val gridItems = expense.shoppingList.chunked(3)
+                gridItems.forEachIndexed { index, row ->
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         row.forEach { item ->
                             ShoppingTag(name = item.name, isPremium = item.isPremium)
                         }
+                        // 补齐空白
+                        if (row.size < 3) {
+                            repeat(3 - row.size) {
+                                Spacer(modifier = Modifier.weight(1f))
+                            }
+                        }
                     }
-                    Spacer(modifier = Modifier.height(4.dp))
+                    if (index < gridItems.size - 1) {
+                        Spacer(modifier = Modifier.height(6.dp))
+                    }
                 }
             }
 
@@ -2055,35 +2068,49 @@ private fun WeekEventsPanel(
         
         Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
         
-        // 事件列表
-        if (weeklyEvents.isNotEmpty()) {
-            weeklyEvents.reversed().forEachIndexed { index, event ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
-                    verticalAlignment = Alignment.Top
-                ) {
+        // 事件列表 - 可滚动容器
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 280.dp)
+        ) {
+            val scrollState = rememberScrollState()
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(scrollState)
+            ) {
+                if (weeklyEvents.isNotEmpty()) {
+                    weeklyEvents.reversed().forEachIndexed { index, event ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 5.dp),
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            Text(
+                                text = "${weeklyEvents.size - index}.",
+                                fontSize = 11.sp,
+                                color = BrandColors.textMuted,
+                                modifier = Modifier.width(24.dp)
+                            )
+                            Text(
+                                text = event,
+                                fontSize = 12.sp,
+                                color = BrandColors.textSecondary,
+                                lineHeight = 19.sp
+                            )
+                        }
+                    }
+                } else {
                     Text(
-                        text = "${weeklyEvents.size - index}.",
-                        fontSize = 11.sp,
-                        color = BrandColors.textMuted,
-                        modifier = Modifier.width(24.dp)
-                    )
-                    Text(
-                        text = event,
+                        text = "本周还没有记录",
                         fontSize = 12.sp,
-                        color = BrandColors.textSecondary,
-                        lineHeight = 18.sp
+                        color = BrandColors.textMuted
                     )
                 }
+                Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
             }
-        } else {
-            Text(
-                text = "本周还没有记录",
-                fontSize = 12.sp,
-                color = BrandColors.textMuted
-            )
         }
     }
 }

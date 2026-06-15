@@ -16,7 +16,9 @@
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.TownApp"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:fitsSystemWindows="false"
+            android:windowLayoutInDisplayCutoutMode="shortEdges">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

@@ -71,6 +71,132 @@ class IdiomCritiqueLibrary {
                 category = IdiomCategory.CHARACTER,
                 toxicityLevel = ToxicityLevel.POISONOUS,
                 keyMessage = "先利己再利人，不是自私而是智慧"
+            ),
+            IdiomCritique(
+                id = "kong_rong_rang_li",
+                idiom = "孔融让梨",
+                traditionalMeaning = "要谦让，要把好的给别人",
+                distortedTruth = "从小教导孩子牺牲自己的喜好去迎合他人的期待，这会让孩子形成'我的需求不重要'的认知。",
+                townPerspective = "谦让是美德，但不是义务。你喜欢的东西，你有权利自己享用。",
+                spotlights = listOf(
+                    Spotlight(SpotlightCategory.SELF_CULTIVATION, "强迫孩子谦让可能导致自我价值感低下", 0.9),
+                    Spotlight(SpotlightCategory.FREEDOM, "孩子有权选择自己喜欢的东西", 1.0)
+                ),
+                category = IdiomCategory.CHARACTER,
+                toxicityLevel = ToxicityLevel.HARMFUL,
+                keyMessage = "你不用让，喜欢就自己吃"
+            ),
+            IdiomCritique(
+                id = "ben_niao_xian_fei",
+                idiom = "笨鸟先飞",
+                traditionalMeaning = "要努力，要比别人更拼",
+                distortedTruth = "暗示你比别人差，需要付出更多才能弥补差距，这是一种隐性的贬低。",
+                townPerspective = "每个人都有自己的节奏。你不需要和别人比较，按自己的步调来就好。",
+                spotlights = listOf(
+                    Spotlight(SpotlightCategory.SELF_CULTIVATION, "比较会产生焦虑，每个人都有自己的节奏", 1.0),
+                    Spotlight(SpotlightCategory.FREEDOM, "定义成功的权利在你自己", 0.9)
+                ),
+                category = IdiomCategory.CHARACTER,
+                toxicityLevel = ToxicityLevel.HARMFUL,
+                keyMessage = "按自己的节奏来就好"
+            ),
+            IdiomCritique(
+                id = "chi_kui_shi_fu",
+                idiom = "吃亏是福",
+                traditionalMeaning = "吃亏是好事，要学会忍",
+                distortedTruth = "美化被欺负，让受害者自我安慰，这是对不公的合理化。",
+                townPerspective = "吃亏不是福，是别人在侵犯你的边界。你有权利保护自己。",
+                spotlights = listOf(
+                    Spotlight(SpotlightCategory.INTERPERSONAL, "容忍不公只会让侵犯者变本加厉", 1.0),
+                    Spotlight(SpotlightCategory.FREEDOM, "你的权利需要自己维护", 0.9)
+                ),
+                category = IdiomCategory.INTERPERSONAL,
+                toxicityLevel = ToxicityLevel.POISONOUS,
+                keyMessage = "吃亏不是福，是被欺负"
+            ),
+            IdiomCritique(
+                id = "tian_dao_chou_qin",
+                idiom = "天道酬勤",
+                traditionalMeaning = "努力就会成功",
+                distortedTruth = "将成功归因于个人努力，忽视环境、机遇、出身等因素，这是一种片面的成功观。",
+                townPerspective = "努力很重要，但成功还需要很多其他因素。就算不成功，你也很棒了。",
+                spotlights = listOf(
+                    Spotlight(SpotlightCategory.COGNITION, "成功是多种因素共同作用的结果", 1.0),
+                    Spotlight(SpotlightCategory.SELF_CULTIVATION, "你的价值不取决于是否成功", 0.9)
+                ),
+                category = IdiomCategory.SOCIETY,
+                toxicityLevel = ToxicityLevel.DISTORTED,
+                keyMessage = "努力不一定成功，但你已经很棒"
+            ),
+            IdiomCritique(
+                id = "chi_de_ku_zhong_ku",
+                idiom = "吃得苦中苦",
+                traditionalMeaning = "要吃苦，才能成功",
+                distortedTruth = "将苦难浪漫化，认为成功必须经历痛苦，这会让人忍受不必要的折磨。",
+                townPerspective = "吃苦不是成功的必要条件。你可以选择更轻松的方式达到目标。",
+                spotlights = listOf(
+                    Spotlight(SpotlightCategory.SELF_CULTIVATION, "苦难不是勋章，幸福才是目的", 1.0),
+                    Spotlight(SpotlightCategory.FREEDOM, "你有权选择不吃苦", 0.9)
+                ),
+                category = IdiomCategory.CHARACTER,
+                toxicityLevel = ToxicityLevel.HARMFUL,
+                keyMessage = "吃苦不是必须的"
+            ),
+            IdiomCritique(
+                id = "bai_shan_xiao_wei_xian",
+                idiom = "百善孝为先",
+                traditionalMeaning = "要听话，要孝顺父母",
+                distortedTruth = "将孝顺等同于服从，忽视个人的独立意志和边界。",
+                townPerspective = "孝顺不是盲目听话。你可以爱父母，也可以有自己的想法和生活。",
+                spotlights = listOf(
+                    Spotlight(SpotlightCategory.INTERPERSONAL, "孝顺是爱，不是服从", 1.0),
+                    Spotlight(SpotlightCategory.FREEDOM, "你有权拥有自己的人生", 0.9)
+                ),
+                category = IdiomCategory.RELATIONSHIP,
+                toxicityLevel = ToxicityLevel.DISTORTED,
+                keyMessage = "孝顺不是听话"
+            ),
+            IdiomCritique(
+                id = "ren_yi_shi_feng_ping_lang_jing",
+                idiom = "忍一时风平浪静",
+                traditionalMeaning = "要忍耐，不要发脾气",
+                distortedTruth = "教导人压抑情绪，认为表达愤怒是不好的，这会导致情绪积累和自我伤害。",
+                townPerspective = "压抑情绪只会伤害自己。你有权利表达自己的感受。",
+                spotlights = listOf(
+                    Spotlight(SpotlightCategory.EMOTION, "压抑情绪会损害心理健康", 1.0),
+                    Spotlight(SpotlightCategory.FREEDOM, "表达情绪是健康的", 0.9)
+                ),
+                category = IdiomCategory.INTERPERSONAL,
+                toxicityLevel = ToxicityLevel.HARMFUL,
+                keyMessage = "你不用忍，可以发脾气"
+            ),
+            IdiomCritique(
+                id = "cheng_wang_bai_kou",
+                idiom = "成王败寇",
+                traditionalMeaning = "赢了才是成功，输了就是失败",
+                distortedTruth = "以结果论英雄，忽视过程中的努力和成长，这是一种功利主义的价值观。",
+                townPerspective = "输赢只是一时的结果。无论成败，你都值得被爱和尊重。",
+                spotlights = listOf(
+                    Spotlight(SpotlightCategory.COGNITION, "成功不应该用输赢来定义", 1.0),
+                    Spotlight(SpotlightCategory.SELF_CULTIVATION, "你的价值不取决于成败", 0.9)
+                ),
+                category = IdiomCategory.SOCIETY,
+                toxicityLevel = ToxicityLevel.DISTORTED,
+                keyMessage = "赢输都一样被爱"
+            ),
+            IdiomCritique(
+                id = "chu_ren_tou_di",
+                idiom = "出人头地",
+                traditionalMeaning = "要成功，要比别人强",
+                distortedTruth = "将'比别人强'作为人生目标，陷入永无止境的比较和竞争中。",
+                townPerspective = "做普通人也很好。你不需要比别人强，做自己就足够了。",
+                spotlights = listOf(
+                    Spotlight(SpotlightCategory.COGNITION, "社会不需要每个人都出人头地", 1.0),
+                    Spotlight(SpotlightCategory.SELF_CULTIVATION, "平凡也是一种选择", 0.9)
+                ),
+                category = IdiomCategory.SOCIETY,
+                toxicityLevel = ToxicityLevel.HARMFUL,
+                keyMessage = "做普通人也很好"
             )
         )
 

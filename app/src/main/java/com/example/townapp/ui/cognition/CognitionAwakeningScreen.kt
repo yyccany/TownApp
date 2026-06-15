@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,7 +21,8 @@ import com.example.townapp.ui.screens.CognitiveScalpelScreen
 import com.example.townapp.ui.screens.IdiomCriticScreen
 import com.example.townapp.ui.cognition.SurvivalSimulatorScreen
 import com.example.townapp.ui.screens.ModernQuotesScreen
-import com.example.townapp.data.cognition.CognitionTopic
+import com.example.townapp.ui.cognition.EducationConditioningScreen
+import com.example.townapp.ui.cognition.IntergenerationalHarmScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,7 +35,7 @@ fun CognitionAwakeningScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(AppColors.Background)
+                .background(Color(0xFFFFF9EC))
                 .navigationBarsPadding()
         ) {
             TopAppBar(
@@ -49,14 +50,14 @@ fun CognitionAwakeningScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Default.ArrowBack,
                             contentDescription = "返回",
                             tint = AppColors.TextPrimary
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = AppColors.BeigeBackground
+                    containerColor = Color(0xFFFFF9EC)
                 )
             )
 
@@ -158,15 +159,13 @@ fun CognitionAwakeningScreen(
                 )
             }
             "education" -> {
-                CognitiveScalpelScreen(
-                    onBack = { currentScreen = null },
-                    topic = "教育规训解剖"
+                EducationConditioningScreen(
+                    onBack = { currentScreen = null }
                 )
             }
             "intergenerational" -> {
-                CognitiveScalpelScreen(
-                    onBack = { currentScreen = null },
-                    topic = "代际语言伤害"
+                IntergenerationalHarmScreen(
+                    onBack = { currentScreen = null }
                 )
             }
         }
@@ -184,7 +183,7 @@ fun NavigationButton(
             .width(280.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = AppColors.BeigeBackground),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF0E0)),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
@@ -195,7 +194,7 @@ fun NavigationButton(
                 modifier = Modifier
                     .size(56.dp)
                     .clip(RoundedCornerShape(14.dp))
-                    .background(AppColors.WarmBackground),
+                    .background(Color(0xFFE8DFD4)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(icon, fontSize = 28.sp)

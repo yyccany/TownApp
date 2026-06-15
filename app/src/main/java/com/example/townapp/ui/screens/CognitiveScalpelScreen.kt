@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,7 +28,7 @@ fun CognitiveScalpelScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.Background)
+            .background(Color(0xFFFFF9EC))
             .navigationBarsPadding()
     ) {
         TopAppBar(
@@ -43,14 +43,14 @@ fun CognitiveScalpelScreen(
             navigationIcon = {
                 IconButton(onClick = onBack) {
                     Icon(
-                        imageVector = Icons.Default.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Default.ArrowBack,
                         contentDescription = "返回",
                         tint = AppColors.TextPrimary
                     )
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = AppColors.BeigeBackground
+                containerColor = Color(0xFFFFF9EC)
             )
         )
 
@@ -68,7 +68,7 @@ fun CognitiveScalpelScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(AppDimens.radiusLarge),
-                    colors = CardDefaults.cardColors(containerColor = AppColors.BeigeBackground),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF0E0)),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Column(modifier = Modifier.padding(24.dp)) {

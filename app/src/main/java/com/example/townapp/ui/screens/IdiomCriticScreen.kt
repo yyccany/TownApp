@@ -82,7 +82,7 @@ private fun IdiomCategoryOverviewScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF5E6D3))
+            .background(Color(0xFFFFF9EC))
     ) {
         TopAppBar(
             title = {
@@ -99,30 +99,28 @@ private fun IdiomCategoryOverviewScreen(
                     )
                 }
             },
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFFFFF9EC)),
             navigationIcon = {
                 IconButton(onClick = onBack) {
                     Text("←", fontSize = 20.sp)
                 }
-            },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color(0xFFF5E6D3)
-            )
+            }
         )
 
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            shape = RoundedCornerShape(AppDimens.radiusLarge)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF0E0)),
+            shape = RoundedCornerShape(AppDimens.radiusMedium)
         ) {
             Column(
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier.padding(12.dp)
             ) {
                 Text(
                     "💡 小镇的世界观",
                     fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
+                    fontSize = 15.sp,
                     color = Color(0xFF4A3728)
                 )
                 Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
@@ -141,8 +139,8 @@ private fun IdiomCategoryOverviewScreen(
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(AppDimens.paddingLarge),
-            verticalArrangement = Arrangement.spacedBy(AppDimens.paddingMedium)
+            contentPadding = PaddingValues(horizontal = AppDimens.paddingLarge, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(categories) { category ->
                 CategoryCard(
@@ -178,33 +176,33 @@ private fun CategoryCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.2f)),
-        shape = RoundedCornerShape(AppDimens.radiusLarge),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF0E0)),
+        shape = RoundedCornerShape(AppDimens.radiusMedium),
         elevation = CardDefaults.cardElevation(defaultElevation = AppDimens.cardElevation)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(44.dp)
                     .clip(CircleShape)
-                    .background(color.copy(alpha = 0.5f)),
+                    .background(color.copy(alpha = 0.3f)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(category.emoji, fontSize = 24.sp)
+                Text(category.emoji, fontSize = 22.sp)
             }
 
-            Spacer(modifier = Modifier.width(AppDimens.paddingLarge))
+            Spacer(modifier = Modifier.width(AppDimens.paddingMedium))
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     category.displayName,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
+                    fontSize = 15.sp,
                     color = Color(0xFF4A3728)
                 )
                 Text(
@@ -217,14 +215,14 @@ private fun CategoryCard(
             Column(horizontalAlignment = Alignment.End) {
                 Text(
                     "${count}个",
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp,
-                    color = color
+                    color = color.copy(alpha = 0.8f)
                 )
                 Text(
                     "成语",
                     fontSize = 12.sp,
-                    color = Color.Gray
+                    color = Color(0xFF888888)
                 )
             }
         }
@@ -244,7 +242,7 @@ private fun IdiomCategoryListScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF5E6D3))
+            .background(Color(0xFFFFF9EC))
     ) {
         TopAppBar(
             title = {

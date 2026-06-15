@@ -150,7 +150,7 @@ fun ModernQuotesScreen(
                             Text("←", fontSize = 20.sp)
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFFF5F5F5))
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFFFFF9EC))
                 )
             }
         ) { padding ->
@@ -158,7 +158,7 @@ fun ModernQuotesScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .background(Color(0xFFF5F5F5)),
+                    .background(Color(0xFFFFF9EC)),
                 contentPadding = PaddingValues(AppDimens.paddingLarge),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {

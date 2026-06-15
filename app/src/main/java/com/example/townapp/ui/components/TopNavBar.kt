@@ -22,7 +22,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.WindowInsets
 
 /**
  * ########## 顶部导航栏（双模式） ##########
@@ -157,9 +159,10 @@ fun TopNavBar(
         },
         actions = actions,
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = Color(0xFFFFF9EC),
             titleContentColor = MaterialTheme.colorScheme.onSurface
         ),
+        windowInsets = WindowInsets(0, 0, 0, 0),
         modifier = modifier
     )
 }

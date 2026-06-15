@@ -28,7 +28,7 @@ enum class SpotlightCategory(
     CONNECTION("社交连接", "👥", 0xFFEC4899),
     TRADITION("历史价值", "📜", 0xFF92400E),
     RESILIENCE("韧性力量", "🌿", 0xFF22C55E),
-    FREEDOM("自主选择", "🗽", 0xFF0EA5E9)
+    FREEDOM("自主选择", "🌿", 0xFF0EA5E9)
 }
 
 data class Spotlight(

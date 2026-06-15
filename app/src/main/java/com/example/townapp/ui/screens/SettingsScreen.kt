@@ -41,10 +41,9 @@ fun SettingsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(AppColors.Background)
-                .statusBarsPadding()
+                .background(Color(0xFFFFF9EC))
                 .navigationBarsPadding(),
-            verticalArrangement = Arrangement.Top
+            verticalArrangement = Arrangement.Center
         ) {
             TopNavBar(title = "设置", showBack = true, onBack = onBack)
 
@@ -52,7 +51,6 @@ fun SettingsScreen(
                 modifier = Modifier
                     .weight(1f)
                     .verticalScroll(rememberScrollState())
-                    .padding(top = 8.dp)
             ) {
                 // 纯内存模式说明
                 Text(

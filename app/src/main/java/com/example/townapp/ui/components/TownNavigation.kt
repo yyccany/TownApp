@@ -20,6 +20,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.WindowInsets
 
 @Composable
 fun TownBottomNavigation(
@@ -28,8 +29,9 @@ fun TownBottomNavigation(
 ) {
     NavigationBar(
         modifier = Modifier.fillMaxWidth(),
-        containerColor = if (currentTab == "town") Color(0xFF4A3728) else MaterialTheme.colorScheme.surface,
-        contentColor = if (currentTab == "town") Color.White else MaterialTheme.colorScheme.onSurface
+        containerColor = Color(0xFFFFF9EC),
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        windowInsets = WindowInsets(0, 0, 0, 0)
     ) {
         // 纯内存模式：只保留小镇和设置两个主入口
         // 其他功能通过小镇界面内的导航访问
@@ -56,10 +58,10 @@ fun TownBottomNavigation(
                 selected = currentTab == id,
                 onClick = { onTabChange(id) },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = if (currentTab == "town") Color.White else MaterialTheme.colorScheme.primary,
-                    selectedTextColor = if (currentTab == "town") Color.White else MaterialTheme.colorScheme.primary,
-                    unselectedIconColor = if (currentTab == "town") Color.White.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    unselectedTextColor = if (currentTab == "town") Color.White.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
             )
         }

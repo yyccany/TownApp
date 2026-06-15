@@ -4,12 +4,16 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.core.view.WindowCompat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -58,6 +62,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // 设置沉浸式状态栏
+        setupImmersiveStatusBar()
         
         try {
             database = TownDatabase.getDatabase(this)
@@ -257,13 +264,20 @@ fun TownApp(database: TownDatabase) {
                 currentTab = currentTab,
                 onTabChange = { currentTab = it }
             )
-        }
-    ) { padding ->
-        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+        },
+        contentWindowInsets = WindowInsets(0)
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(top = 0.dp)
+                .statusBarsPadding()
+        ) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(AppColors.Background)
+                    .background(Color(0xFFFFF9EC))
             ) {
                 when {
                     selectedProduct != null -> {
@@ -335,9 +349,7 @@ fun TownApp(database: TownDatabase) {
                                 )
                             }
                             "document" -> {
-                                DocumentScreen(
-                                    onNavigateBack = { currentTab = "settings" }
-                                )
+                                DocumentScreen()
                             }
                             "archive" -> {
                                 LifeArchiveScreen(
@@ -456,4 +468,15 @@ fun ErrorScreen(error: String) {
             )
         }
     }
+}
+
+// 设置沉浸式状态栏
+private fun MainActivity.setupImmersiveStatusBar() {
+    // 关闭系统默认安全边距
+    WindowCompat.setDecorFitsSystemWindows(window, false)
+    
+    // 设置状态栏字体为深色（因为背景是浅色）
+    val decorView = window.decorView
+    val flags = decorView.systemUiVisibility or android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+    decorView.systemUiVisibility = flags
 }

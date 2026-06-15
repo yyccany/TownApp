@@ -106,9 +106,7 @@ private fun buildHighlightedString(text: String, query: String): AnnotatedString
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DocumentScreen(
-    onNavigateBack: (() -> Unit)? = null
-) {
+fun DocumentScreen() {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     
@@ -302,29 +300,25 @@ fun DocumentScreen(
                 TopAppBar(
                     title = { Text(currentDocName) },
                     navigationIcon = {
-                        Row {
-                            // 汉堡菜单按钮（呼出抽屉）
-                            IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                                Icon(Icons.Filled.Menu, contentDescription = "目录")
-                            }
-                            // 返回按钮
-                            if (onNavigateBack != null) {
-                                IconButton(onClick = onNavigateBack) {
-                                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
-                                }
-                            }
+                        // 汉堡菜单按钮（呼出抽屉）
+                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                            Icon(Icons.Filled.Menu, contentDescription = "目录")
                         }
                     },
                     actions = {
                         // 搜索按钮（后续迭代再启用）
                         // IconButton(onClick = { showSearch = !showSearch }) { ... }
-                    }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color(0xFFFFF9EC)
+                    )
                 )
             }
         ) { paddingValues ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .background(Color(0xFFFFF9EC))
                     .padding(paddingValues)
                     .navigationBarsPadding()
             ) {
@@ -413,13 +407,28 @@ fun DocumentScreen(
                             // 空白状态提示
                             Column(
                                 modifier = Modifier.fillMaxSize(),
-                                verticalArrangement = Arrangement.Center,
+                                verticalArrangement = Arrangement.Top,
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
+                                Spacer(modifier = Modifier.height(60.dp))
+                                Icon(
+                                    imageVector = Icons.Filled.Menu,
+                                    contentDescription = "菜单",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(48.dp)
+                                )
+                                Spacer(modifier = Modifier.height(24.dp))
                                 Text(
-                                    text = "点击左上角菜单选择文档",
-                                    fontSize = 16.sp,
-                                    color = Color.Gray
+                                    text = "点击左上角菜单",
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "选择想要阅读的文档",
+                                    fontSize = 15.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(top = 8.dp)
                                 )
                             }
                         }
