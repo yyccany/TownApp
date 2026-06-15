@@ -42,11 +42,18 @@ fun SettingsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(AppColors.Background)
-                .navigationBarsPadding()
+                .statusBarsPadding()
+                .navigationBarsPadding(),
+            verticalArrangement = Arrangement.Top
         ) {
             TopNavBar(title = "设置", showBack = true, onBack = onBack)
 
-            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+                    .padding(top = 8.dp)
+            ) {
                 // 纯内存模式说明
                 Text(
                     text = "💾 内存模式",
@@ -227,7 +234,7 @@ fun SettingsScreen(
                                     color = AppColors.WarmBrown
                                 )
                                 Text(
-                                    text = "以人为本，自由、平等、公正。不教你怎么活，只陈述客观事实，看见个体闪光点。",
+                                    text = "以人为本，每个人内心存有向善的闪光点潜能。生存压力、小镇政策会左右短期行为，系统仅展示现实利弊，不规定最优人生道路，交由你自主抉择短期得失与长远人生走向。",
                                     fontSize = 14.sp,
                                     color = AppColors.TextSecondary,
                                     lineHeight = 20.sp,
@@ -244,9 +251,9 @@ fun SettingsScreen(
                                 )
 
                                 val principles = listOf(
-                                    Pair("自由", "你可以选择任何生活方式，不被任何规训强制约束"),
-                                    Pair("平等", "忙碌与躺平、各类职业岗位没有优劣之分，每个人拥有独属于自身的天赋长处"),
-                                    Pair("实事求是", "只陈述客观事实，不灌输焦虑，不输出指令，客观展现生活利弊")
+                                    Pair("自由", "躺平独居、职场打拼、革新小镇政策均可选择，个人选择能够改变自身命运，长期决策还会影响小镇整体社会环境。"),
+                                    Pair("平等", "各类职业没有高低优劣之分，贫富差距源自物价税负、生存压力、长期个人选择，所有人先天人格潜能对等。"),
+                                    Pair("实事求是", "系统变量环环相扣，短期会遇见内卷、人际算计、失业负债等现实困境；时间拉长后，个人选择与顶层改革能够改善整体环境，只呈现客观事实，不做说教式指令输出。")
                                 )
 
                                 principles.forEach { (title, desc) ->
@@ -261,6 +268,7 @@ fun SettingsScreen(
                                             text = desc,
                                             fontSize = 13.sp,
                                             color = AppColors.TextSecondary,
+                                            lineHeight = 18.sp,
                                             modifier = Modifier.padding(start = AppDimens.paddingLarge)
                                         )
                                     }
@@ -268,7 +276,7 @@ fun SettingsScreen(
 
                                 // 延伸阅读提示
                                 Text(
-                                    text = "\n更多内容请查看「认知觉醒 → 现代清醒语录」",
+                                    text = "\n深层仿真模型、社会运行规则，可查阅小镇全量文案文档。",
                                     fontSize = 13.sp,
                                     color = AppColors.PrimaryWarm,
                                     fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
