@@ -96,6 +96,7 @@ dependencies {
 
     // SQLCipher 数据库加密
     implementation("net.zetetic:sqlcipher-android:4.5.5")
+    implementation("com.google.code.gson:gson:2.10.1")
     
     // 安全审计日志
     implementation("com.google.firebase:firebase-crashlytics-ktx:18.6.2")
