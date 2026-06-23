@@ -1,7 +1,5 @@
 package com.example.townapp.ui.screens
 
-import com.example.townapp.ui.theme.AppDimens
-
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
@@ -20,8 +18,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.townapp.feature.food.CuisineFood
-import com.example.townapp.feature.food.CuisineFoodRepository
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.townapp.domain.model.simulation.CuisineFoodVo
+import com.example.townapp.feature.food.viewmodel.FoodAppreciationViewModel
+import com.example.townapp.ui.theme.AppDimens
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,13 +29,19 @@ import kotlinx.coroutines.delay
 fun FoodAppreciationScreen(
     onBack: () -> Unit
 ) {
-    val foods by remember { mutableStateOf(CuisineFoodRepository.getAllFoods()) }
-    var selectedFood by remember { mutableStateOf<CuisineFood?>(null) }
+    val viewModel = remember { FoodAppreciationViewModel() }
+    // 生命周期感知订阅数据流（标准模板）
+    val foodList by viewModel.foodList.collectAsStateWithLifecycle()
+    val selectedFood by viewModel.selectedFood.collectAsStateWithLifecycle()
+    // 页面进入自动加载数据（标准模板）
+    LaunchedEffect(Unit) {
+        viewModel.loadAllFood()
+    }
 
     if (selectedFood != null) {
         FoodDetailScreen(
             food = selectedFood!!,
-            onBack = { selectedFood = null }
+            onBack = { viewModel.clearSelection() }
         )
     } else {
         Scaffold(
@@ -89,7 +95,7 @@ fun FoodAppreciationScreen(
                     }
                 }
 
-                val groupedFoods = foods.groupBy { it.cuisine }
+                val groupedFoods = foodList.groupBy { it.cuisine }
                 groupedFoods.forEach { (cuisine, cuisineFoods) ->
                     item {
                         CuisineHeader(cuisine = cuisine, count = cuisineFoods.size)
@@ -97,7 +103,7 @@ fun FoodAppreciationScreen(
                     items(cuisineFoods) { food ->
                         FoodCard(
                             food = food,
-                            onClick = { selectedFood = food }
+                            onClick = { viewModel.selectFood(food) }
                         )
                     }
                 }
@@ -122,7 +128,7 @@ fun CuisineHeader(cuisine: String, count: Int) {
         "闽菜" to Color(0xFF00897B),
         "徽菜" to Color(0xFF6D4C41)
     )
-    
+
     val color = cuisineColors[cuisine] ?: Color(0xFF8B7355)
 
     Row(
@@ -155,7 +161,7 @@ fun CuisineHeader(cuisine: String, count: Int) {
 
 @Composable
 fun FoodCard(
-    food: CuisineFood,
+    food: CuisineFoodVo,
     onClick: () -> Unit
 ) {
     var isPressed by remember { mutableStateOf(false) }
@@ -168,13 +174,7 @@ fun FoodCard(
         label = "scale"
     )
 
-    val riskColor = when (food.healthRisk) {
-        "LOW" -> Color(0xFF4CAF50)
-        "MEDIUM" -> Color(0xFFFFC107)
-        "HIGH" -> Color(0xFFFF9800)
-        "EXTREME" -> Color(0xFFF44336)
-        else -> Color(0xFF9E9E9E)
-    }
+    val riskColor = Color(android.graphics.Color.parseColor(food.riskColorHex))
 
     Card(
         modifier = Modifier
@@ -217,7 +217,7 @@ fun FoodCard(
                         .padding(horizontal = AppDimens.paddingSmall, vertical = 4.dp)
                 ) {
                     Text(
-                        text = getRiskLabel(food.healthRisk),
+                        text = food.healthRiskLabel,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium,
                         color = riskColor
@@ -237,36 +237,20 @@ fun FoodCard(
     }
 }
 
-fun getRiskLabel(risk: String): String {
-    return when (risk) {
-        "LOW" -> "健康"
-        "MEDIUM" -> "适量"
-        "HIGH" -> "少吃"
-        "EXTREME" -> "偶尔"
-        else -> "未知"
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FoodDetailScreen(
-    food: CuisineFood,
+    food: CuisineFoodVo,
     onBack: () -> Unit
 ) {
     var showContent by remember { mutableStateOf(false) }
-    
+
     LaunchedEffect(Unit) {
         delay(300)
         showContent = true
     }
 
-    val riskColor = when (food.healthRisk) {
-        "LOW" -> Color(0xFF4CAF50)
-        "MEDIUM" -> Color(0xFFFFC107)
-        "HIGH" -> Color(0xFFFF9800)
-        "EXTREME" -> Color(0xFFF44336)
-        else -> Color(0xFF9E9E9E)
-    }
+    val riskColor = Color(android.graphics.Color.parseColor(food.riskColorHex))
 
     val nutritionLevel = when {
         food.nutritionScore >= 40 -> "优秀"
@@ -354,7 +338,7 @@ fun FoodDetailScreen(
                                     color = riskColor
                                 )
                                 Text(
-                                    getRiskLabel(food.healthRisk),
+                                    food.healthRiskLabel,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 16.sp,
                                     color = riskColor
@@ -400,12 +384,12 @@ fun FoodDetailScreen(
                                 color = Color(0xFF2E7D32)
                             )
                             Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
-                            
+
                             NutritionRow("油脂", food.oil, "g", food.oil > 80)
                             NutritionRow("盐分", food.salt, "g", food.salt > 5)
                             NutritionRow("糖分", food.sugar, "g", food.sugar > 20)
                             NutritionRow("胆固醇", food.cholesterol, "mg", food.cholesterol > 150)
-                            
+
                             Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -483,7 +467,7 @@ fun FoodDetailScreen(
                                 color = Color(0xFF1565C0)
                             )
                             Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
-                            
+
                             val advice = when (food.healthRisk) {
                                 "LOW" -> "这道菜营养均衡，可以经常享用。享受美食的同时，也别忘了多样化饮食哦。"
                                 "MEDIUM" -> "这道菜适量食用问题不大。注意控制频率和分量，美食当前也要懂得节制。"
@@ -491,7 +475,7 @@ fun FoodDetailScreen(
                                 "EXTREME" -> "这道菜确实不太健康，但偶尔吃一次也没关系。重要的是你了解它，而不是被它裹挟。"
                                 else -> "这道菜的具体情况需要具体分析。"
                             }
-                            
+
                             Text(
                                 advice,
                                 fontSize = 14.sp,

@@ -1,7 +1,7 @@
 package com.example.townapp.domain.engine
 
 import com.example.townapp.domain.TimeEngine
-import com.example.townapp.domain.TimeState
+import com.example.townapp.domain.util.TimeState
 import org.junit.Assert.*
 import org.junit.Test
 

@@ -14,8 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.townapp.business.AestheticBusiness
-import com.example.townapp.business.AestheticBusiness.DailyAestheticTask
+import com.example.townapp.feature.town_simulation.AestheticBusiness
+import com.example.townapp.feature.town_simulation.AestheticBusiness.DailyAestheticTask
 import com.example.townapp.ui.design.TownAestheticDesign
 
 @Composable

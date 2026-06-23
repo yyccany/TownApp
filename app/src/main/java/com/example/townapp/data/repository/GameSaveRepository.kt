@@ -5,7 +5,7 @@ import com.example.townapp.data.*
 import com.example.townapp.data.database.entity.UserBodyState
 import com.example.townapp.data.database.entity.UserMentalState
 import com.example.townapp.data.database.entity.UserSpaceState
-import com.example.townapp.domain.TimeState
+import com.example.townapp.domain.util.TimeState
 import com.example.townapp.ui.viewmodel.AutoLifeTier
 import com.example.townapp.ui.viewmodel.ShoppingMode
 import org.json.JSONArray

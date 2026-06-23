@@ -225,10 +225,10 @@ fun IdiomDataView() {
 /** 认知数据视图 */
 @Composable
 fun CognitionDataView() {
-    var dissections by remember { mutableStateOf<List<com.example.townapp.data.cognition.Dissection>>(emptyList()) }
+    var dissections by remember { mutableStateOf<List<com.example.townapp.feature.human_narrative.cognition.Dissection>>(emptyList()) }
     
     LaunchedEffect(Unit) {
-        dissections = com.example.townapp.data.cognition.getAllDissections()
+        dissections = com.example.townapp.feature.human_narrative.cognition.getAllDissections()
     }
     
     LazyColumn {

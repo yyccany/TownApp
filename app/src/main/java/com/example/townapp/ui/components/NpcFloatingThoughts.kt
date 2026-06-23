@@ -13,8 +13,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.townapp.npc.model.NpcFloatingThought
-import com.example.townapp.npc.model.TownNarrativeState
+import com.example.townapp.domain.model.NpcFloatingThought
+import com.example.townapp.domain.model.TownNarrativeState
 
 /**
  * NPC 漂浮独白组件（落实自由平等+实事求是原则）

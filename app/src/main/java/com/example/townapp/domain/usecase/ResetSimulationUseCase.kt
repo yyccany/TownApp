@@ -1,7 +1,7 @@
 package com.example.townapp.domain.usecase
 
 import com.example.townapp.domain.engine.SimulationEngine
-import com.example.townapp.npc.model.CognitionState
+import com.example.townapp.domain.model.CognitionState
 
 /**
  * 重置模拟世界用例。

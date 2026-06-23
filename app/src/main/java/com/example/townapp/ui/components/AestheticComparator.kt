@@ -12,9 +12,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.townapp.business.AestheticBusiness
-import com.example.townapp.business.AestheticBusiness.AestheticItem
-import com.example.townapp.business.AestheticBusiness.ComparisonResult
+import com.example.townapp.feature.town_simulation.AestheticBusiness
+import com.example.townapp.feature.town_simulation.AestheticBusiness.AestheticItem
+import com.example.townapp.feature.town_simulation.AestheticBusiness.ComparisonResult
 import com.example.townapp.ui.design.TownAestheticDesign
 import java.util.Locale
 

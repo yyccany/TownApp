@@ -7,9 +7,24 @@ package com.example.townapp.core.constants
 object SimulationConstants {
     // 时间参数
     const val HOURS_PER_DAY = 24
+    const val MINUTES_PER_HOUR = 60
+    const val MINUTES_PER_DAY = 1440  // 固定不变
     const val DAYS_PER_MONTH = 30
     const val MONTHS_PER_YEAR = 12
     const val DAYS_PER_WEEK = 7
+    
+    // 逻辑时间基准（固定不变，保证人人均等）
+    const val LOGIC_MINUTES_PER_DAY = 1440  // 1440 逻辑分钟/天
+    
+    // 深夜时段（22:00-06:00，共 480 逻辑分钟）
+    const val NIGHT_START_HOUR = 22
+    const val NIGHT_END_HOUR = 6
+    const val NIGHT_MINUTES = 480  // 22:00-06:00 共 8 小时
+    
+    // 流速倍率选项（玩家可选）
+    val SPEED_OPTIONS = listOf(0.25f, 0.5f, 1f, 2f, 4f, 8f)
+    const val DEFAULT_SPEED = 1f
+    const val PAUSE_SPEED = 0f
 
     // 生理参数默认值
     const val DEFAULT_HUNGER = 80.0
@@ -48,4 +63,6 @@ object SimulationConstants {
 
     // 时间换算
     const val MILLIS_PER_DAY = 24L * 60 * 60 * 1000
+    const val MILLIS_PER_MINUTE = 60 * 1000L  // 60000ms = 1分钟（1x速度基准）
+    const val BASE_REAL_MS_PER_LOGIC_MIN = MILLIS_PER_MINUTE  // 1x 速度下，1逻辑分钟 = 60000ms
 }

@@ -25,9 +25,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.townapp.business.BodyStateBusiness
-import com.example.townapp.business.EventEngine
-import com.example.townapp.business.NutritionRiskCache
+import com.example.townapp.feature.town_simulation.BodyStateBusiness
+import com.example.townapp.feature.town_simulation.EventEngine
+import com.example.townapp.feature.town_simulation.NutritionRiskCache
 import com.example.townapp.data.SampleProducts
 import com.example.townapp.data.database.TownDatabase
 import com.example.townapp.data.database.dao.ProductDao
@@ -42,7 +42,7 @@ import com.example.townapp.ui.screens.ResidentScreen
 import com.example.townapp.ui.screens.SimulationScreen
 import com.example.townapp.ui.screens.DataViewerScreen
 import com.example.townapp.ui.viewmodel.TownViewModel
-import com.example.townapp.ui.cognition.CognitionAwakeningScreen
+import com.example.townapp.feature.human_narrative.cognition.ui.CognitionAwakeningScreen
 import com.example.townapp.ui.theme.TownTheme
 import kotlinx.coroutines.Dispatchers
 import androidx.lifecycle.lifecycleScope
@@ -51,8 +51,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.example.townapp.business.StructuredLogger
-import com.example.townapp.business.ExceptionHandler
+import com.example.townapp.feature.town_simulation.StructuredLogger
+import com.example.townapp.feature.town_simulation.ExceptionHandler
 import com.example.townapp.data.repository.DataIntegrationManager
 import com.example.townapp.data.repository.SimulationDataSwitch
 

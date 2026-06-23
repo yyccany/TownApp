@@ -18,10 +18,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.example.townapp.npc.model.CognitionState
-import com.example.townapp.npc.model.FragmentType
-import com.example.townapp.npc.model.NpcDisplayVo
-import com.example.townapp.npc.model.TonePaletteVo
+import com.example.townapp.domain.model.CognitionState
+import com.example.townapp.domain.model.FragmentType
+import com.example.townapp.feature.human_narrative.npc.model.NpcDisplayVo
+import com.example.townapp.feature.human_narrative.npc.model.TonePaletteVo
 
 /**
  * NPC 对话弹窗（对标《去月球》叙事逻辑）

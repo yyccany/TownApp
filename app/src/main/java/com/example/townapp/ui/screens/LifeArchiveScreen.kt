@@ -28,7 +28,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.townapp.data.database.entity.LifeArchiveEntity
-import com.example.townapp.ui.components.ChildhoodReflectionSection
+import com.example.townapp.feature.human_narrative.cognition.ui.components.ChildhoodReflectionSection
 import java.text.SimpleDateFormat
 import java.util.*
 

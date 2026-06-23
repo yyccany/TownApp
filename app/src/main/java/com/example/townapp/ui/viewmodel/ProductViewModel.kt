@@ -2,7 +2,7 @@ package com.example.townapp.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.townapp.business.CalculationEngine
+import com.example.townapp.feature.town_simulation.CalculationEngine
 import com.example.townapp.data.database.TownDatabase
 import com.example.townapp.data.database.entity.ProductEntity
 import kotlinx.coroutines.Dispatchers

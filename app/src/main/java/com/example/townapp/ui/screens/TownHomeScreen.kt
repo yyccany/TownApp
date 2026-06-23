@@ -30,7 +30,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.townapp.business.GentleTextProvider
+import com.example.townapp.feature.town_simulation.GentleTextProvider
 import com.example.townapp.data.FoodItem
 import com.example.townapp.data.LifePathBinding
 import com.example.townapp.data.database.entity.UserBodyState

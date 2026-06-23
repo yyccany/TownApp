@@ -17,7 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.townapp.data.model.IdiomReflection
-import com.example.townapp.ui.components.ReflectionCard
+import com.example.townapp.feature.human_narrative.cognition.ui.components.ReflectionCard
 import com.example.townapp.ui.viewmodel.TownViewModel
 import kotlinx.coroutines.launch
 

@@ -6,8 +6,8 @@ import android.util.Log
 import androidx.startup.Initializer
 import com.example.townapp.SeedData
 import com.example.townapp.data.database.TownDatabase
-import com.example.townapp.business.BodyStateBusiness
-import com.example.townapp.business.StructuredLogger
+import com.example.townapp.feature.town_simulation.BodyStateBusiness
+import com.example.townapp.feature.town_simulation.StructuredLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch

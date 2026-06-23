@@ -1,7 +1,7 @@
 package com.example.townapp.security
 
 import android.util.Log
-import com.example.townapp.business.StructuredLogger
+import com.example.townapp.feature.town_simulation.StructuredLogger
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 

@@ -376,7 +376,7 @@ data class NpcStatus(
 package com.example.townapp.npc.repository
 
 import android.content.Context
-import com.example.townapp.common.TextAssetLoader
+import com.example.townapp.data.asset.TextAssetLoader
 
 /**
  * NPC静态文本加载器
