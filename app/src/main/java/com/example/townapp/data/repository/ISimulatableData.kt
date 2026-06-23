@@ -57,12 +57,14 @@ data class StateEffect(
     val hunger: Double = 0.0,
     val energy: Double = 0.0,
     val health: Double = 0.0,
+    val fatigue: Double = 0.0,
     
     // 精神状态影响
     val happiness: Double = 0.0,
     val anxiety: Double = 0.0,
     val loneliness: Double = 0.0,
     val control: Double = 0.0,
+    val trauma: Double = 0.0,
     
     // 其他影响
     val money: Double = 0.0,
@@ -75,10 +77,12 @@ data class StateEffect(
             hunger = this.hunger + other.hunger,
             energy = this.energy + other.energy,
             health = this.health + other.health,
+            fatigue = this.fatigue + other.fatigue,
             happiness = this.happiness + other.happiness,
             anxiety = this.anxiety + other.anxiety,
             loneliness = this.loneliness + other.loneliness,
             control = this.control + other.control,
+            trauma = this.trauma + other.trauma,
             money = this.money + other.money,
             skillLevel = this.skillLevel + other.skillLevel,
             generationalPressure = this.generationalPressure + other.generationalPressure

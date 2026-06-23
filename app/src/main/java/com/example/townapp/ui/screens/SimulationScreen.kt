@@ -1,10 +1,6 @@
 package com.example.townapp.ui.screens
 
-import com.example.townapp.ui.theme.AppDimens
-
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -12,31 +8,29 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import com.example.townapp.ui.theme.AppColors
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.townapp.domain.engine.PlayerState
+import com.example.townapp.domain.engine.GameTime
 import com.example.townapp.domain.spacemodel.SpaceState
 import com.example.townapp.data.CareerPathSystem
 import com.example.townapp.data.FoodItem
 import com.example.townapp.data.LifePathData
-import com.example.townapp.data.model.TownNPC
 import com.example.townapp.data.repository.SpaceConfig
-
+import com.example.townapp.ui.design.TownAestheticDesign
 import com.example.townapp.ui.viewmodel.SimulationViewModel
 import kotlinx.coroutines.launch
 
@@ -48,7 +42,6 @@ fun SimulationScreen(
     val vm: SimulationViewModel = viewModel()
     val coroutineScope = rememberCoroutineScope()
 
-    // 页面级UI状态（不由引擎决定）
     val showFoodSelector = remember { mutableStateOf(false) }
     val searchQuery = remember { mutableStateOf("") }
     val selectedCategory = remember { mutableStateOf<String?>(null) }
@@ -58,8 +51,8 @@ fun SimulationScreen(
     val selectedLifePath = remember { mutableStateOf(LifePathData.paths.first()) }
     val showEventLog = remember { mutableStateOf(false) }
     val showCharacterInfo = remember { mutableStateOf(false) }
+    val showStatsPanel = remember { mutableStateOf(false) }
 
-    // 从ViewModel订阅的状态（StateFlow → Compose 自动订阅）
     val player by vm.playerState.collectAsState()
     val gameTime by vm.gameTime.collectAsState()
     val spaceState by vm.spaceState.collectAsState()
@@ -83,190 +76,215 @@ fun SimulationScreen(
         return
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text("小镇模拟", fontSize = 18.sp)
-                        Text(
-                            "${gameTime.getDayOfWeekName()} · 第${gameTime.week}周 · 第${gameTime.days}天 · ${gameTime.hours}:00",
-                            fontSize = 12.sp,
-                            color = Color.White.copy(alpha = 0.7f)
+    val isNight = gameTime.hours in 22..23 || gameTime.hours in 0..5
+    
+    Box(modifier = Modifier.fillMaxSize()) {
+        BackgroundGradient(isNight)
+        
+        Scaffold(
+            topBar = {
+                TownTopBar(
+                    gameTime = gameTime,
+                    events = events,
+                    isRunning = isRunning,
+                    onToggleSimulation = { vm.toggleSimulation() },
+                    onReset = { vm.resetSimulation(); showSetup.value = true },
+                    onShowCharacterInfo = { showCharacterInfo.value = true },
+                    onShowEventLog = { showEventLog.value = true }
+                )
+            },
+            backgroundColor = Color.Transparent
+        ) { padding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.height(TownAestheticDesign.Spacing.xxl))
+                
+                GreetingCard(gameTime, player)
+                
+                Spacer(modifier = Modifier.height(TownAestheticDesign.Spacing.xxl))
+                
+                TodayMoodCard(player, isNight)
+                
+                Spacer(modifier = Modifier.height(TownAestheticDesign.Spacing.xl))
+                
+                DailyEventsSection(events = player.dailyEvents, onDismiss = { vm.clearDailyEvents() }, isNight)
+                
+                Spacer(modifier = Modifier.height(TownAestheticDesign.Spacing.xl))
+                
+                QuietActionsGrid(
+                    onEat = { showFoodSelector.value = true },
+                    onSleep = { hours -> vm.sleep(hours) },
+                    onWork = { hours -> vm.work(hours) },
+                    onStudy = { hours -> vm.study(hours) },
+                    onWalk = { hours -> vm.walk(hours) },
+                    onSocialize = { hours -> vm.socialize(hours) },
+                    onMeditate = { minutes -> vm.meditate(minutes) },
+                    onExercise = { hours -> vm.exercise(hours) },
+                    onRead = { hours -> vm.read(hours) },
+                    onListenMusic = { hours -> vm.listenMusic(hours) },
+                    onCook = { hours -> vm.cook(hours) },
+                    onOrganize = { hours -> vm.organize(hours) },
+                    onWatchMovie = { hours -> vm.watchMovie(hours) },
+                    onTeaBreak = { minutes -> vm.teaBreak(minutes) },
+                    onTendPlant = { vm.tendPlant() },
+                    onJournal = { minutes -> vm.journal(minutes) },
+                    onPayRent = { vm.payRent() },
+                    onChangeSpace = { showSpaceSelector.value = true },
+                    onIdle = { hours -> vm.idle(hours) }
+                )
+                
+                Spacer(modifier = Modifier.height(TownAestheticDesign.Spacing.xl))
+                
+                StatsToggleButton(isExpanded = showStatsPanel.value, onToggle = { showStatsPanel.value = !showStatsPanel.value })
+                
+                AnimatedVisibility(
+                    visible = showStatsPanel.value,
+                    enter = expandVertically() + fadeIn(),
+                    exit = shrinkVertically() + fadeOut()
+                ) {
+                    StatsPanels(player, spaceState)
+                }
+                
+                Spacer(modifier = Modifier.height(TownAestheticDesign.Spacing.xxl))
+                
+                FastForwardCard(onFastForward = { days -> vm.fastForward(days) })
+                
+                Spacer(modifier = Modifier.height(TownAestheticDesign.Spacing.xxl))
+            }
+        }
+        
+        if (showFoodSelector.value) {
+            FoodSelectorDialog(
+                foods = foodList,
+                onSelectFood = { foodId ->
+                    vm.eat(foodId)
+                    showFoodSelector.value = false
+                },
+                onDismiss = { showFoodSelector.value = false },
+                searchQuery = searchQuery,
+                selectedCategory = selectedCategory
+            )
+        }
+
+        if (showSpaceSelector.value) {
+            SpaceSelectorDialog(
+                spaces = spaceList,
+                currentMoney = player.money,
+                onSelectSpace = { spaceId ->
+                    vm.changeSpace(spaceId)
+                    showSpaceSelector.value = false
+                },
+                onDismiss = { showSpaceSelector.value = false }
+            )
+        }
+
+        if (showEventLog.value) {
+            EventLogDialog(events = events, onDismiss = { showEventLog.value = false })
+        }
+
+        if (showCharacterInfo.value) {
+            CharacterDetailDialog(player = player, onDismiss = { showCharacterInfo.value = false })
+        }
+
+        AnimatedVisibility(
+            visible = actionResult.isNotEmpty(),
+            enter = fadeIn() + slideInVertically { -20 },
+            exit = fadeOut() + slideOutVertically { -20 }
+        ) {
+            ActionResultCard(message = actionResult, onDismiss = { vm.clearActionResult() })
+        }
+    }
+}
+
+@Composable
+fun BackgroundGradient(isNight: Boolean) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    if (isNight) {
+                        listOf(
+                            Color(0xFF1A1A2E),
+                            Color(0xFF16213E),
+                            Color(0xFF0F3460)
+                        )
+                    } else {
+                        listOf(
+                            Color(0xFFFFFBF0),
+                            Color(0xFFFDF6E3),
+                            Color(0xFFF5EEE6)
                         )
                     }
-                },
-                actions = {
-                    IconButton(onClick = { showCharacterInfo.value = true }) {
-                        Icon(Icons.Default.Person, contentDescription = "角色信息")
+                )
+            )
+    )
+}
+
+@Composable
+fun TownTopBar(
+    gameTime: GameTime,
+    events: List<String>,
+    isRunning: Boolean,
+    onToggleSimulation: () -> Unit,
+    onReset: () -> Unit,
+    onShowCharacterInfo: () -> Unit,
+    onShowEventLog: () -> Unit
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = Color(0xFF2C3E50).copy(alpha = 0.92f),
+        elevation = TownAestheticDesign.Elevation.lg,
+        shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(
+                        "万物薪俸小镇",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Light,
+                        color = Color.White
+                    )
+                    Text(
+                        "${gameTime.getDayOfWeekName()} · 第${gameTime.week}周 · ${gameTime.hours}:00",
+                        fontSize = 12.sp,
+                        color = Color.White.copy(alpha = 0.7f),
+                        letterSpacing = 1.sp
+                    )
+                }
+                
+                Row {
+                    IconButton(onClick = onShowCharacterInfo) {
+                        Text("👤", fontSize = 20.sp)
                     }
-                    IconButton(onClick = { showEventLog.value = true }) {
+                    IconButton(onClick = onShowEventLog) {
                         BadgedBox(
                             badge = {
                                 if (events.isNotEmpty()) {
-                                    Badge { Text("${events.size}") }
+                                    Badge(backgroundColor = Color(0xFF3498DB)) {
+                                        Text("${events.size}", color = Color.White, fontSize = 10.sp)
+                                    }
                                 }
                             }
                         ) {
-                            Icon(Icons.Default.Notifications, contentDescription = "事件")
+                            Text("📭", fontSize = 20.sp)
                         }
                     }
-                    IconButton(onClick = {
-                        vm.toggleSimulation()
-                    }) {
-                        Icon(
-                            if (isRunning) Icons.Default.Close else Icons.Default.PlayArrow,
-                            contentDescription = if (isRunning) "暂停" else "开始"
-                        )
+                    IconButton(onClick = onToggleSimulation) {
+                        Text(if (isRunning) "⏸️" else "▶️", fontSize = 20.sp)
                     }
-                    IconButton(onClick = {
-                        vm.resetSimulation()
-                        showSetup.value = true
-                    }) {
-                        Icon(Icons.Default.Refresh, contentDescription = "重新开始")
-                    }
-                }
-            )
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // 角色信息卡片
-            CharacterInfoCard(player)
-
-            Divider(modifier = Modifier.padding(vertical = AppDimens.paddingSmall))
-
-            // 状态面板
-            StatePanel(
-                title = "身体状态",
-                icon = Icons.Default.Favorite,
-                items = listOf(
-                    "饱腹" to player.hunger,
-                    "精力" to player.energy,
-                    "健康" to player.health
-                )
-            )
-
-            StatePanel(
-                title = "精神状态",
-                icon = Icons.Default.FavoriteBorder,
-                items = listOf(
-                    "愉悦感" to player.happiness,
-                    "焦虑感" to player.anxiety,
-                    "孤独感" to player.loneliness,
-                    "掌控感" to player.control
-                )
-            )
-
-            // 今日事件显示（新增：成语、微事件等）
-            if (player.dailyEvents.isNotEmpty()) {
-                DailyEventsPanel(
-                    events = player.dailyEvents,
-                    onDismiss = { vm.clearDailyEvents() }
-                )
-            }
-
-            AssetPanel(player)
-            SpacePanel(spaceState)
-
-            Divider(modifier = Modifier.padding(vertical = AppDimens.paddingSmall))
-
-            // 行为按钮网格
-            ActionButtonsGrid(
-                onEat = { showFoodSelector.value = true },
-                onSleep = { hours -> vm.sleep(hours) },
-                onWork = { hours -> vm.work(hours) },
-                onStudy = { hours -> vm.study(hours) },
-                onWalk = { hours -> vm.walk(hours) },
-                onSocialize = { hours -> vm.socialize(hours) },
-                onMeditate = { minutes -> vm.meditate(minutes) },
-                onExercise = { hours -> vm.exercise(hours) },
-                onRead = { hours -> vm.read(hours) },
-                onListenMusic = { hours -> vm.listenMusic(hours) },
-                onCook = { hours -> vm.cook(hours) },
-                onOrganize = { hours -> vm.organize(hours) },
-                onWatchMovie = { hours -> vm.watchMovie(hours) },
-                onTeaBreak = { minutes -> vm.teaBreak(minutes) },
-                onTendPlant = { vm.tendPlant() },
-                onJournal = { minutes -> vm.journal(minutes) },
-                onPayRent = { vm.payRent() },
-                onChangeSpace = { showSpaceSelector.value = true },
-                onIdle = { hours -> vm.idle(hours) }
-            )
-
-            // 快进按钮
-            FastForwardButtons(
-                onFastForward = { days -> vm.fastForward(days) }
-            )
-
-            // 弹窗和对话框
-            if (showFoodSelector.value) {
-                FoodSelectorDialog(
-                    foods = foodList,
-                    onSelectFood = { foodId ->
-                        vm.eat(foodId)
-                        showFoodSelector.value = false
-                    },
-                    onDismiss = { showFoodSelector.value = false },
-                    searchQuery = searchQuery,
-                    selectedCategory = selectedCategory
-                )
-            }
-
-            if (showSpaceSelector.value) {
-                SpaceSelectorDialog(
-                    spaces = spaceList,
-                    currentMoney = player.money,
-                    onSelectSpace = { spaceId ->
-                        vm.changeSpace(spaceId)
-                        showSpaceSelector.value = false
-                    },
-                    onDismiss = { showSpaceSelector.value = false }
-                )
-            }
-
-            if (showEventLog.value) {
-                EventLogDialog(
-                    events = events,
-                    onDismiss = { showEventLog.value = false }
-                )
-            }
-
-            if (showCharacterInfo.value) {
-                CharacterDetailDialog(
-                    player = player,
-                    onDismiss = { showCharacterInfo.value = false }
-                )
-            }
-
-            // Snackbar显示操作结果
-            AnimatedVisibility(
-                visible = actionResult.isNotEmpty(),
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    backgroundColor = AppColors.Success,
-                    shape = RoundedCornerShape(AppDimens.radiusSmall)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color.White)
-                        Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
-                        Text(actionResult, color = Color.White, modifier = Modifier.weight(1f))
-                        IconButton(onClick = { vm.clearActionResult() }) {
-                            Icon(Icons.Default.Close, contentDescription = "关闭", tint = Color.White)
-                        }
+                    IconButton(onClick = onReset) {
+                        Text("🔄", fontSize = 20.sp)
                     }
                 }
             }
@@ -275,343 +293,281 @@ fun SimulationScreen(
 }
 
 @Composable
-fun SetupScreen(
-    selectedAge: Int,
-    selectedLifePath: com.example.townapp.data.LifePath,
-    onAgeChange: (Int) -> Unit,
-    onLifePathChange: (com.example.townapp.data.LifePath) -> Unit,
-    onStart: () -> Unit
-) {
-    // 分类：前10条是主要人生路径，后5条是特殊路径
-    val mainPaths = LifePathData.paths.take(10)
-    val specialPaths = LifePathData.paths.drop(10)
-    val showSpecial = remember { mutableStateOf(false) }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(modifier = Modifier.height(32.dp))
-        
-        Text("选择你的人生", fontSize = 28.sp, fontWeight = FontWeight.Bold)
-        Text("每个人都在过自己的日子。有些被看见了，有些安静发生着。", fontSize = 14.sp, color = Color.Gray, modifier = Modifier.padding(bottom = AppDimens.paddingXXLarge))
-        
-        // 人生路径选择
-        Text("1. 选择人生路径", fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.Start))
-        Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
-        
-        mainPaths.forEach { path ->
-            LifePathCard(
-                path = path,
-                isSelected = selectedLifePath.id == path.id,
-                onSelect = { onLifePathChange(path) }
-            )
-            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
-        }
-        
-        // 特殊路径（可选展开）
-        Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { showSpecial.value = !showSpecial.value }
-                .padding(vertical = AppDimens.paddingSmall),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                if (showSpecial.value) "▼ 收起特殊路径" else "▶ 展开更多人生路径",
-                fontSize = 14.sp,
-                color = AppColors.PrimaryBlue,
-                fontWeight = FontWeight.Bold
-            )
-        }
-        
-        if (showSpecial.value) {
-            specialPaths.forEach { path ->
-                LifePathCard(
-                    path = path,
-                    isSelected = selectedLifePath.id == path.id,
-                    onSelect = { onLifePathChange(path) }
-                )
-                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
-            }
-        }
-        
-        Spacer(modifier = Modifier.height(AppDimens.paddingXXLarge))
-        
-        // 年龄选择
-        Text("2. 选择年龄", fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.Start))
-        Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
-        
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            listOf(20, 25, 30, 35, 40).forEach { age ->
-                AgeChip(
-                    ageValue = age,
-                    isSelected = selectedAge == age,
-                    onSelect = { onAgeChange(age) }
-                )
-            }
-        }
-        
-        Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
-        Text(
-            when {
-                selectedAge == 20 -> "🎓 刚步入社会，充满理想"
-                selectedAge in 25..30 -> "💼 已有${selectedAge - 20}年工作经验"
-                selectedAge >= 35 -> "🏠 成熟稳重，面临更多责任"
-                else -> ""
-            },
-            fontSize = 14.sp,
-            color = Color.Gray,
-            modifier = Modifier.align(Alignment.Start)
-        )
-        
-        Spacer(modifier = Modifier.weight(1f))
-        
-        Button(
-            onClick = onStart,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            shape = RoundedCornerShape(AppDimens.radiusMedium)
-        ) {
-            Text("开始人生模拟", fontSize = 18.sp)
-        }
-        
-        Spacer(modifier = Modifier.height(32.dp))
-    }
-}
-
-@Composable
-fun LifePathCard(
-    path: com.example.townapp.data.LifePath,
-    isSelected: Boolean,
-    onSelect: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onSelect() },
-        backgroundColor = if (isSelected) AppColors.SelectedBackground else Color.White,
-        elevation = if (isSelected) 4.dp else 1.dp,
-        shape = RoundedCornerShape(AppDimens.radiusMedium)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    path.title,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    modifier = Modifier.weight(1f)
-                )
-                if (isSelected) {
-                    Icon(Icons.Default.CheckCircle, contentDescription = null, tint = AppColors.PrimaryBlue)
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                path.subtitle,
-                fontSize = 12.sp,
-                color = AppColors.PrimaryBlue,
-                fontWeight = FontWeight.Medium
-            )
-            
-            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
-            Text(
-                path.sceneDescription.take(60) + "...",
-                fontSize = 12.sp,
-                color = Color.Gray,
-                maxLines = 2
-            )
-        }
-    }
-}
-
-@Composable
-fun AgeChip(ageValue: Int, isSelected: Boolean, onSelect: () -> Unit) {
-    Surface(
-        modifier = Modifier.clickable { onSelect() },
-        shape = RoundedCornerShape(AppDimens.radiusXLarge),
-        color = if (isSelected) MaterialTheme.colors.primary else Color.LightGray.copy(alpha = 0.3f)
-    ) {
-        Text(
-            "${ageValue}岁",
-            modifier = Modifier.padding(horizontal = AppDimens.paddingLarge, vertical = AppDimens.paddingSmall),
-            color = if (isSelected) Color.White else Color.Black,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-        )
-    }
-}
-
-@Composable
-fun CharacterInfoCard(player: PlayerState) {
+fun GreetingCard(gameTime: GameTime, player: PlayerState) {
     val career = CareerPathSystem.allCareers.find { it.id == player.careerId }
+    val greeting = getTimeGreeting(gameTime.hours)
+    val isNight = gameTime.hours in 22..23 || gameTime.hours in 0..5
+    val isInsomnia = player.energy < 30 && isNight
     
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
-        backgroundColor = AppColors.SurfaceVariant,
-        shape = RoundedCornerShape(AppDimens.radiusMedium)
+            .padding(horizontal = 24.dp),
+        elevation = 0.dp,
+        shape = RoundedCornerShape(24.dp),
+        backgroundColor = if (isNight) Color(0xFF1A1A2E).copy(alpha = 0.8f) else Color.White.copy(alpha = 0.8f)
     ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            modifier = Modifier.padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                when (career?.pathType) {
-                    CareerPathSystem.CareerPathType.STABLE -> "🏛️"
-                    CareerPathSystem.CareerPathType.CORPORATE -> "🏢"
-                    CareerPathSystem.CareerPathType.FREELANCE -> "🎨"
-                    CareerPathSystem.CareerPathType.BUSINESS -> "🚀"
-                    else -> "💼"
-                },
-                fontSize = 32.sp
-            )
-            Spacer(modifier = Modifier.width(AppDimens.paddingMedium))
-            Column {
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .background(
+                        Brush.radialGradient(
+                            if (isNight) {
+                                listOf(
+                                    Color(0xFF16213E),
+                                    Color(0xFF0F3460),
+                                    Color(0xFF1A1A2E)
+                                )
+                            } else {
+                                listOf(
+                                    Color(0xFFE8F5E9),
+                                    Color(0xFFF3E5F5),
+                                    Color(0xFFE3F2FD)
+                                )
+                            }
+                        ),
+                        RoundedCornerShape(50)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
                 Text(
-                    "${career?.name ?: "未知职业"} · ${player.age}岁",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
+                    when (career?.pathType) {
+                        CareerPathSystem.CareerPathType.STABLE -> "🏛️"
+                        CareerPathSystem.CareerPathType.CORPORATE -> "🏢"
+                        CareerPathSystem.CareerPathType.FREELANCE -> "🎨"
+                        CareerPathSystem.CareerPathType.BUSINESS -> "🚀"
+                        else -> if (isNight) "🌙" else "💼"
+                    },
+                    fontSize = 48.sp
                 )
+            }
+            
+            Spacer(modifier = Modifier.height(20.dp))
+            
+            Text(
+                greeting,
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Light,
+                color = if (isNight) Color.White else Color(0xFF2C3E50),
+                letterSpacing = 2.sp
+            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Text(
+                "${career?.name ?: "朋友"} · ${player.age}岁",
+                fontSize = 14.sp,
+                color = if (isNight) Color(0xFFAAB7B8) else Color(0xFF7F8C8D)
+            )
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            if (isInsomnia) {
                 Text(
-                    "存款: ¥${String.format("%.0f", player.money)} · 技能: ${player.skillLevel.toInt()} · 工龄: ${player.workingYears}年",
-                    fontSize = 12.sp,
-                    color = Color.Gray
+                    "睡不着也没关系，小镇陪着你。",
+                    fontSize = 13.sp,
+                    color = Color(0xFFF39C12),
+                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                )
+            } else if (isNight) {
+                Text(
+                    "夜深了，愿你有个好梦。",
+                    fontSize = 13.sp,
+                    color = Color(0xFFAAB7B8),
+                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                )
+            } else {
+                Text(
+                    "今天的你，已经做得很好了。",
+                    fontSize = 13.sp,
+                    color = Color(0xFFAAB7B8),
+                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
                 )
             }
         }
     }
 }
 
+fun getTimeGreeting(hour: Int): String {
+    return when (hour) {
+        in 5..8 -> "🌅 早安"
+        in 9..11 -> "☀️ 上午好"
+        in 12..13 -> "🍱 午安"
+        in 14..17 -> "🌤️ 下午好"
+        in 18..20 -> "🌆 傍晚好"
+        in 21..22 -> "🌙 晚上好"
+        in 23..23 -> "🌃 夜深了"
+        in 0..4 -> "🌌 还没睡呢"
+        else -> "🌙 晚上好"
+    }
+}
+
 @Composable
-fun StatePanel(title: String, icon: androidx.compose.ui.graphics.vector.ImageVector, items: List<Pair<String, Double>>) {
-    Card(modifier = Modifier.fillMaxWidth().padding(8.dp), elevation = 2.dp, shape = RoundedCornerShape(AppDimens.radiusMedium)) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(icon, contentDescription = title, tint = MaterialTheme.colors.primary)
-                Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
-                Text(title, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+fun TodayMoodCard(player: PlayerState, isNight: Boolean) {
+    val isInsomnia = player.energy < 30 && isNight
+    
+    val moodEmoji = when {
+        isInsomnia -> "😰"
+        player.happiness >= 70 -> "😊"
+        player.happiness >= 40 -> "😌"
+        else -> "😔"
+    }
+    
+    val energyEmoji = when {
+        isInsomnia -> "😴"
+        player.energy >= 70 -> "⚡"
+        player.energy >= 40 -> "🔋"
+        else -> "💤"
+    }
+    
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp),
+        elevation = 0.dp,
+        shape = RoundedCornerShape(20.dp),
+        backgroundColor = if (isNight) Color(0xFF16213E).copy(alpha = 0.7f) else Color.White.copy(alpha = 0.7f)
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            if (isInsomnia) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("🌙", fontSize = 16.sp)
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        "失眠中",
+                        fontSize = 14.sp,
+                        color = Color(0xFFF39C12),
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
             }
-            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
-            Column {
-                items.forEach { (label, value) ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(label, fontSize = 14.sp)
-                        LinearProgressIndicator(
-                            progress = (value / 100.0).toFloat(),
-                            modifier = Modifier.width(120.dp),
-                            color = getProgressColor(value),
-                            backgroundColor = Color.LightGray.copy(alpha = 0.3f)
-                        )
-                        Text(String.format("%.0f", value), fontSize = 14.sp, modifier = Modifier.width(30.dp), textAlign = TextAlign.End)
-                    }
-                    Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(moodEmoji, fontSize = 32.sp)
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text("心情", fontSize = 12.sp, color = if (isNight) Color(0xFFAAB7B8) else Color(0xFF95A5A6))
+                    Text("${player.happiness.toInt()}%", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = if (isNight) Color.White else Color(0xFF2C3E50))
+                }
+                
+                Divider(color = if (isNight) Color(0xFF34495E) else Color(0xFFECF0F1), modifier = Modifier.width(1.dp), thickness = 1.dp)
+                
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(energyEmoji, fontSize = 32.sp)
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text("精力", fontSize = 12.sp, color = if (isNight) Color(0xFFAAB7B8) else Color(0xFF95A5A6))
+                    Text("${player.energy.toInt()}%", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = if (isNight) Color.White else Color(0xFF2C3E50))
+                }
+                
+                Divider(color = if (isNight) Color(0xFF34495E) else Color(0xFFECF0F1), modifier = Modifier.width(1.dp), thickness = 1.dp)
+                
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("❤️", fontSize = 32.sp)
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text("健康", fontSize = 12.sp, color = if (isNight) Color(0xFFAAB7B8) else Color(0xFF95A5A6))
+                    Text("${player.health.toInt()}%", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = if (isNight) Color.White else Color(0xFF2C3E50))
                 }
             }
         }
     }
 }
 
-fun getProgressColor(value: Double): Color {
-    return when {
-        value >= 70 -> AppColors.Success
-        value >= 40 -> AppColors.Warning
-        else -> Color(0xFFE53935)
-    }
-}
-
 @Composable
-fun AssetPanel(player: PlayerState) {
-    Card(modifier = Modifier.fillMaxWidth().padding(8.dp), elevation = 2.dp, shape = RoundedCornerShape(AppDimens.radiusMedium)) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.AccountBox, contentDescription = "资产", tint = MaterialTheme.colors.primary)
-                Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
-                Text("资产状态", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+fun DailyEventsSection(events: List<String>, onDismiss: () -> Unit, isNight: Boolean) {
+    if (events.isEmpty()) return
+    
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp),
+        elevation = 0.dp,
+        shape = RoundedCornerShape(20.dp),
+        backgroundColor = if (isNight) Color(0xFF16213E).copy(alpha = 0.8f) else Color(0xFFFEF9C3).copy(alpha = 0.6f)
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("✨", fontSize = 20.sp)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        if (isNight) "今晚发生的事" else "今天，你经历了这些",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = if (isNight) Color.White else Color(0xFF2C3E50)
+                    )
+                }
+                TextButton(onClick = onDismiss) {
+                    Text("收下", fontSize = 12.sp, color = Color(0xFF8E44AD))
+                }
             }
-            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                AssetItem("余额", "¥${String.format("%.0f", player.money)}", Icons.Default.ShoppingCart)
-                AssetItem("技能", "${player.skillLevel.toInt()}", Icons.Default.Star)
-                AssetItem("压力", "${player.generationalPressure.toInt()}", Icons.Default.Warning)
-            }
-            if (player.housingDebt > 0) {
-                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
-                Text("房贷: ¥${String.format("%.0f", player.housingDebt)}", color = Color.Red, fontSize = 12.sp, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            events.forEachIndexed { index, event ->
+                EventStoryItem(event, index == events.size - 1, isNight)
             }
         }
     }
 }
 
 @Composable
-fun AssetItem(label: String, value: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Icon(icon, contentDescription = label, tint = MaterialTheme.colors.primary)
-        Text(value, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-        Text(label, fontSize = 12.sp, color = Color.Gray)
-    }
-}
-
-@Composable
-fun SpacePanel(spaceState: SpaceState) {
-    Card(modifier = Modifier.fillMaxWidth().padding(8.dp), elevation = 2.dp, shape = RoundedCornerShape(AppDimens.radiusMedium)) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Home, contentDescription = "空间", tint = MaterialTheme.colors.primary)
-                Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
-                Text("居住环境", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            }
-            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                SpaceItem("采光", spaceState.light)
-                SpaceItem("噪音", 100 - spaceState.noise)
-                SpaceItem("清洁", spaceState.cleanliness)
-                SpaceItem("通风", spaceState.ventilation)
-            }
-        }
-    }
-}
-
-@Composable
-fun SpaceItem(label: String, value: Int) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .background(getSpaceColor(value), CircleShape),
-            contentAlignment = Alignment.Center
+fun EventStoryItem(event: String, isLast: Boolean, isNight: Boolean) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = if (isNight) Color(0xFF0F3460).copy(alpha = 0.8f) else Color.White.copy(alpha = 0.8f)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("$value", color = Color.White, fontSize = 12.sp)
+            Text(
+                when {
+                    event.contains("成语") -> "📜"
+                    event.contains("微事件") -> "💭"
+                    event.contains("陪伴") -> "💝"
+                    event.contains("闪光点") -> "🌟"
+                    event.contains("发现") -> "🔍"
+                    else -> "📌"
+                },
+                fontSize = 24.sp
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    event,
+                    fontSize = 14.sp,
+                    color = if (isNight) Color.White else Color(0xFF2C3E50),
+                    lineHeight = 20.sp
+                )
+            }
         }
-        Text(label, fontSize = 12.sp, color = Color.Gray)
     }
-}
-
-fun getSpaceColor(value: Int): Color {
-    return when {
-        value >= 70 -> AppColors.Success
-        value >= 40 -> AppColors.Warning
-        else -> Color(0xFFE53935)
+    
+    if (!isLast) {
+        Spacer(modifier = Modifier.height(8.dp))
     }
 }
 
 @Composable
-fun ActionButtonsGrid(
+fun QuietActionsGrid(
     onEat: () -> Unit,
     onSleep: (Int) -> Unit,
     onWork: (Int) -> Unit,
@@ -636,50 +592,60 @@ fun ActionButtonsGrid(
     var durationCallback by remember { mutableStateOf<((Int) -> Unit)?>(null) }
     var durationOptions by remember { mutableStateOf(listOf(1, 2, 4, 8)) }
 
-    Column(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
-        Text("日常行为", fontWeight = FontWeight.Bold, fontSize = 16.sp, modifier = Modifier.padding(bottom = AppDimens.paddingSmall))
-
-        // 第一行：基本生存
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-            ActionButtonSim("🍔", "吃饭", onClick = onEat)
-            ActionButtonSim("😴", "睡觉", onClick = { durationCallback = onSleep; durationOptions = listOf(4, 6, 8, 10); showDurationDialog = true })
-            ActionButtonSim("💼", "工作", onClick = { durationCallback = onWork; durationOptions = listOf(2, 4, 6, 8); showDurationDialog = true })
-            ActionButtonSim("📚", "学习", onClick = { durationCallback = onStudy; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true })
-        }
-        Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
-
-        // 第二行：身心健康
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-            ActionButtonSim("🚶", "散步", onClick = { durationCallback = onWalk; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true })
-            ActionButtonSim("🧘", "冥想", onClick = { durationCallback = onMeditate; durationOptions = listOf(10, 20, 30, 60); showDurationDialog = true })
-            ActionButtonSim("🏃", "运动", onClick = { durationCallback = onExercise; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true })
-            ActionButtonSim("👥", "社交", onClick = { durationCallback = onSocialize; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true })
-        }
-        Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
-
-        // 第三行：生活娱乐
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-            ActionButtonSim("📖", "阅读", onClick = { durationCallback = onRead; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true })
-            ActionButtonSim("🎵", "音乐", onClick = { durationCallback = onListenMusic; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true })
-            ActionButtonSim("🍳", "烹饪", onClick = { durationCallback = onCook; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true })
-            ActionButtonSim("🧹", "整理", onClick = { durationCallback = onOrganize; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true })
-        }
-        Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
-
-        // 第四行：休闲与经济
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-            ActionButtonSim("🎬", "观影", onClick = { durationCallback = onWatchMovie; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true })
-            ActionButtonSim("🍵", "茶歇", onClick = { durationCallback = onTeaBreak; durationOptions = listOf(15, 30, 45, 60); showDurationDialog = true })
-            ActionButtonSim("🌱", "植物", onClick = onTendPlant)
-            ActionButtonSim("📝", "日记", onClick = { durationCallback = onJournal; durationOptions = listOf(10, 20, 30, 60); showDurationDialog = true })
-        }
-        Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
-
-        // 第五行：其他
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-            ActionButtonSim("☕", "发呆", onClick = { durationCallback = onIdle; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true })
-            ActionButtonSim("🏠", "换房", onClick = onChangeSpace)
-            ActionButtonSim("💰", "交租", onClick = onPayRent)
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp),
+        elevation = 0.dp,
+        shape = RoundedCornerShape(20.dp),
+        backgroundColor = Color.White.copy(alpha = 0.6f)
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("🌿", fontSize = 24.sp)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    "想做些什么呢？",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Light,
+                    color = Color(0xFF2C3E50)
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Column(modifier = Modifier.height(400.dp).verticalScroll(rememberScrollState())) {
+                chunkedActionItems(
+                    listOf(
+                        QuietAction("🍔", "好好吃饭", onEat),
+                        QuietAction("😴", "睡一会儿", onClick = { durationCallback = onSleep; durationOptions = listOf(4, 6, 8, 10); showDurationDialog = true }),
+                        QuietAction("💼", "工作", onClick = { durationCallback = onWork; durationOptions = listOf(2, 4, 6, 8); showDurationDialog = true }),
+                        QuietAction("📚", "学习", onClick = { durationCallback = onStudy; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true }),
+                        QuietAction("🚶", "散步", onClick = { durationCallback = onWalk; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true }),
+                        QuietAction("🧘", "冥想", onClick = { durationCallback = onMeditate; durationOptions = listOf(10, 20, 30, 60); showDurationDialog = true }),
+                        QuietAction("🏃", "运动", onClick = { durationCallback = onExercise; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true }),
+                        QuietAction("👥", "和人相处", onClick = { durationCallback = onSocialize; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true }),
+                        QuietAction("📖", "阅读", onClick = { durationCallback = onRead; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true }),
+                        QuietAction("🎵", "听音乐", onClick = { durationCallback = onListenMusic; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true }),
+                        QuietAction("🍳", "做饭", onClick = { durationCallback = onCook; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true }),
+                        QuietAction("🧹", "整理", onClick = { durationCallback = onOrganize; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true }),
+                        QuietAction("🎬", "看电影", onClick = { durationCallback = onWatchMovie; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true }),
+                        QuietAction("🍵", "喝茶", onClick = { durationCallback = onTeaBreak; durationOptions = listOf(15, 30, 45, 60); showDurationDialog = true }),
+                        QuietAction("🌱", "照顾植物", onTendPlant),
+                        QuietAction("📝", "写日记", onClick = { durationCallback = onJournal; durationOptions = listOf(10, 20, 30, 60); showDurationDialog = true }),
+                        QuietAction("☕", "发会儿呆", onClick = { durationCallback = onIdle; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true }),
+                        QuietAction("🏠", "换个住处", onChangeSpace),
+                        QuietAction("💰", "交房租", onPayRent)
+                    )
+                ).forEach { rowItems ->
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                        rowItems.forEach { action ->
+                            QuietActionCard(action)
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+            }
         }
     }
 
@@ -692,25 +658,163 @@ fun ActionButtonsGrid(
     }
 }
 
+fun chunkedActionItems(items: List<QuietAction>): List<List<QuietAction>> {
+    return items.chunked(3)
+}
+
+data class QuietAction(val emoji: String, val label: String, val onClick: () -> Unit)
+
 @Composable
-fun ActionButtonSim(emoji: String, label: String, onClick: () -> Unit) {
+fun QuietActionCard(action: QuietAction) {
     Column(
         modifier = Modifier
-            .clickable { onClick() }
+            .clickable { action.onClick() }
             .padding(4.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Surface(
-            shape = RoundedCornerShape(AppDimens.radiusMedium),
-            color = AppColors.SurfaceVariant,
-            modifier = Modifier.size(56.dp)
+            shape = RoundedCornerShape(16.dp),
+            color = Color(0xFFF8FAFC),
+            elevation = 0.dp,
+            modifier = Modifier.size(64.dp)
         ) {
             Box(contentAlignment = Alignment.Center) {
-                Text(emoji, fontSize = 24.sp)
+                Text(action.emoji, fontSize = 28.sp)
             }
         }
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(action.label, fontSize = 12.sp, color = Color(0xFF5D6D7E), textAlign = TextAlign.Center)
+    }
+}
+
+@Composable
+fun StatsToggleButton(isExpanded: Boolean, onToggle: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+            .clickable { onToggle() },
+        elevation = 0.dp,
+        shape = RoundedCornerShape(16.dp),
+        backgroundColor = Color.White.copy(alpha = 0.5f)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                "查看更多细节",
+                fontSize = 14.sp,
+                color = Color(0xFF7F8C8D)
+            )
+            Text(
+                if (isExpanded) "▼" else "▶",
+                fontSize = 14.sp,
+                color = Color(0xFF7F8C8D)
+            )
+        }
+    }
+}
+
+@Composable
+fun StatsPanels(player: PlayerState, spaceState: SpaceState) {
+    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp)) {
+        Spacer(modifier = Modifier.height(12.dp))
+        
+        Card(
+            elevation = 0.dp,
+            shape = RoundedCornerShape(16.dp),
+            backgroundColor = Color.White.copy(alpha = 0.7f)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text("身体感受", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF2C3E50))
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    MiniStat("饱腹", player.hunger.toInt(), getStatColor(player.hunger))
+                    MiniStat("焦虑", player.anxiety.toInt(), getAnxietyColor(player.anxiety))
+                    MiniStat("孤独", player.loneliness.toInt(), getAnxietyColor(player.loneliness))
+                    MiniStat("掌控", player.control.toInt(), getStatColor(player.control))
+                }
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(12.dp))
+        
+        Card(
+            elevation = 0.dp,
+            shape = RoundedCornerShape(16.dp),
+            backgroundColor = Color.White.copy(alpha = 0.7f)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text("居住环境", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF2C3E50))
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    MiniStat("采光", spaceState.light, getStatColor(spaceState.light.toDouble()))
+                    MiniStat("安静", 100 - spaceState.noise, getStatColor((100 - spaceState.noise).toDouble()))
+                    MiniStat("清洁", spaceState.cleanliness, getStatColor(spaceState.cleanliness.toDouble()))
+                    MiniStat("通风", spaceState.ventilation, getStatColor(spaceState.ventilation.toDouble()))
+                }
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(12.dp))
+        
+        Card(
+            elevation = 0.dp,
+            shape = RoundedCornerShape(16.dp),
+            backgroundColor = Color.White.copy(alpha = 0.7f)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text("生活状态", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF2C3E50))
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    MiniStat("余额", player.money.toInt(), Color(0xFF27AE60))
+                    MiniStat("技能", player.skillLevel.toInt(), Color(0xFF3498DB))
+                    MiniStat("压力", player.generationalPressure.toInt(), getAnxietyColor(player.generationalPressure.toDouble()))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun MiniStat(label: String, value: Int, color: Color) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .background(color.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                "$value",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = color
+            )
+        }
         Spacer(modifier = Modifier.height(4.dp))
-        Text(label, fontSize = 12.sp)
+        Text(label, fontSize = 11.sp, color = Color(0xFF95A5A6))
+    }
+}
+
+fun getStatColor(value: Double): Color {
+    return when {
+        value >= 70 -> Color(0xFF27AE60)
+        value >= 40 -> Color(0xFFF39C12)
+        else -> Color(0xFFE74C3C)
+    }
+}
+
+fun getAnxietyColor(value: Double): Color {
+    return when {
+        value >= 70 -> Color(0xFFE74C3C)
+        value >= 40 -> Color(0xFFF39C12)
+        else -> Color(0xFF27AE60)
     }
 }
 
@@ -726,9 +830,11 @@ fun DurationSelectorDialog(options: List<Int>, onSelect: (Int) -> Unit, onDismis
                         onClick = { onSelect(hours); onDismiss() },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 4.dp)
+                            .padding(vertical = 4.dp),
+                        colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF3498DB)),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text(if (hours >= 60) "${hours}分钟" else "${hours}小时")
+                        Text(if (hours >= 60) "${hours}分钟" else "${hours}小时", color = Color.White)
                     }
                 }
             }
@@ -741,7 +847,7 @@ fun DurationSelectorDialog(options: List<Int>, onSelect: (Int) -> Unit, onDismis
 }
 
 @Composable
-fun FastForwardButtons(onFastForward: (Int) -> Unit) {
+fun FastForwardCard(onFastForward: (Int) -> Unit) {
     var showDialog by remember { mutableStateOf(false) }
 
     if (showDialog) {
@@ -755,9 +861,11 @@ fun FastForwardButtons(onFastForward: (Int) -> Unit) {
                             onClick = { onFastForward(days); showDialog = false },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 4.dp)
+                                .padding(vertical = 4.dp),
+                            colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF3498DB)),
+                            shape = RoundedCornerShape(12.dp)
                         ) {
-                            Text(if (days == 1) "1天" else "${days}天")
+                            Text(if (days == 1) "1天" else "${days}天", color = Color.White)
                         }
                     }
                 }
@@ -773,12 +881,12 @@ fun FastForwardButtons(onFastForward: (Int) -> Unit) {
         onClick = { showDialog = true },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = AppDimens.paddingLarge, vertical = AppDimens.paddingSmall),
-        colors = ButtonDefaults.buttonColors(backgroundColor = AppColors.PrimaryBlue)
+            .padding(horizontal = 24.dp),
+        colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF2C3E50)),
+        shape = RoundedCornerShape(16.dp),
+        elevation = ButtonDefaults.elevation(defaultElevation = 0.dp)
     ) {
-        Icon(Icons.Default.DateRange, contentDescription = null)
-        Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
-        Text("快进时间", color = Color.White)
+        Text("快进时间", color = Color.White, fontSize = 14.sp)
     }
 }
 
@@ -800,7 +908,7 @@ fun FoodSelectorDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("选择食物") },
+        title = { Text("想吃点什么？") },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 OutlinedTextField(
@@ -810,18 +918,18 @@ fun FoodSelectorDialog(
                     modifier = Modifier.fillMaxWidth(),
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) }
                 )
-                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
+                Spacer(modifier = Modifier.height(8.dp))
                 Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
                     FilterChip("全部", selectedCategory.value == null) { selectedCategory.value = null }
                     categories.forEach { category ->
                         FilterChip(category, selectedCategory.value == category) { selectedCategory.value = category }
                     }
                 }
-                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
+                Spacer(modifier = Modifier.height(8.dp))
                 Box(modifier = Modifier.height(300.dp)) {
                     LazyColumn {
                         items(filteredFoods) { food ->
-                            FoodItemCardSim(food = food, onClick = { onSelectFood(food.id) })
+                            FoodItemCard(food = food, onClick = { onSelectFood(food.id) })
                         }
                     }
                 }
@@ -829,7 +937,9 @@ fun FoodSelectorDialog(
         },
         confirmButton = {},
         dismissButton = {
-            Button(onClick = onDismiss) { Text("取消") }
+            Button(onClick = onDismiss, colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF3498DB))) {
+                Text("取消", color = Color.White)
+            }
         }
     )
 }
@@ -840,28 +950,33 @@ fun FilterChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
         modifier = Modifier
             .padding(4.dp)
             .clickable { onClick() },
-        shape = RoundedCornerShape(AppDimens.radiusLarge),
-        color = if (isSelected) MaterialTheme.colors.primary else Color.LightGray.copy(alpha = 0.3f)
+        shape = RoundedCornerShape(20.dp),
+        color = if (isSelected) Color(0xFF3498DB) else Color(0xFFECF0F1)
     ) {
         Text(
             label,
-            modifier = Modifier.padding(horizontal = AppDimens.paddingMedium, vertical = 6.dp),
-            color = if (isSelected) Color.White else Color.Black,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            color = if (isSelected) Color.White else Color(0xFF5D6D7E),
             fontSize = 12.sp
         )
     }
 }
 
 @Composable
-fun FoodItemCardSim(food: FoodItem, onClick: () -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth().padding(4.dp).clickable { onClick() }, elevation = 2.dp) {
+fun FoodItemCard(food: FoodItem, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(4.dp).clickable { onClick() },
+        elevation = 0.dp,
+        shape = RoundedCornerShape(12.dp),
+        backgroundColor = Color(0xFFFAFAFA)
+    ) {
         Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(food.name, fontWeight = FontWeight.Bold)
-                Text("${food.category} · ¥${String.format("%.2f", food.pricePer100g)}/100g", fontSize = 12.sp, color = Color.Gray)
+                Text(food.name, fontWeight = FontWeight.Medium, fontSize = 14.sp)
+                Text("${food.category} · ¥${String.format("%.2f", food.pricePer100g)}/100g", fontSize = 12.sp, color = Color(0xFF95A5A6))
             }
             Column(horizontalAlignment = Alignment.End) {
-                Text("营养: ${String.format("%.0f", food.nutritionalScore)}", fontSize = 12.sp)
+                Text("营养: ${String.format("%.0f", food.nutritionalScore)}", fontSize = 12.sp, color = Color(0xFF27AE60))
             }
         }
     }
@@ -876,14 +991,14 @@ fun SpaceSelectorDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("选择居住空间") },
+        title = { Text("想住在哪里？") },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
-                Text("当前余额: ¥${String.format("%.2f", currentMoney)}", modifier = Modifier.padding(bottom = AppDimens.paddingSmall))
+                Text("当前余额: ¥${String.format("%.2f", currentMoney)}", modifier = Modifier.padding(bottom = 8.dp), color = Color(0xFF2C3E50))
                 Box(modifier = Modifier.height(300.dp)) {
                     LazyColumn {
                         items(spaces) { space ->
-                            SpaceItemCardSim(
+                            SpaceItemCard(
                                 space = space,
                                 canAfford = currentMoney >= space.price,
                                 onClick = { if (currentMoney >= space.price) onSelectSpace(space.id) }
@@ -895,13 +1010,15 @@ fun SpaceSelectorDialog(
         },
         confirmButton = {},
         dismissButton = {
-            Button(onClick = onDismiss) { Text("取消") }
+            Button(onClick = onDismiss, colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF3498DB))) {
+                Text("取消", color = Color.White)
+            }
         }
     )
 }
 
 @Composable
-fun SpaceItemCardSim(
+fun SpaceItemCard(
     space: SpaceConfig,
     canAfford: Boolean,
     onClick: () -> Unit
@@ -911,16 +1028,17 @@ fun SpaceItemCardSim(
             .fillMaxWidth()
             .padding(4.dp)
             .clickable(enabled = canAfford) { onClick() },
-        elevation = 2.dp,
-        backgroundColor = if (canAfford) Color.White else Color.LightGray.copy(alpha = 0.5f)
+        elevation = 0.dp,
+        shape = RoundedCornerShape(12.dp),
+        backgroundColor = if (canAfford) Color(0xFFFAFAFA) else Color(0xFFECF0F1)
     ) {
         Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(space.name, fontWeight = FontWeight.Bold)
-                Text("${space.area}㎡ · ¥${String.format("%.2f", space.price)}/月", fontSize = 12.sp, color = Color.Gray)
+                Text(space.name, fontWeight = FontWeight.Medium, fontSize = 14.sp)
+                Text("${space.area}㎡ · ¥${String.format("%.2f", space.price)}/月", fontSize = 12.sp, color = Color(0xFF95A5A6))
             }
             if (!canAfford) {
-                Text("余额不足", fontSize = 12.sp, color = Color.Red)
+                Text("余额不足", fontSize = 12.sp, color = Color(0xFFE74C3C))
             }
         }
     }
@@ -930,10 +1048,10 @@ fun SpaceItemCardSim(
 fun EventLogDialog(events: List<String>, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("事件记录") },
+        title = { Text("故事记录") },
         text = {
             if (events.isEmpty()) {
-                Text("暂无事件", color = Color.Gray)
+                Text("还没有故事发生", color = Color(0xFF95A5A6))
             } else {
                 Column(modifier = Modifier.height(400.dp).verticalScroll(rememberScrollState())) {
                     events.forEachIndexed { index, event ->
@@ -941,13 +1059,15 @@ fun EventLogDialog(events: List<String>, onDismiss: () -> Unit) {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 4.dp),
-                            backgroundColor = if (index == 0) AppColors.SelectedBackground else Color.White,
-                            elevation = 1.dp
+                            backgroundColor = if (index == 0) Color(0xFFE3F2FD) else Color(0xFFFAFAFA),
+                            elevation = 0.dp,
+                            shape = RoundedCornerShape(12.dp)
                         ) {
                             Text(
                                 event,
                                 modifier = Modifier.padding(12.dp),
-                                fontSize = 14.sp
+                                fontSize = 14.sp,
+                                lineHeight = 20.sp
                             )
                         }
                     }
@@ -956,7 +1076,9 @@ fun EventLogDialog(events: List<String>, onDismiss: () -> Unit) {
         },
         confirmButton = {},
         dismissButton = {
-            Button(onClick = onDismiss) { Text("关闭") }
+            Button(onClick = onDismiss, colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF3498DB))) {
+                Text("关闭", color = Color.White)
+            }
         }
     )
 }
@@ -979,14 +1101,14 @@ fun CharacterDetailDialog(player: PlayerState, onDismiss: () -> Unit) {
                     },
                     fontSize = 32.sp
                 )
-                Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
-                Text("${career?.name ?: "未知职业"}档案")
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("关于你")
             }
         },
         text = {
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                Text(career?.description ?: "", fontSize = 14.sp, color = Color.Gray)
-                Spacer(modifier = Modifier.height(AppDimens.paddingLarge))
+                Text(career?.description ?: "", fontSize = 14.sp, color = Color(0xFF7F8C8D), lineHeight = 20.sp)
+                Spacer(modifier = Modifier.height(20.dp))
                 
                 DetailItem("路线", career?.pathType?.label ?: "未知")
                 DetailItem("年龄", "${player.age}岁")
@@ -1003,7 +1125,9 @@ fun CharacterDetailDialog(player: PlayerState, onDismiss: () -> Unit) {
         },
         confirmButton = {},
         dismissButton = {
-            Button(onClick = onDismiss) { Text("关闭") }
+            Button(onClick = onDismiss, colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF3498DB))) {
+                Text("关闭", color = Color.White)
+            }
         }
     )
 }
@@ -1016,88 +1140,211 @@ fun DetailItem(label: String, value: String) {
             .padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(label, color = Color.Gray, fontSize = 14.sp)
-        Text(value, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+        Text(label, color = Color(0xFF95A5A6), fontSize = 14.sp)
+        Text(value, fontWeight = FontWeight.Medium, fontSize = 14.sp, color = Color(0xFF2C3E50))
     }
 }
 
-/**
- * 今日事件面板 - 显示成语、微事件等触发内容
- */
 @Composable
-fun DailyEventsPanel(
-    events: List<String>,
-    onDismiss: () -> Unit
+fun ActionResultCard(message: String, onDismiss: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 12.dp),
+        backgroundColor = Color(0xFFE8F5E9).copy(alpha = 0.8f),
+        elevation = 0.dp,
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("✅", fontSize = 20.sp)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(message, color = Color(0xFF1E8449), modifier = Modifier.weight(1f))
+            IconButton(onClick = onDismiss) {
+                Text("✕", fontSize = 16.sp, color = Color(0xFF95A5A6))
+            }
+        }
+    }
+}
+
+@Composable
+fun SetupScreen(
+    selectedAge: Int,
+    selectedLifePath: com.example.townapp.data.LifePath,
+    onAgeChange: (Int) -> Unit,
+    onLifePathChange: (com.example.townapp.data.LifePath) -> Unit,
+    onStart: () -> Unit
+) {
+    val mainPaths = LifePathData.paths.take(10)
+    val specialPaths = LifePathData.paths.drop(10)
+    val showSpecial = remember { mutableStateOf(false) }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        BackgroundGradient(isNight = false)
+        
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(60.dp))
+            
+            Text(
+                "万物薪俸小镇",
+                fontSize = 36.sp,
+                fontWeight = FontWeight.Light,
+                color = Color(0xFF2C3E50),
+                letterSpacing = 4.sp
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                "每个人都在过自己的日子。有些被看见了，有些安静发生着。",
+                fontSize = 14.sp,
+                color = Color(0xFF7F8C8D),
+                modifier = Modifier.padding(bottom = 40.dp),
+                textAlign = TextAlign.Center
+            )
+            
+            Text("你想以怎样的方式开始？", fontSize = 18.sp, fontWeight = FontWeight.Light, modifier = Modifier.align(Alignment.Start), color = Color(0xFF2C3E50))
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            mainPaths.forEach { path ->
+                LifePathCard(path = path, isSelected = selectedLifePath.id == path.id, onSelect = { onLifePathChange(path) })
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showSpecial.value = !showSpecial.value }
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    if (showSpecial.value) "▼ 收起其他可能性" else "▶ 看看其他可能性",
+                    fontSize = 13.sp,
+                    color = Color(0xFF8E44AD),
+                    fontWeight = FontWeight.Medium
+                )
+            }
+            
+            if (showSpecial.value) {
+                specialPaths.forEach { path ->
+                    LifePathCard(path = path, isSelected = selectedLifePath.id == path.id, onSelect = { onLifePathChange(path) })
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(40.dp))
+            
+            Text("今年你多大了？", fontSize = 18.sp, fontWeight = FontWeight.Light, modifier = Modifier.align(Alignment.Start), color = Color(0xFF2C3E50))
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                listOf(20, 25, 30, 35, 40).forEach { age ->
+                    AgeChip(ageValue = age, isSelected = selectedAge == age, onSelect = { onAgeChange(age) })
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                when {
+                    selectedAge == 20 -> "🎓 刚步入社会，充满理想"
+                    selectedAge in 25..30 -> "💼 已有${selectedAge - 20}年工作经验"
+                    selectedAge >= 35 -> "🏠 成熟稳重，面临更多责任"
+                    else -> ""
+                },
+                fontSize = 13.sp,
+                color = Color(0xFF95A5A6),
+                modifier = Modifier.align(Alignment.Start)
+            )
+            
+            Spacer(modifier = Modifier.weight(1f))
+            
+            Button(
+                onClick = onStart,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF2C3E50)),
+                shape = RoundedCornerShape(28.dp),
+                elevation = ButtonDefaults.elevation(defaultElevation = 0.dp)
+            ) {
+                Text("开始这段旅程", fontSize = 16.sp, color = Color.White, fontWeight = FontWeight.Light)
+            }
+            
+            Spacer(modifier = Modifier.height(40.dp))
+        }
+    }
+}
+
+@Composable
+fun LifePathCard(
+    path: com.example.townapp.data.LifePath,
+    isSelected: Boolean,
+    onSelect: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
-        backgroundColor = AppColors.WarningBackground,
-        elevation = AppDimens.cardElevation,
-        shape = RoundedCornerShape(AppDimens.radiusMedium)
+            .clickable { onSelect() },
+        backgroundColor = if (isSelected) Color(0xFFE3F2FD) else Color.White.copy(alpha = 0.8f),
+        elevation = 0.dp,
+        shape = RoundedCornerShape(16.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("✨", fontSize = 20.sp)
-                    Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
-                    Text("今日发生的事", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                }
-                TextButton(onClick = onDismiss) {
-                    Text("知道了", fontSize = 12.sp)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    path.title,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 15.sp,
+                    modifier = Modifier.weight(1f),
+                    color = Color(0xFF2C3E50)
+                )
+                if (isSelected) {
+                    Text("✓", fontSize = 18.sp, color = Color(0xFF3498DB))
                 }
             }
-
-            Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
-
-            events.forEach { event ->
-                val isIdiom = event.contains("成语")
-                val isMicroEvent = event.contains("微事件")
-                val isCompanion = event.contains("陪伴")
-                val isSpotlight = event.contains("闪光点")
-
-                val icon = when {
-                    isIdiom -> "📜"
-                    isMicroEvent -> "💭"
-                    isCompanion -> "💝"
-                    isSpotlight -> "✨"
-                    else -> "📌"
-                }
-
-                val bgColor = when {
-                    isIdiom -> AppColors.SuccessBackground
-                    isMicroEvent -> AppColors.SelectedBackground
-                    isCompanion -> AppColors.AccentBackground
-                    isSpotlight -> AppColors.WarningBackground
-                    else -> AppColors.SurfaceVariant
-                }
-
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
-                    shape = RoundedCornerShape(AppDimens.radiusSmall),
-                    color = bgColor
-                ) {
-                    Row(
-                        modifier = Modifier.padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(icon, fontSize = 20.sp)
-                        Spacer(modifier = Modifier.width(AppDimens.paddingMedium))
-                        Text(
-                            event,
-                            fontSize = 14.sp,
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
-            }
+            
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                path.subtitle,
+                fontSize = 12.sp,
+                color = Color(0xFF8E44AD),
+                fontWeight = FontWeight.Medium
+            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                path.sceneDescription.take(60) + "...",
+                fontSize = 12.sp,
+                color = Color(0xFF95A5A6),
+                maxLines = 2,
+                lineHeight = 18.sp
+            )
         }
+    }
+}
+
+@Composable
+fun AgeChip(ageValue: Int, isSelected: Boolean, onSelect: () -> Unit) {
+    Surface(
+        modifier = Modifier.clickable { onSelect() },
+        shape = RoundedCornerShape(20.dp),
+        color = if (isSelected) Color(0xFF2C3E50) else Color(0xFFECF0F1),
+        elevation = 0.dp
+    ) {
+        Text(
+            "${ageValue}岁",
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+            color = if (isSelected) Color.White else Color(0xFF5D6D7E),
+            fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal,
+            fontSize = 14.sp
+        )
     }
 }

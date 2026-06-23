@@ -21,6 +21,9 @@ data class LifeArchiveEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
 
+    /** 用户/居民ID（支持多NPC存档） */
+    val userId: Int = 0,
+
     /** 存档内容 */
     val content: String,
 

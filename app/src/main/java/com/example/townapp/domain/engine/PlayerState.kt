@@ -21,15 +21,18 @@ data class PlayerState(
     val hunger: Double = 80.0,
     val energy: Double = 80.0,
     val health: Double = 70.0,
+    val fatigue: Double = 0.0,
 
     // 精神状态
     val happiness: Double = 60.0,
     val anxiety: Double = 30.0,
     val loneliness: Double = 20.0,
     val control: Double = 50.0,
+    val trauma: Double = 0.0,
 
     // 资产与技能
     val money: Double = 5000.0,
+    val assets: Double = 0.0,
     val skillLevel: Double = 50.0,
 
     // 代际压力
@@ -47,6 +50,11 @@ data class PlayerState(
     val dailyMinEnergy: Double = 100.0,
     val dailyAvgHappiness: Double = 0.0,
     val dailyEvents: List<String> = emptyList(),
+    
+    // 双轨收入统计
+    val dailyLaborIncome: Double = 0.0,
+    val dailyCompoundIncome: Double = 0.0,
+    val dailyWorkMinutes: Int = 0,
 
     // 服装与交通
     val clothingBonus: Double = 0.0,
@@ -60,6 +68,9 @@ data class PlayerState(
         dailyMaxHunger = hunger,
         dailyMinEnergy = energy,
         dailyAvgHappiness = happiness,
-        dailyEvents = emptyList()
+        dailyEvents = emptyList(),
+        dailyLaborIncome = 0.0,
+        dailyCompoundIncome = 0.0,
+        dailyWorkMinutes = 0
     )
 }

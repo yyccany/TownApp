@@ -17,6 +17,7 @@ import com.example.townapp.data.BeliefState
 import com.example.townapp.data.BeliefMilestones
 import com.example.townapp.data.BeliefErosionEvents
 import com.example.townapp.data.PlayerEventSystem
+import com.example.townapp.domain.night.NightSystem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -222,9 +223,81 @@ object SimulationEngine {
             week = (newDays / 7) + 1,
             dayOfWeek = ((newDays - 1) % 7) + 1
         )
-        // 每日重置（仅在跨天时）
         if (crossedDay) {
+            performDailySettlement()
             playerState = playerState.dailyReset()
+        }
+    }
+
+    /**
+     * 每日结算（核心经济演算）
+     * - 劳动收入：当日实际工作分钟 × 时薪，不工作当日无收入
+     * - 复利收入：持有资产总额 × 职业复利系数，睡眠自动结算，不消耗当日1440分钟
+     * - 压力绑定：工时透支/资产压力→创伤/焦虑
+     */
+    private fun performDailySettlement() {
+        val career = CareerPathSystem.allCareers.find { it.id == playerState.careerId }
+            ?: return
+
+        val dailyWorkMinutes = playerState.dailyWorkMinutes
+        val hourlyWage = career.hourlyWage
+        val compoundRate = career.compoundRate
+        val assetGrowthRate = career.assetGrowthRate
+
+        val laborIncome = (dailyWorkMinutes / 60.0) * hourlyWage
+
+        val compoundIncome = playerState.assets * compoundRate
+
+        val totalIncome = laborIncome + compoundIncome
+
+        val assetGrowth = playerState.assets * assetGrowthRate
+
+        var newFatigue = playerState.fatigue
+        var newTrauma = playerState.trauma
+        var newAnxiety = playerState.anxiety
+
+        val overtimeMinutes = max(0, dailyWorkMinutes - career.dailyWorkRequirement)
+        val overtimeRatio = overtimeMinutes.toDouble() / career.dailyWorkRequirement.toDouble().coerceAtLeast(1.0)
+
+        newFatigue = min(100.0, newFatigue + career.fatiguePerDay + overtimeRatio * 5.0)
+
+        if (playerState.assets < 1000.0 && laborIncome < 100.0) {
+            newTrauma = min(100.0, newTrauma + 0.5)
+            newAnxiety = min(100.0, newAnxiety + 0.3)
+        }
+
+        if (dailyWorkMinutes > 600) {
+            newTrauma = min(100.0, newTrauma + 1.0)
+            newAnxiety = min(100.0, newAnxiety + 0.8)
+        }
+
+        if (playerState.assets > 50000.0 && dailyWorkMinutes > 540) {
+            newTrauma = min(100.0, newTrauma + 0.8)
+            newAnxiety = min(100.0, newAnxiety + 0.5)
+        }
+
+        playerState = playerState.copy(
+            money = playerState.money + totalIncome,
+            assets = max(0.0, playerState.assets + assetGrowth),
+            fatigue = newFatigue,
+            trauma = newTrauma,
+            anxiety = newAnxiety,
+            dailyLaborIncome = laborIncome,
+            dailyCompoundIncome = compoundIncome,
+            dailyMoneyChange = totalIncome
+        )
+
+        if (laborIncome > 0) {
+            playerState = playerState.copy(
+                dailyEvents = playerState.dailyEvents + 
+                    "今日工作${dailyWorkMinutes}分钟，劳动收入¥${String.format("%.2f", laborIncome)}"
+            )
+        }
+        if (compoundIncome > 0) {
+            playerState = playerState.copy(
+                dailyEvents = playerState.dailyEvents + 
+                    "资产复利收入¥${String.format("%.2f", compoundIncome)}"
+            )
         }
     }
 
@@ -415,6 +488,11 @@ object SimulationEngine {
         if (gameTime.days % 7 == 0 && gameTime.hours == 20 && beliefState.isStillHolding) {
             triggerBeliefErosionEvent(log)
         }
+
+        // 夜间系统：22点入夜演算
+        if (gameTime.hours == 22) {
+            processNightEvent()
+        }
     }
     
     /**
@@ -542,10 +620,12 @@ object SimulationEngine {
             hunger = max(0.0, min(100.0, playerState.hunger + effect.hunger)),
             energy = max(0.0, min(100.0, playerState.energy + effect.energy)),
             health = max(0.0, min(100.0, playerState.health + effect.health)),
+            fatigue = max(0.0, min(100.0, playerState.fatigue + effect.fatigue)),
             happiness = max(0.0, min(100.0, playerState.happiness + effect.happiness)),
             anxiety = max(0.0, min(100.0, playerState.anxiety + effect.anxiety)),
             loneliness = max(0.0, min(100.0, playerState.loneliness + effect.loneliness)),
             control = max(0.0, min(100.0, playerState.control + effect.control)),
+            trauma = max(0.0, min(100.0, playerState.trauma + effect.trauma)),
             money = playerState.money + effect.money,
             skillLevel = max(0.0, min(100.0, playerState.skillLevel + effect.skillLevel)),
             generationalPressure = max(0.0, min(100.0, playerState.generationalPressure + effect.generationalPressure))
@@ -799,16 +879,22 @@ object SimulationEngine {
      * 执行上班动作
      */
     fun work(hours: Int): ActionResult {
-        // 获得收入
-        val income = playerState.skillLevel * 20 * hours
+        val workMinutes = hours * 60
+        val career = CareerPathSystem.allCareers.find { it.id == playerState.careerId }
+        val hourlyWage = career?.hourlyWage ?: 30.0
+        val income = hourlyWage * hours
+
         playerState = playerState.copy(
             energy = max(0.0, playerState.energy - hours * 5.0),
             money = playerState.money + income,
             happiness = max(0.0, playerState.happiness - hours * 1.0),
-            anxiety = min(100.0, playerState.anxiety + hours * 0.5)
+            anxiety = min(100.0, playerState.anxiety + hours * 0.5),
+            fatigue = min(100.0, playerState.fatigue + hours * 3.0),
+            dailyWorkMinutes = playerState.dailyWorkMinutes + workMinutes,
+            dailyLaborIncome = playerState.dailyLaborIncome + income,
+            dailyMoneyChange = playerState.dailyMoneyChange + income
         )
 
-        // 推进时间
         advanceTime(hours)
 
         return ActionResult(
@@ -1125,11 +1211,18 @@ object SimulationEngine {
             hunger = 80.0,
             energy = max(60.0, 90.0 - career.fatiguePerDay * 10.0),
             health = max(50.0, baseHealth),
+            fatigue = max(0.0, career.fatiguePerDay * 365 * max(0, workingYears) / 200.0),
             happiness = max(40.0, 70.0 - career.overtimeRate * 20.0),
             anxiety = min(80.0, baseAnxiety),
             loneliness = 20.0 + if (career.overtimeRate > 0.5) 15.0 else 0.0,
             control = max(30.0, 60.0 - career.layoffRisk * 30.0),
+            trauma = max(0.0, career.overtimeRate * 10.0 * max(0, workingYears)),
             money = max(1000.0, baseMoney - career.startupCost),
+            assets = if (career.pathType == CareerPathSystem.CareerPathType.BUSINESS) {
+                max(0.0, baseMoney - career.startupCost) * 0.5
+            } else {
+                0.0
+            },
             skillLevel = 30.0 + max(0, workingYears) * 3.0 + if (career.pathType == CareerPathSystem.CareerPathType.CORPORATE) 20.0 else 0.0,
             generationalPressure = 10.0 + max(0, workingYears) * 2.0,
             hasFamily = clampedAge >= 28 && Math.random() > 0.5,
@@ -1704,6 +1797,45 @@ object SimulationEngine {
      */
     fun getAvailablePlayerEvents(): List<PlayerEventSystem.PlayerEvent> {
         return PlayerEventSystem.allPlayerEvents.filter { playerState.money >= it.cost }
+    }
+
+    /**
+     * 夜间系统：22点入夜演算
+     */
+    private fun processNightEvent() {
+        val nightResult = NightSystem.calculateNightState(playerState)
+
+        playerState = playerState.copy(
+            energy = min(100.0, playerState.energy + nightResult.energyRecovered),
+            trauma = max(0.0, playerState.trauma - nightResult.traumaReduced),
+            anxiety = max(0.0, playerState.anxiety - nightResult.anxietyReduced),
+            dailyEvents = playerState.dailyEvents + "【夜间状态】${getSleepStatusText(nightResult.sleepStatus)}"
+        )
+
+        if (nightResult.hasDream) {
+            playerState = playerState.copy(
+                dailyEvents = playerState.dailyEvents + "【梦境】${nightResult.dreamEmoji} ${nightResult.dreamContent}"
+            )
+        }
+
+        if (nightResult.sleepStatus == "INSOMNIA") {
+            playerState = playerState.copy(
+                dailyEvents = playerState.dailyEvents + "【深夜独白】${nightResult.nightMonoText}"
+            )
+        }
+    }
+
+    /**
+     * 获取睡眠状态文本
+     */
+    private fun getSleepStatusText(status: String): String {
+        return when (status) {
+            "DEEP_SLEEP" -> "深度睡眠"
+            "ASLEEP" -> "正常睡眠"
+            "RESTLESS" -> "浅眠不安"
+            "INSOMNIA" -> "整夜失眠"
+            else -> "睡眠中"
+        }
     }
 
 }

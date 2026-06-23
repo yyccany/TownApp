@@ -14,6 +14,9 @@ data class LifeEventLogEntity(
     val eventType: String,
     val triggerTime: Long = System.currentTimeMillis(),
 
+    /** 用户/居民ID（支持多NPC事件追踪） */
+    val userId: Int = 0,
+
     // ============================================
     // 物品交互追踪（v10 新增）
     // ============================================
@@ -30,5 +33,17 @@ data class LifeEventLogEntity(
     /** 物品价格 */
     val itemPrice: Double = 0.0,
     /** 购置此物品所耗费的劳动小时数 */
-    val workHourCost: Double = 0.0
+    val workHourCost: Double = 0.0,
+
+    // ============================================
+    // 双轨收入记录（v1.4 职业经济演算）
+    // ============================================
+    /** 当日劳动收入 */
+    val dayLaborIncome: Double = 0.0,
+    /** 当日复利收入 */
+    val dayCompoundIncome: Double = 0.0,
+    /** 当日工作分钟数 */
+    val dayWorkMinutes: Int = 0,
+    /** 当日资产总额 */
+    val dayAssets: Double = 0.0
 )

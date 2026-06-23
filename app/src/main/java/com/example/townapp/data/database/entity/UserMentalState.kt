@@ -48,6 +48,7 @@ data class UserMentalState(
     val lifePathType: String = "",              // 生活路径：hustle/balanced/rest
     val workSatisfaction: Int = 50,             // 工作满意度 0-100
     val burnoutRisk: Int = 15,                  // 职业倦怠风险 0-100
+    val traumaLevel: Int = 0,                   // 心理创伤值 0-100（长期压力累积）
 
     // ============================================
     // 记录
@@ -132,7 +133,8 @@ data class UserMentalState(
         creativeFlow = creativeFlow.coerceIn(0, 100),
         workStress = workStress.coerceIn(0, 100),
         workSatisfaction = workSatisfaction.coerceIn(0, 100),
-        burnoutRisk = burnoutRisk.coerceIn(0, 100)
+        burnoutRisk = burnoutRisk.coerceIn(0, 100),
+        traumaLevel = traumaLevel.coerceIn(0, 100)
     )
 }
 

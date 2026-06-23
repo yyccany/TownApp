@@ -51,6 +51,7 @@ data class UserBodyState(
     // ============================================
     val energy: Int = 80,                      // 精力 0-100
     val healthScore: Int = 85,                 // 综合健康评分 0-100
+    val traumaLevel: Int = 0,                  // 创伤值 0-100（长期压力、负面事件累积）
 
     // ============================================
     // 情绪（基础情绪，受身体状态影响）
@@ -113,6 +114,7 @@ data class UserBodyState(
         immuneLevel = immuneLevel.coerceIn(0, 100),
         energy = energy.coerceIn(0, 100),
         healthScore = healthScore.coerceIn(0, 100),
+        traumaLevel = traumaLevel.coerceIn(0, 100),
         mood = mood.coerceIn(0, 100),
         dailyWorkHours = dailyWorkHours.coerceAtLeast(0.0),
         fatigueLevel = fatigueLevel.coerceIn(0, 100),

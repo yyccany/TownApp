@@ -7,6 +7,7 @@ import kotlinx.coroutines.withContext
 import java.util.concurrent.ConcurrentHashMap
 import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Calendar
 
 object LifeTimelineReviewEngine {
     private val behaviorLogs = ConcurrentHashMap<String, MutableList<BehaviorLog>>()
@@ -17,8 +18,10 @@ object LifeTimelineReviewEngine {
 
     suspend fun generateAnnualReview(userId: String, year: Int): LifeTimelineReview = withContext(ThreadPoolManager.calculationDispatcher) {
         val logs = behaviorLogs[userId] ?: emptyList()
-        val yearStart = java.time.LocalDate.of(year, 1, 1).toEpochDay() * 86400000L
-        val yearEnd = java.time.LocalDate.of(year+1, 1, 1).toEpochDay() * 86400000L
+        val calendarStart = Calendar.getInstance().apply { set(year, 0, 1, 0, 0, 0) }
+        val yearStart = calendarStart.timeInMillis
+        val calendarEnd = Calendar.getInstance().apply { set(year + 1, 0, 1, 0, 0, 0) }
+        val yearEnd = calendarEnd.timeInMillis
         val yearLogs = logs.filter { it.timestamp in yearStart until yearEnd }
         generateReview(yearLogs, "年度", yearStart, yearEnd)
     }

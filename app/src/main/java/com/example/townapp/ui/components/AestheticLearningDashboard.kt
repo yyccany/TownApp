@@ -99,9 +99,9 @@ fun AestheticLearningDashboard() {
                 )
             }
             
-            // 每日任务
+            // 每日灵感
             item {
-                AestheticDailyTask()
+                AestheticInspiration()
             }
             
             // 构图画廊

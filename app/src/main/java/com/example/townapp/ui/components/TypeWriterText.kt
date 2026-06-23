@@ -170,7 +170,7 @@ private fun splitTextByPunctuation(text: String, maxLength: Int = 12): List<Stri
             result.add(current.trim())
         } else if (result.isNotEmpty()) {
             // 否则合并到上一行
-            val last = result.removeLast()
+            val last = result.removeAt(result.lastIndex)
             result.add((last + current).trim())
         } else {
             result.add(current.trim())

@@ -2,8 +2,9 @@ package com.example.townapp.security
 
 import android.util.Log
 import com.example.townapp.feature.town_simulation.StructuredLogger
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 object AuditLogger {
 
@@ -53,7 +54,7 @@ object AuditLogger {
         additionalInfo: Map<String, String> = emptyMap()
     ) {
         val entry = AuditEntry(
-            timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+            timestamp = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US).format(Date()),
             actionType = actionType,
             severity = severity,
             userId = userId,
@@ -64,7 +65,7 @@ object AuditLogger {
         synchronized(auditLogs) {
             auditLogs.add(0, entry)
             if (auditLogs.size > MAX_LOG_ENTRIES) {
-                auditLogs.removeLast()
+                auditLogs.removeAt(auditLogs.lastIndex)
             }
         }
 

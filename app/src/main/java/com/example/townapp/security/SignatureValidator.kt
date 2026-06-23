@@ -7,6 +7,8 @@ import android.util.Log
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 
+import android.os.Build
+
 object SignatureValidator {
 
     private const val TAG = "SignatureValidator"
@@ -33,8 +35,11 @@ object SignatureValidator {
 
     @Suppress("DEPRECATION")
     private fun getSignatures(packageInfo: PackageInfo): Array<android.content.pm.Signature> {
-        return packageInfo.signingInfo?.apkContentsSigners 
-            ?: packageInfo.signatures ?: emptyArray()
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            packageInfo.signingInfo?.apkContentsSigners ?: emptyArray()
+        } else {
+            packageInfo.signatures ?: emptyArray()
+        }
     }
 
     private fun validateSignatures(signatures: Array<android.content.pm.Signature>) {

@@ -24,9 +24,11 @@ import com.example.townapp.data.database.entity.*
         /** 国际化食谱系统 */
         RecipeEntity::class, RecipeIngredientEntity::class,
         /** 万物薪俸小镇 v2：身体-空间-精神 三层闭环系统 */
-        UserSpaceState::class, UserMentalState::class
+        UserSpaceState::class, UserMentalState::class,
+        /** v1.4 新增：人生轨迹归档 + 夜间状态 */
+        NpcLifeRecordEntity::class, NightStateEntity::class
     ],
-    version = 11,
+    version = 12,
     exportSchema = true
 )
 abstract class TownDatabase : RoomDatabase() {
@@ -60,6 +62,10 @@ abstract class TownDatabase : RoomDatabase() {
     /** 万物薪俸小镇 v2：身体-空间-精神 三层闭环系统 DAO */
     abstract fun userSpaceStateDao(): UserSpaceStateDao
     abstract fun userMentalStateDao(): UserMentalStateDao
+
+    /** v1.4 新增 DAO：人生轨迹归档 + 夜间状态 */
+    abstract fun npcLifeRecordDao(): NpcLifeRecordDao
+    abstract fun nightStateDao(): NightStateDao
 
     companion object {
         @Volatile

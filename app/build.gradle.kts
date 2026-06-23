@@ -90,7 +90,7 @@ dependencies {
     implementation("androidx.compose.material:material:1.6.8")
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
-    // kapt(libs.androidx.room.compiler)
+    kapt(libs.androidx.room.compiler)
     
     implementation(libs.coil.compose)
 

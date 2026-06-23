@@ -32,6 +32,13 @@ object CareerPathSystem {
         val startupCost: Double = 0.0,   // 启动成本（创业需要）
         val bankruptcyRisk: Double = 0.0,// 破产风险（创业需要）
         val minAge: Int = 22,            // 最低入职年龄
+        
+        // 双轨经济参数
+        val hourlyWage: Double = 0.0,    // 时薪（劳动收入：工作分钟 × 时薪）
+        val compoundRate: Double = 0.0,  // 复利系数（资产收入：资产总额 × 复利系数，睡眠自动结算）
+        val assetGrowthRate: Double = 0.0,// 资产增长率（经营型职业资产增值速度）
+        val dailyWorkRequirement: Int = 0,// 每日最低工作分钟要求
+        
         val description: String
     )
 
@@ -40,82 +47,110 @@ object CareerPathSystem {
     // ============================================
 
     val allCareers: List<CareerOption> = listOf(
-        // ── 稳定体制路线 ──
+        // ── 稳定体制路线 ──（纯劳动型，时薪稳定，无复利）
         CareerOption("civil_servant", "基层公务员", CareerPathType.STABLE,
             5000.0, 0.03, 12000.0, 0.2, 0.1, 0.3, 0.05,
             minAge = 22,
+            hourlyWage = 30.0, compoundRate = 0.0, assetGrowthRate = 0.0,
+            dailyWorkRequirement = 420,
             description = "朝九晚五，薪资稳定，失业风险低"),
 
         CareerOption("state_enterprise", "国企职员", CareerPathType.STABLE,
             6000.0, 0.04, 15000.0, 0.25, 0.15, 0.35, 0.08,
             minAge = 22,
+            hourlyWage = 35.0, compoundRate = 0.0, assetGrowthRate = 0.0,
+            dailyWorkRequirement = 450,
             description = "福利好，加班少，薪资稳定"),
 
         CareerOption("teacher", "公立教师", CareerPathType.STABLE,
             4500.0, 0.03, 10000.0, 0.3, 0.2, 0.25, 0.05,
             minAge = 22,
+            hourlyWage = 27.0, compoundRate = 0.0, assetGrowthRate = 0.0,
+            dailyWorkRequirement = 480,
             description = "寒暑假福利，压力适中"),
 
-        // ── 大厂内卷路线 ──
+        // ── 大厂内卷路线 ──（劳动型为主，后期可积累技能资产）
         CareerOption("programmer", "程序员", CareerPathType.CORPORATE,
             12000.0, 0.08, 50000.0, 0.7, 0.4, 0.6, 0.35,
             minAge = 22,
+            hourlyWage = 72.0, compoundRate = 0.0001, assetGrowthRate = 0.001,
+            dailyWorkRequirement = 600,
             description = "起薪高、涨薪快，但996是常态。35岁后裁员风险显著上升。"),
 
         CareerOption("product_manager", "产品经理", CareerPathType.CORPORATE,
             10000.0, 0.07, 40000.0, 0.6, 0.35, 0.55, 0.30,
             minAge = 24,
+            hourlyWage = 60.0, compoundRate = 0.0001, assetGrowthRate = 0.0008,
+            dailyWorkRequirement = 540,
             description = "互联网核心岗位，沟通协调多，加班也不少。"),
 
         CareerOption("finance_analyst", "金融分析师", CareerPathType.CORPORATE,
             15000.0, 0.09, 60000.0, 0.8, 0.5, 0.65, 0.25,
             minAge = 24,
+            hourlyWage = 90.0, compoundRate = 0.0002, assetGrowthRate = 0.0015,
+            dailyWorkRequirement = 660,
             description = "金领起步，但工作强度极大，疲惫值飙升。"),
 
-        // ── 自由副业路线 ──
+        // ── 自由副业路线 ──（劳动型为主，技能积累后可转化）
         CareerOption("freelance_dev", "自由开发者", CareerPathType.FREELANCE,
             4000.0, 0.12, 80000.0, 0.3, 0.2, 0.0, 0.0,
             minAge = 22,
+            hourlyWage = 50.0, compoundRate = 0.0001, assetGrowthRate = 0.001,
+            dailyWorkRequirement = 0,
             description = "前期收入不稳定，靠接单为生。深耕数年后收入上限极高，自己掌控时间。"),
 
         CareerOption("content_creator", "内容创作者", CareerPathType.FREELANCE,
             3000.0, 0.15, 100000.0, 0.4, 0.25, 0.0, 0.0,
             minAge = 22,
+            hourlyWage = 40.0, compoundRate = 0.0003, assetGrowthRate = 0.002,
+            dailyWorkRequirement = 0,
             description = "自媒体、视频创作，前期收入微薄，一旦做起来天花板极高。"),
 
         CareerOption("designer", "独立设计师", CareerPathType.FREELANCE,
             3500.0, 0.10, 50000.0, 0.35, 0.2, 0.0, 0.0,
             minAge = 22,
+            hourlyWage = 45.0, compoundRate = 0.0001, assetGrowthRate = 0.0008,
+            dailyWorkRequirement = 0,
             description = "接设计单为生，收入波动大但自由度高。"),
 
-        // ── 个体经商路线 ──
+        // ── 个体经商路线 ──（资产型为主，复利收入，前期投入大）
         CareerOption("small_shop", "开小店铺", CareerPathType.BUSINESS,
             3000.0, 0.20, 100000.0, 0.6, 0.4, 0.0, 0.0,
             startupCost = 50000.0, bankruptcyRisk = 0.30,
             minAge = 24,
+            hourlyWage = 20.0, compoundRate = 0.0008, assetGrowthRate = 0.005,
+            dailyWorkRequirement = 540,
             description = "从一家小店开始，风险不小但回报可观。需要投入本金。"),
 
         CareerOption("restaurant", "餐饮创业", CareerPathType.BUSINESS,
             2000.0, 0.25, 150000.0, 0.7, 0.5, 0.0, 0.0,
             startupCost = 80000.0, bankruptcyRisk = 0.40,
             minAge = 26,
+            hourlyWage = 15.0, compoundRate = 0.001, assetGrowthRate = 0.006,
+            dailyWorkRequirement = 600,
             description = "餐饮行业门槛低但淘汰率高，成了就是一条街最火的店。"),
 
         CareerOption("ecommerce", "电商创业", CareerPathType.BUSINESS,
             4000.0, 0.30, 200000.0, 0.5, 0.35, 0.0, 0.0,
             startupCost = 30000.0, bankruptcyRisk = 0.35,
             minAge = 22,
+            hourlyWage = 25.0, compoundRate = 0.0009, assetGrowthRate = 0.007,
+            dailyWorkRequirement = 480,
             description = "线上开店，启动成本相对较低，但竞争激烈。"),
 
-        // ── 其他生计路线 ──
+        // ── 其他生计路线 ──（纯劳动型）
         CareerOption("migrant_worker", "外出打工青年", CareerPathType.FREELANCE,
             3500.0, 0.05, 8000.0, 0.5, 0.3, 0.0, 0.0,
             minAge = 18,
+            hourlyWage = 20.0, compoundRate = 0.0, assetGrowthRate = 0.0,
+            dailyWorkRequirement = 540,
             description = "背井离乡进厂或跑工地，收入不高但比老家强。没有社保，干一天算一天。"),
 
         CareerOption("fulltime_mother", "全职妈妈", CareerPathType.STABLE,
             0.0, 0.0, 0.0, 0.1, 0.25, 0.0, 0.0,
             minAge = 22,
+            hourlyWage = 0.0, compoundRate = 0.0, assetGrowthRate = 0.0,
+            dailyWorkRequirement = 0,
             description = "24小时待命，没有工资，没有晋升。但小镇承认：这也是一份值得尊重的生计。")
     )
 

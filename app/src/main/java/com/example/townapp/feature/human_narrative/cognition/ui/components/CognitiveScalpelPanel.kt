@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.townapp.domain.model.CognitionState
 import com.example.townapp.domain.model.FragmentType
+import kotlinx.coroutines.flow.collectLatest
 
 /**
  * 认知手术刀交互面板
@@ -32,13 +33,12 @@ import com.example.townapp.domain.model.FragmentType
 @Composable
 fun CognitiveScalpelPanel(
     modifier: Modifier = Modifier,
-    personalizedSelfReflection: String? = null  // 高认知个性化自省文本（可选）
+    personalizedSelfReflection: String? = null
 ) {
     var selectedBias by remember { mutableStateOf<CognitiveBias?>(null) }
     var isUnlocked by remember { mutableStateOf(false) }
-    val currentCognitionLevel = CognitionState.cognitionLevel.value
+    val currentCognitionLevel by CognitionState.cognitionLevel.collectAsState()
 
-    // 检查解锁状态（认知等级 >= 2 解锁基础）
     LaunchedEffect(currentCognitionLevel) {
         isUnlocked = currentCognitionLevel >= 2
     }
