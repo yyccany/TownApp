@@ -1,6 +1,7 @@
 package com.example.townapp.ui.screens
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -103,14 +104,28 @@ fun SimulationScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Spacer(modifier = Modifier.height(TownAestheticDesign.Spacing.xxl))
-                
-                GreetingCard(gameTime, player)
-                
-                Spacer(modifier = Modifier.height(TownAestheticDesign.Spacing.xxl))
-                
-                TodayMoodCard(player, isNight)
-                
-                Spacer(modifier = Modifier.height(TownAestheticDesign.Spacing.xl))
+        
+        GreetingCard(gameTime, player)
+        
+        Spacer(modifier = Modifier.height(TownAestheticDesign.Spacing.xl))
+        
+        TodayMoodCard(player, isNight)
+        
+        Spacer(modifier = Modifier.height(TownAestheticDesign.Spacing.xl))
+        
+        AnimatedVisibility(
+            visible = isNight,
+            enter = fadeIn(animationSpec = tween(1000)) + slideInVertically(animationSpec = tween(800)),
+            exit = fadeOut(animationSpec = tween(800)) + slideOutVertically(animationSpec = tween(600))
+        ) {
+            NightMonologueCard(player)
+        }
+        
+        Spacer(modifier = Modifier.height(TownAestheticDesign.Spacing.xl))
+        
+        TimeProgressBar(gameTime, player, isNight)
+        
+        Spacer(modifier = Modifier.height(TownAestheticDesign.Spacing.xl))
                 
                 DailyEventsSection(events = player.dailyEvents, onDismiss = { vm.clearDailyEvents() }, isNight)
                 
@@ -135,7 +150,9 @@ fun SimulationScreen(
                     onJournal = { minutes -> vm.journal(minutes) },
                     onPayRent = { vm.payRent() },
                     onChangeSpace = { showSpaceSelector.value = true },
-                    onIdle = { hours -> vm.idle(hours) }
+                    onIdle = { hours -> vm.idle(hours) },
+                    onViewMemories = onNavigateToDataViewer,
+                    isNight = isNight
                 )
                 
                 Spacer(modifier = Modifier.height(TownAestheticDesign.Spacing.xl))
@@ -424,13 +441,15 @@ fun TodayMoodCard(player: PlayerState, isNight: Boolean) {
         else -> "💤"
     }
     
+    val moodColor = getMoodColor(player.happiness, player.anxiety, player.trauma)
+    
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp),
         elevation = 0.dp,
         shape = RoundedCornerShape(20.dp),
-        backgroundColor = if (isNight) Color(0xFF16213E).copy(alpha = 0.7f) else Color.White.copy(alpha = 0.7f)
+        backgroundColor = moodColor.copy(alpha = if (isNight) 0.2f else 0.15f)
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             if (isInsomnia) {
@@ -479,6 +498,258 @@ fun TodayMoodCard(player: PlayerState, isNight: Boolean) {
                     Spacer(modifier = Modifier.height(6.dp))
                     Text("健康", fontSize = 12.sp, color = if (isNight) Color(0xFFAAB7B8) else Color(0xFF95A5A6))
                     Text("${player.health.toInt()}%", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = if (isNight) Color.White else Color(0xFF2C3E50))
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            EmotionBar(player, isNight)
+        }
+    }
+}
+
+@Composable
+fun EmotionBar(player: PlayerState, isNight: Boolean) {
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("内心状态", fontSize = 12.sp, color = if (isNight) Color(0xFFAAB7B8) else Color(0xFF95A5A6))
+            Text("今日总时长固定1440分钟，人人均等", fontSize = 10.sp, color = Color(0xFFBDC3C7))
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            MiniEmotionBlock("焦虑", player.anxiety, Color(0xFFE74C3C), isNight)
+            MiniEmotionBlock("创伤", player.trauma, Color(0xFF8E44AD), isNight)
+            MiniEmotionBlock("孤独", player.loneliness, Color(0xFFF39C12), isNight)
+            MiniEmotionBlock("掌控", player.control, Color(0xFF27AE60), isNight)
+        }
+    }
+}
+
+@Composable
+fun MiniEmotionBlock(label: String, value: Double, color: Color, isNight: Boolean) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
+            modifier = Modifier
+                .width(50.dp)
+                .height(8.dp)
+                .background(if (isNight) Color(0xFF34495E) else Color(0xFFECF0F1), RoundedCornerShape(4.dp))
+        ) {
+            Box(
+                modifier = Modifier
+                    .width((50 * (value / 100)).dp)
+                    .height(8.dp)
+                    .background(color, RoundedCornerShape(4.dp))
+            )
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(label, fontSize = 11.sp, color = if (isNight) Color(0xFFAAB7B8) else Color(0xFF95A5A6))
+        Text("${value.toInt()}%", fontSize = 11.sp, fontWeight = FontWeight.Medium, color = if (isNight) Color.White else Color(0xFF2C3E50))
+    }
+}
+
+fun getMoodColor(happiness: Double, anxiety: Double, trauma: Double): Color {
+    return when {
+        trauma > 50 || anxiety > 70 -> Color(0xFF2C3E50)
+        anxiety > 50 -> Color(0xFF8E44AD)
+        happiness < 40 -> Color(0xFFF39C12)
+        happiness >= 70 -> Color(0xFF27AE60)
+        else -> Color(0xFF3498DB)
+    }
+}
+
+@Composable
+fun NightMonologueCard(player: PlayerState) {
+    val nightResult = remember(player) {
+        com.example.townapp.domain.night.NightSystem.calculateNightState(player)
+    }
+    
+    val isInsomnia = nightResult.sleepStatus == com.example.townapp.data.database.entity.NightStateEntity.SLEEP_STATUS_INSOMNIA
+    val isDeepSleep = nightResult.sleepStatus == com.example.townapp.data.database.entity.NightStateEntity.SLEEP_STATUS_DEEP_SLEEP
+    
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp),
+        elevation = 0.dp,
+        shape = RoundedCornerShape(24.dp),
+        backgroundColor = if (isInsomnia) Color(0xFF1A1A2E).copy(alpha = 0.9f) else Color(0xFF0F3460).copy(alpha = 0.85f)
+    ) {
+        Column(modifier = Modifier.padding(24.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    when {
+                        isInsomnia -> "🌙"
+                        isDeepSleep -> "💤"
+                        else -> "🌃"
+                    },
+                    fontSize = 28.sp
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    when {
+                        isInsomnia -> "深夜独白"
+                        isDeepSleep -> "安然入睡"
+                        else -> "夜晚思绪"
+                    },
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Light,
+                    color = Color.White
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    when {
+                        isInsomnia -> "😰"
+                        isDeepSleep -> "😊"
+                        else -> "😌"
+                    },
+                    fontSize = 32.sp,
+                    modifier = Modifier.padding(end = 12.dp)
+                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        nightResult.nightMonoText,
+                        fontSize = 14.sp,
+                        color = Color.White.copy(alpha = 0.9f),
+                        lineHeight = 22.sp,
+                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                    )
+                }
+            }
+            
+            if (nightResult.hasDream) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Divider(color = Color.White.copy(alpha = 0.1f), thickness = 1.dp)
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(nightResult.dreamEmoji, fontSize = 20.sp, modifier = Modifier.padding(end = 8.dp))
+                    Text(
+                        "梦里：${nightResult.dreamContent}",
+                        fontSize = 13.sp,
+                        color = Color(0xFFAAB7B8),
+                        lineHeight = 20.sp
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                Text(
+                    when {
+                        isInsomnia -> "失眠中"
+                        isDeepSleep -> "深度睡眠"
+                        else -> nightResult.sleepStatus.replace("_", " ")
+                    },
+                    fontSize = 12.sp,
+                    color = if (isInsomnia) Color(0xFFF39C12) else Color(0xFFAAB7B8)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun TimeProgressBar(gameTime: GameTime, player: PlayerState, isNight: Boolean) {
+    val totalMinutes = 1440
+    val passedMinutes = gameTime.hours * 60
+    val progress = passedMinutes.toDouble() / totalMinutes
+    
+    val workMinutes = player.dailyWorkMinutes
+    
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp),
+        elevation = 0.dp,
+        shape = RoundedCornerShape(20.dp),
+        backgroundColor = if (isNight) Color(0xFF16213E).copy(alpha = 0.6f) else Color.White.copy(alpha = 0.6f)
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("今日时间", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = if (isNight) Color.White else Color(0xFF2C3E50))
+                Text("${gameTime.hours}:00", fontSize = 14.sp, color = if (isNight) Color(0xFFAAB7B8) else Color(0xFF7F8C8D))
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(16.dp)
+                    .background(if (isNight) Color(0xFF0F3460) else Color(0xFFECF0F1), RoundedCornerShape(8.dp))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width((progress * 360).dp)
+                        .background(
+                            Brush.horizontalGradient(
+                                listOf(
+                                    Color(0xFF3498DB),
+                                    Color(0xFF2ECC71),
+                                    if (isNight) Color(0xFF9B59B6) else Color(0xFFF39C12)
+                                )
+                            ),
+                            RoundedCornerShape(8.dp)
+                        )
+                )
+                
+                if (workMinutes > 0) {
+                    val workWidth = kotlin.math.min(progress, (workMinutes.toDouble() / totalMinutes)) * 360
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .width(workWidth.dp)
+                            .background(Color(0xFFE74C3C).copy(alpha = 0.5f))
+                    )
+                }
+                
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .offset(x = ((progress * 100) * 0.01 * 360 - 12).dp)
+                        .background(if (isNight) Color(0xFFF1C40F) else Color(0xFFE74C3C), RoundedCornerShape(50))
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(2.dp)
+                            .background(Color.White.copy(alpha = 0.3f), RoundedCornerShape(50))
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(Modifier.size(8.dp).background(Color(0xFFE74C3C), RoundedCornerShape(2.dp)))
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text("工作 ${workMinutes}min", fontSize = 10.sp, color = if (isNight) Color(0xFFAAB7B8) else Color(0xFF95A5A6))
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(Modifier.size(8.dp).background(Color(0xFF3498DB), RoundedCornerShape(2.dp)))
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text("休息", fontSize = 10.sp, color = if (isNight) Color(0xFFAAB7B8) else Color(0xFF95A5A6))
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(Modifier.size(8.dp).background(Color(0xFF2ECC71), RoundedCornerShape(2.dp)))
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text("剩余 ${totalMinutes - passedMinutes}min", fontSize = 10.sp, color = if (isNight) Color(0xFFAAB7B8) else Color(0xFF95A5A6))
                 }
             }
         }
@@ -586,11 +857,14 @@ fun QuietActionsGrid(
     onJournal: (Int) -> Unit,
     onPayRent: () -> Unit,
     onChangeSpace: () -> Unit,
-    onIdle: (Int) -> Unit
+    onIdle: (Int) -> Unit,
+    onViewMemories: () -> Unit,
+    isNight: Boolean
 ) {
     var showDurationDialog by remember { mutableStateOf(false) }
     var durationCallback by remember { mutableStateOf<((Int) -> Unit)?>(null) }
     var durationOptions by remember { mutableStateOf(listOf(1, 2, 4, 8)) }
+    var selectedAction by remember { mutableStateOf<String>("") }
 
     Card(
         modifier = Modifier
@@ -598,7 +872,7 @@ fun QuietActionsGrid(
             .padding(horizontal = 24.dp),
         elevation = 0.dp,
         shape = RoundedCornerShape(20.dp),
-        backgroundColor = Color.White.copy(alpha = 0.6f)
+        backgroundColor = if (isNight) Color(0xFF16213E).copy(alpha = 0.7f) else Color.White.copy(alpha = 0.7f)
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -608,7 +882,7 @@ fun QuietActionsGrid(
                     "想做些什么呢？",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Light,
-                    color = Color(0xFF2C3E50)
+                    color = if (isNight) Color.White else Color(0xFF2C3E50)
                 )
             }
             
@@ -618,29 +892,30 @@ fun QuietActionsGrid(
                 chunkedActionItems(
                     listOf(
                         QuietAction("🍔", "好好吃饭", onEat),
-                        QuietAction("😴", "睡一会儿", onClick = { durationCallback = onSleep; durationOptions = listOf(4, 6, 8, 10); showDurationDialog = true }),
-                        QuietAction("💼", "工作", onClick = { durationCallback = onWork; durationOptions = listOf(2, 4, 6, 8); showDurationDialog = true }),
-                        QuietAction("📚", "学习", onClick = { durationCallback = onStudy; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true }),
-                        QuietAction("🚶", "散步", onClick = { durationCallback = onWalk; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true }),
-                        QuietAction("🧘", "冥想", onClick = { durationCallback = onMeditate; durationOptions = listOf(10, 20, 30, 60); showDurationDialog = true }),
-                        QuietAction("🏃", "运动", onClick = { durationCallback = onExercise; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true }),
-                        QuietAction("👥", "和人相处", onClick = { durationCallback = onSocialize; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true }),
-                        QuietAction("📖", "阅读", onClick = { durationCallback = onRead; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true }),
-                        QuietAction("🎵", "听音乐", onClick = { durationCallback = onListenMusic; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true }),
-                        QuietAction("🍳", "做饭", onClick = { durationCallback = onCook; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true }),
-                        QuietAction("🧹", "整理", onClick = { durationCallback = onOrganize; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true }),
-                        QuietAction("🎬", "看电影", onClick = { durationCallback = onWatchMovie; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true }),
-                        QuietAction("🍵", "喝茶", onClick = { durationCallback = onTeaBreak; durationOptions = listOf(15, 30, 45, 60); showDurationDialog = true }),
+                        QuietAction("😴", "睡一会儿", onClick = { selectedAction = "睡一会儿"; durationCallback = onSleep; durationOptions = listOf(4, 6, 8, 10); showDurationDialog = true }),
+                        QuietAction("☕", "发会儿呆", onClick = { selectedAction = "发会儿呆"; durationCallback = onIdle; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true }),
+                        QuietAction("�", "散散步", onClick = { selectedAction = "散散步"; durationCallback = onWalk; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true }),
+                        QuietAction("🧘", "安静冥想", onClick = { selectedAction = "安静冥想"; durationCallback = onMeditate; durationOptions = listOf(10, 20, 30, 60); showDurationDialog = true }),
+                        QuietAction("🎵", "听听音乐", onClick = { selectedAction = "听听音乐"; durationCallback = onListenMusic; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true }),
+                        QuietAction("📖", "读一本书", onClick = { selectedAction = "读一本书"; durationCallback = onRead; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true }),
+                        QuietAction("🍵", "喝杯茶", onClick = { selectedAction = "喝杯茶"; durationCallback = onTeaBreak; durationOptions = listOf(15, 30, 45, 60); showDurationDialog = true }),
+                        QuietAction("�", "去工作", onClick = { selectedAction = "去工作"; durationCallback = onWork; durationOptions = listOf(2, 4, 6, 8); showDurationDialog = true }),
+                        QuietAction("📚", "学些东西", onClick = { selectedAction = "学些东西"; durationCallback = onStudy; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true }),
+                        QuietAction("👥", "和人相处", onClick = { selectedAction = "和人相处"; durationCallback = onSocialize; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true }),
+                        QuietAction("🏃", "动一动", onClick = { selectedAction = "动一动"; durationCallback = onExercise; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true }),
+                        QuietAction("�", "做顿饭", onClick = { selectedAction = "做顿饭"; durationCallback = onCook; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true }),
+                        QuietAction("🧹", "整理一下", onClick = { selectedAction = "整理一下"; durationCallback = onOrganize; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true }),
+                        QuietAction("�", "看部电影", onClick = { selectedAction = "看部电影"; durationCallback = onWatchMovie; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true }),
+                        QuietAction("📝", "写日记", onClick = { selectedAction = "写日记"; durationCallback = onJournal; durationOptions = listOf(10, 20, 30, 60); showDurationDialog = true }),
                         QuietAction("🌱", "照顾植物", onTendPlant),
-                        QuietAction("📝", "写日记", onClick = { durationCallback = onJournal; durationOptions = listOf(10, 20, 30, 60); showDurationDialog = true }),
-                        QuietAction("☕", "发会儿呆", onClick = { durationCallback = onIdle; durationOptions = listOf(1, 2, 3, 4); showDurationDialog = true }),
+                        QuietAction("📜", "翻看回忆", onViewMemories),
                         QuietAction("🏠", "换个住处", onChangeSpace),
                         QuietAction("💰", "交房租", onPayRent)
                     )
                 ).forEach { rowItems ->
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                         rowItems.forEach { action ->
-                            QuietActionCard(action)
+                            QuietActionCard(action, isNight)
                         }
                     }
                     Spacer(modifier = Modifier.height(12.dp))
@@ -651,9 +926,11 @@ fun QuietActionsGrid(
 
     if (showDurationDialog) {
         DurationSelectorDialog(
+            title = selectedAction,
             options = durationOptions,
             onSelect = { hours -> durationCallback?.invoke(hours) },
-            onDismiss = { showDurationDialog = false }
+            onDismiss = { showDurationDialog = false },
+            isNight = isNight
         )
     }
 }
@@ -665,7 +942,7 @@ fun chunkedActionItems(items: List<QuietAction>): List<List<QuietAction>> {
 data class QuietAction(val emoji: String, val label: String, val onClick: () -> Unit)
 
 @Composable
-fun QuietActionCard(action: QuietAction) {
+fun QuietActionCard(action: QuietAction, isNight: Boolean) {
     Column(
         modifier = Modifier
             .clickable { action.onClick() }
@@ -674,7 +951,7 @@ fun QuietActionCard(action: QuietAction) {
     ) {
         Surface(
             shape = RoundedCornerShape(16.dp),
-            color = Color(0xFFF8FAFC),
+            color = if (isNight) Color(0xFF0F3460).copy(alpha = 0.8f) else Color(0xFFF8FAFC),
             elevation = 0.dp,
             modifier = Modifier.size(64.dp)
         ) {
@@ -683,7 +960,7 @@ fun QuietActionCard(action: QuietAction) {
             }
         }
         Spacer(modifier = Modifier.height(6.dp))
-        Text(action.label, fontSize = 12.sp, color = Color(0xFF5D6D7E), textAlign = TextAlign.Center)
+        Text(action.label, fontSize = 12.sp, color = if (isNight) Color(0xFFAAB7B8) else Color(0xFF5D6D7E), textAlign = TextAlign.Center)
     }
 }
 
@@ -819,10 +1096,10 @@ fun getAnxietyColor(value: Double): Color {
 }
 
 @Composable
-fun DurationSelectorDialog(options: List<Int>, onSelect: (Int) -> Unit, onDismiss: () -> Unit) {
+fun DurationSelectorDialog(title: String, options: List<Int>, onSelect: (Int) -> Unit, onDismiss: () -> Unit, isNight: Boolean) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("选择时长") },
+        title = { Text(title, color = if (isNight) Color.White else Color(0xFF2C3E50)) },
         text = {
             Column {
                 options.forEach { hours ->
@@ -831,7 +1108,7 @@ fun DurationSelectorDialog(options: List<Int>, onSelect: (Int) -> Unit, onDismis
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 4.dp),
-                        colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF3498DB)),
+                        colors = ButtonDefaults.buttonColors(backgroundColor = if (isNight) Color(0xFF3498DB) else Color(0xFF3498DB)),
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Text(if (hours >= 60) "${hours}分钟" else "${hours}小时", color = Color.White)
@@ -841,8 +1118,9 @@ fun DurationSelectorDialog(options: List<Int>, onSelect: (Int) -> Unit, onDismis
         },
         confirmButton = {},
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("取消") }
-        }
+            TextButton(onClick = onDismiss) { Text("取消", color = if (isNight) Color.White else Color(0xFF3498DB)) }
+        },
+        backgroundColor = if (isNight) Color(0xFF16213E) else Color.White
     )
 }
 

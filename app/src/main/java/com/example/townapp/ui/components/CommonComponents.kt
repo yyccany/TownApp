@@ -1,7 +1,5 @@
 package com.example.townapp.ui.components
 
-import com.example.townapp.ui.theme.AppDimens
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -24,11 +22,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.townapp.ui.theme.*
+import com.example.townapp.ui.animation.pressScale
 import kotlin.math.roundToInt
 
 // ============================================
-// 通用组件库 —— 对标产品规划报告视觉
-// 白底卡片 + 1px边框 + 20px圆角 + 微阴影
+// 通用组件库 v2.0 — 基于 TownDesignTokens
+// 温暖治愈 · 安静陪伴 · 柔和层次
 // ============================================
 
 /**
@@ -38,10 +37,12 @@ import kotlin.math.roundToInt
 fun SectionTitle(title: String) {
     Text(
         text = title,
-        fontSize = 15.sp,
-        fontWeight = FontWeight.Bold,
-        color = BrandColors.TextPrimary,
-        modifier = Modifier.padding(horizontal = AppDimens.paddingLarge, vertical = AppDimens.paddingMedium)
+        style = MaterialTheme.typography.titleMedium,
+        color = TownDesignTokens.Colors.textPrimary,
+        modifier = Modifier.padding(
+            horizontal = TownDesignTokens.Spacing.lg,
+            vertical = TownDesignTokens.Spacing.md
+        )
     )
 }
 
@@ -52,16 +53,25 @@ fun SectionTitle(title: String) {
 fun InfoRow(
     label: String,
     value: String,
-    valueColor: Color = BrandColors.TextPrimary
+    valueColor: Color = TownDesignTokens.Colors.textPrimary
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = AppDimens.paddingSmall),
+            .padding(vertical = TownDesignTokens.Spacing.sm),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(text = label, fontSize = 13.sp, color = BrandColors.TextSecondary)
-        Text(text = value, fontSize = 13.sp, color = valueColor, fontWeight = FontWeight.Medium)
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = TownDesignTokens.Colors.textSecondary
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            color = valueColor,
+            fontWeight = FontWeight.Medium
+        )
     }
 }
 
@@ -77,18 +87,34 @@ fun StatCard(
 ) {
     Box(
         modifier = modifier
-            .padding(4.dp)
-            .shadow(4.dp, RoundedCornerShape(AppDimens.radiusXLarge))
-            .clip(RoundedCornerShape(AppDimens.radiusXLarge))
-            .background(Color.White)
-            .border(1.dp, BrandColors.CardBorder, RoundedCornerShape(AppDimens.radiusXLarge))
-            .padding(16.dp),
+            .padding(TownDesignTokens.Spacing.xs)
+            .shadow(
+                TownDesignTokens.Elevation.md,
+                RoundedCornerShape(TownDesignTokens.Radius.xl)
+            )
+            .clip(RoundedCornerShape(TownDesignTokens.Radius.xl))
+            .background(TownDesignTokens.Colors.bgSurface)
+            .border(
+                1.dp,
+                TownDesignTokens.Colors.border,
+                RoundedCornerShape(TownDesignTokens.Radius.xl)
+            )
+            .padding(TownDesignTokens.Spacing.lg),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = value, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = color)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(text = label, fontSize = 11.sp, color = BrandColors.TextSecondary)
+            Text(
+                text = value,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = color
+            )
+            Spacer(modifier = Modifier.height(TownDesignTokens.Spacing.xs))
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodySmall,
+                color = TownDesignTokens.Colors.textSecondary
+            )
         }
     }
 }
@@ -101,10 +127,14 @@ fun EmptyHint(text: String) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 32.dp),
+            .padding(vertical = TownDesignTokens.Spacing.xxxl),
         contentAlignment = Alignment.Center
     ) {
-        Text(text = text, fontSize = 13.sp, color = BrandColors.TextSecondary)
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = TownDesignTokens.Colors.textSecondary
+        )
     }
 }
 
@@ -126,23 +156,44 @@ fun NutrientProgressBar(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = name, fontSize = 12.sp, color = BrandColors.TextSecondary, modifier = Modifier.weight(1f))
-        Text(text = "$valuePer100g$unit", fontSize = 12.sp, color = BrandColors.TextPrimary, fontWeight = FontWeight.Medium)
+        Text(
+            text = name,
+            style = MaterialTheme.typography.bodySmall,
+            color = TownDesignTokens.Colors.textSecondary,
+            modifier = Modifier.weight(1f)
+        )
+        Text(
+            text = "$valuePer100g$unit",
+            style = MaterialTheme.typography.bodySmall,
+            color = TownDesignTokens.Colors.textPrimary,
+            fontWeight = FontWeight.Medium
+        )
     }
-    Spacer(modifier = Modifier.height(4.dp))
+    Spacer(modifier = Modifier.height(TownDesignTokens.Spacing.xs))
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
-            modifier = Modifier.weight(1f).height(6.dp).clip(RoundedCornerShape(3.dp)).background(BrandColors.CardBorder)
+            modifier = Modifier
+                .weight(1f)
+                .height(6.dp)
+                .clip(RoundedCornerShape(TownDesignTokens.Radius.xs))
+                .background(TownDesignTokens.Colors.border)
         ) {
             Box(
-                modifier = Modifier.fillMaxWidth(progress).height(6.dp).background(color, RoundedCornerShape(3.dp))
+                modifier = Modifier
+                    .fillMaxWidth(progress)
+                    .height(6.dp)
+                    .background(color, RoundedCornerShape(TownDesignTokens.Radius.xs))
             )
         }
-        Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
-        Text(text = "${nrvPercent.roundToInt()}% NRV", fontSize = 10.sp, color = BrandColors.TextTertiary)
+        Spacer(modifier = Modifier.width(TownDesignTokens.Spacing.sm))
+        Text(
+            text = "${nrvPercent.roundToInt()}% NRV",
+            style = MaterialTheme.typography.labelSmall,
+            color = TownDesignTokens.Colors.textTertiary
+        )
     }
 }
 
@@ -158,13 +209,37 @@ fun FabricPropertyBar(name: String, value: Double, color: Color) {
         displayValue >= 0.4f -> "中等"
         else -> "一般"
     }
-    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(text = name, fontSize = 12.sp, color = BrandColors.TextSecondary, modifier = Modifier.weight(1f))
-        Text(text = levelText, fontSize = 12.sp, color = color, fontWeight = FontWeight.Medium)
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = name,
+            style = MaterialTheme.typography.bodySmall,
+            color = TownDesignTokens.Colors.textSecondary,
+            modifier = Modifier.weight(1f)
+        )
+        Text(
+            text = levelText,
+            style = MaterialTheme.typography.bodySmall,
+            color = color,
+            fontWeight = FontWeight.Medium
+        )
     }
-    Spacer(modifier = Modifier.height(4.dp))
-    Box(modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)).background(BrandColors.CardBorder)) {
-        Box(modifier = Modifier.fillMaxWidth(displayValue).height(6.dp).background(color, RoundedCornerShape(3.dp)))
+    Spacer(modifier = Modifier.height(TownDesignTokens.Spacing.xs))
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(6.dp)
+            .clip(RoundedCornerShape(TownDesignTokens.Radius.xs))
+            .background(TownDesignTokens.Colors.border)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(displayValue)
+                .height(6.dp)
+                .background(color, RoundedCornerShape(TownDesignTokens.Radius.xs))
+        )
     }
 }
 
@@ -174,16 +249,44 @@ fun FabricPropertyBar(name: String, value: Double, color: Color) {
 @Composable
 fun RiskItem(name: String, level: String, ratio: Double, color: Color, description: String) {
     val displayRatio = ratio.coerceIn(0.0, 1.0).toFloat()
-    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(text = name, fontSize = 13.sp, color = BrandColors.TextPrimary, modifier = Modifier.weight(1f))
-        Text(text = level, fontSize = 13.sp, color = color, fontWeight = FontWeight.Bold)
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = name,
+            style = MaterialTheme.typography.bodyMedium,
+            color = TownDesignTokens.Colors.textPrimary,
+            modifier = Modifier.weight(1f)
+        )
+        Text(
+            text = level,
+            style = MaterialTheme.typography.bodyMedium,
+            color = color,
+            fontWeight = FontWeight.Bold
+        )
     }
-    Spacer(modifier = Modifier.height(4.dp))
-    Box(modifier = Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp)).background(BrandColors.CardBorder)) {
-        Box(modifier = Modifier.fillMaxWidth(displayRatio).height(4.dp).background(color, RoundedCornerShape(2.dp)))
+    Spacer(modifier = Modifier.height(TownDesignTokens.Spacing.xs))
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(4.dp)
+            .clip(RoundedCornerShape(2.dp))
+            .background(TownDesignTokens.Colors.border)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(displayRatio)
+                .height(4.dp)
+                .background(color, RoundedCornerShape(2.dp))
+        )
     }
-    Spacer(modifier = Modifier.height(4.dp))
-    Text(text = description, fontSize = 11.sp, color = BrandColors.TextSecondary)
+    Spacer(modifier = Modifier.height(TownDesignTokens.Spacing.xs))
+    Text(
+        text = description,
+        style = MaterialTheme.typography.bodySmall,
+        color = TownDesignTokens.Colors.textSecondary
+    )
 }
 
 /**
@@ -191,14 +294,37 @@ fun RiskItem(name: String, level: String, ratio: Double, color: Color, descripti
  */
 @Composable
 fun ScamBreakdownItem(name: String, value: Int, color: Color, description: String) {
-    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Box(modifier = Modifier.size(8.dp).clip(RoundedCornerShape(2.dp)).background(color))
-        Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
-        Text(text = name, fontSize = 12.sp, color = BrandColors.TextPrimary, modifier = Modifier.weight(1f))
-        Text(text = "${value}分", fontSize = 12.sp, color = color, fontWeight = FontWeight.Medium)
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(8.dp)
+                .clip(RoundedCornerShape(TownDesignTokens.Radius.xs))
+                .background(color)
+        )
+        Spacer(modifier = Modifier.width(TownDesignTokens.Spacing.sm))
+        Text(
+            text = name,
+            style = MaterialTheme.typography.bodySmall,
+            color = TownDesignTokens.Colors.textPrimary,
+            modifier = Modifier.weight(1f)
+        )
+        Text(
+            text = "${value}分",
+            style = MaterialTheme.typography.bodySmall,
+            color = color,
+            fontWeight = FontWeight.Medium
+        )
     }
     Spacer(modifier = Modifier.height(2.dp))
-    Text(text = description, fontSize = 11.sp, color = BrandColors.TextSecondary, modifier = Modifier.padding(start = AppDimens.paddingLarge))
+    Text(
+        text = description,
+        style = MaterialTheme.typography.bodySmall,
+        color = TownDesignTokens.Colors.textSecondary,
+        modifier = Modifier.padding(start = TownDesignTokens.Spacing.lg)
+    )
 }
 
 /**
@@ -208,13 +334,37 @@ fun ScamBreakdownItem(name: String, value: Int, color: Color, description: Strin
 fun CostProgressBar(name: String, value: Double, total: Double, color: Color) {
     val progress = if (total > 0) (value / total).toFloat().coerceIn(0f, 1f) else 0f
     val percent = if (total > 0) (value / total * 100).roundToInt() else 0
-    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(text = name, fontSize = 12.sp, color = BrandColors.TextSecondary, modifier = Modifier.weight(1f))
-        Text(text = "¥${String.format("%.0f", value)}", fontSize = 12.sp, color = BrandColors.TextPrimary, fontWeight = FontWeight.Medium)
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = name,
+            style = MaterialTheme.typography.bodySmall,
+            color = TownDesignTokens.Colors.textSecondary,
+            modifier = Modifier.weight(1f)
+        )
+        Text(
+            text = "¥${String.format("%.0f", value)}",
+            style = MaterialTheme.typography.bodySmall,
+            color = TownDesignTokens.Colors.textPrimary,
+            fontWeight = FontWeight.Medium
+        )
     }
-    Spacer(modifier = Modifier.height(4.dp))
-    Box(modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)).background(BrandColors.CardBorder)) {
-        Box(modifier = Modifier.fillMaxWidth(progress).height(6.dp).background(color, RoundedCornerShape(3.dp)))
+    Spacer(modifier = Modifier.height(TownDesignTokens.Spacing.xs))
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(6.dp)
+            .clip(RoundedCornerShape(TownDesignTokens.Radius.xs))
+            .background(TownDesignTokens.Colors.border)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(progress)
+                .height(6.dp)
+                .background(color, RoundedCornerShape(TownDesignTokens.Radius.xs))
+        )
     }
 }
 
@@ -225,16 +375,23 @@ fun CostProgressBar(name: String, value: Double, total: Double, color: Color) {
 fun DetailSection(title: String, content: @Composable () -> Unit) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = title, fontSize = 16.sp, fontWeight = FontWeight.Bold,
-            color = BrandColors.TextPrimary,
-            modifier = Modifier.padding(horizontal = AppDimens.paddingLarge, vertical = AppDimens.paddingMedium)
+            text = title,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = TownDesignTokens.Colors.textPrimary,
+            modifier = Modifier.padding(
+                horizontal = TownDesignTokens.Spacing.lg,
+                vertical = TownDesignTokens.Spacing.md
+            )
         )
-        ReportCard(modifier = Modifier.padding(horizontal = AppDimens.paddingLarge)) { content() }
+        ReportCard(modifier = Modifier.padding(horizontal = TownDesignTokens.Spacing.lg)) {
+            content()
+        }
     }
 }
 
 /**
- * 分区卡片 —— 报告风格：白底 + 1px边框 + 20dp圆角 + 微阴影
+ * 分区卡片 — 温暖治愈风格
  */
 @Composable
 fun SectionCard(
@@ -244,22 +401,25 @@ fun SectionCard(
     content: @Composable () -> Unit
 ) {
     ReportCard(
-        modifier = modifier.padding(horizontal = AppDimens.paddingLarge, vertical = 6.dp),
+        modifier = modifier.padding(
+            horizontal = TownDesignTokens.Spacing.lg,
+            vertical = TownDesignTokens.Spacing.xs
+        ),
         highlightColor = highlightColor
     ) {
         Text(
             text = title,
-            fontSize = 15.sp,
+            style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = BrandColors.TextPrimary
+            color = TownDesignTokens.Colors.textPrimary
         )
-        Spacer(modifier = Modifier.height(AppDimens.paddingMedium))
+        Spacer(modifier = Modifier.height(TownDesignTokens.Spacing.md))
         content()
     }
 }
 
 /**
- * 报告风格卡片 —— 无标题，纯容器
+ * 报告风格卡片 — 无标题，纯容器
  */
 @Composable
 fun ReportCard(
@@ -269,12 +429,18 @@ fun ReportCard(
 ) {
     Box(
         modifier = modifier
-            .shadow(4.dp, RoundedCornerShape(AppDimens.radiusXLarge))
-            .clip(RoundedCornerShape(AppDimens.radiusXLarge))
-            .background(Color.White)
-            .border(1.dp, BrandColors.CardBorder, RoundedCornerShape(AppDimens.radiusXLarge))
+            .shadow(
+                TownDesignTokens.Elevation.md,
+                RoundedCornerShape(TownDesignTokens.Radius.xl)
+            )
+            .clip(RoundedCornerShape(TownDesignTokens.Radius.xl))
+            .background(TownDesignTokens.Colors.bgSurface)
+            .border(
+                1.dp,
+                TownDesignTokens.Colors.border,
+                RoundedCornerShape(TownDesignTokens.Radius.xl)
+            )
     ) {
-        // 渐变高光层（如报告中的 highlight-gradient）
         if (highlightColor != Color.Transparent) {
             Box(
                 modifier = Modifier
@@ -287,7 +453,7 @@ fun ReportCard(
                     )
             )
         }
-        Column(modifier = Modifier.padding(20.dp)) {
+        Column(modifier = Modifier.padding(TownDesignTokens.Spacing.xl)) {
             content()
         }
     }
@@ -308,7 +474,10 @@ fun SettingItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(role = Role.Button) { onClick() }
-            .padding(horizontal = AppDimens.paddingLarge, vertical = 14.dp)
+            .padding(
+                horizontal = TownDesignTokens.Spacing.lg,
+                vertical = TownDesignTokens.Spacing.md
+            )
             .semantics {
                 this.contentDescription = contentDescription
                 role = Role.Button
@@ -316,14 +485,27 @@ fun SettingItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, fontSize = 14.sp, color = BrandColors.TextPrimary, fontWeight = FontWeight.Medium)
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                color = TownDesignTokens.Colors.textPrimary,
+                fontWeight = FontWeight.Medium
+            )
             if (description.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(2.dp))
-                Text(text = description, fontSize = 12.sp, color = BrandColors.TextSecondary)
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TownDesignTokens.Colors.textSecondary
+                )
             }
         }
         if (trailing != null) trailing()
-        else Text("→", color = BrandColors.TextTertiary, fontSize = 16.sp)
+        else Text(
+            "→",
+            color = TownDesignTokens.Colors.textTertiary,
+            fontSize = 16.sp
+        )
     }
 }
 
@@ -332,8 +514,21 @@ fun SettingItem(
  */
 @Composable
 fun TagChip(text: String, color: Color, modifier: Modifier = Modifier) {
-    Box(modifier = modifier.clip(RoundedCornerShape(6.dp)).background(color.copy(alpha = 0.1f)).padding(horizontal = 10.dp, vertical = 5.dp)) {
-        Text(text = text, fontSize = 11.sp, color = color, fontWeight = FontWeight.Medium)
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(TownDesignTokens.Radius.sm))
+            .background(color.copy(alpha = 0.1f))
+            .padding(
+                horizontal = TownDesignTokens.Spacing.sm,
+                vertical = TownDesignTokens.Spacing.xs
+            )
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodySmall,
+            color = color,
+            fontWeight = FontWeight.Medium
+        )
     }
 }
 
@@ -350,27 +545,29 @@ fun PrimaryButton(
 ) {
     Button(
         onClick = onClick,
-        modifier = modifier.semantics {
-            this.contentDescription = contentDescription
-            role = Role.Button
-        },
+        modifier = modifier
+            .semantics {
+                this.contentDescription = contentDescription
+                role = Role.Button
+            }
+            .pressScale(),
         enabled = enabled,
         colors = ButtonDefaults.buttonColors(
-            containerColor = BrandColors.Blue,
+            containerColor = TownDesignTokens.Colors.primary,
             contentColor = Color.White,
-            disabledContainerColor = BrandColors.Blue.copy(alpha = 0.4f),
+            disabledContainerColor = TownDesignTokens.Colors.primary.copy(alpha = 0.4f),
             disabledContentColor = Color.White.copy(alpha = 0.6f)
         ),
-        shape = RoundedCornerShape(AppDimens.radiusMedium),
+        shape = RoundedCornerShape(TownDesignTokens.Radius.md),
         elevation = ButtonDefaults.buttonElevation(
-            defaultElevation = 4.dp,
-            pressedElevation = 8.dp,
-            disabledElevation = 0.dp,
-            hoveredElevation = 6.dp,
-            focusedElevation = 6.dp
+            defaultElevation = TownDesignTokens.Elevation.md,
+            pressedElevation = TownDesignTokens.Elevation.lg,
+            disabledElevation = TownDesignTokens.Elevation.none,
+            hoveredElevation = TownDesignTokens.Elevation.md + 2.dp,
+            focusedElevation = TownDesignTokens.Elevation.md + 2.dp
         )
     ) {
-        Text(text, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+        Text(text, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
     }
 }
 
@@ -386,25 +583,27 @@ fun SecondaryButton(
 ) {
     OutlinedButton(
         onClick = onClick,
-        modifier = modifier.semantics {
-            this.contentDescription = contentDescription
-            role = Role.Button
-        },
-        shape = RoundedCornerShape(AppDimens.radiusMedium),
+        modifier = modifier
+            .semantics {
+                this.contentDescription = contentDescription
+                role = Role.Button
+            }
+            .pressScale(),
+        shape = RoundedCornerShape(TownDesignTokens.Radius.md),
         colors = ButtonDefaults.outlinedButtonColors(
-            contentColor = BrandColors.Blue,
-            disabledContentColor = BrandColors.TextTertiary
+            contentColor = TownDesignTokens.Colors.primary,
+            disabledContentColor = TownDesignTokens.Colors.textTertiary
         ),
         elevation = ButtonDefaults.buttonElevation(
-            defaultElevation = 0.dp,
-            pressedElevation = 4.dp,
-            disabledElevation = 0.dp,
-            hoveredElevation = 2.dp,
-            focusedElevation = 2.dp
+            defaultElevation = TownDesignTokens.Elevation.none,
+            pressedElevation = TownDesignTokens.Elevation.sm,
+            disabledElevation = TownDesignTokens.Elevation.none,
+            hoveredElevation = TownDesignTokens.Elevation.sm,
+            focusedElevation = TownDesignTokens.Elevation.sm
         ),
-        border = BorderStroke(1.5.dp, BrandColors.Blue)
+        border = BorderStroke(1.5.dp, TownDesignTokens.Colors.primary)
     ) {
-        Text(text, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+        Text(text, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
     }
 }
 
@@ -426,35 +625,50 @@ fun DimensionCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(role = Role.Button) { onClick() }
+            .pressScale()
             .semantics {
                 this.contentDescription = contentDescription
                 role = Role.Button
             },
-        shape = RoundedCornerShape(AppDimens.radiusXLarge),
+        shape = RoundedCornerShape(TownDesignTokens.Radius.xl),
         colors = CardDefaults.cardColors(
-            containerColor = if (isLocked) BrandColors.TagBg else Color.White,
-            contentColor = BrandColors.TextPrimary
+            containerColor = if (isLocked) TownDesignTokens.Colors.bgSurfaceVariant else TownDesignTokens.Colors.bgSurface,
+            contentColor = TownDesignTokens.Colors.textPrimary
         ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 4.dp,
-            pressedElevation = 8.dp,
-            hoveredElevation = 6.dp,
-            focusedElevation = 6.dp
+            defaultElevation = TownDesignTokens.Elevation.md,
+            pressedElevation = TownDesignTokens.Elevation.lg,
+            hoveredElevation = TownDesignTokens.Elevation.md + 2.dp,
+            focusedElevation = TownDesignTokens.Elevation.md + 2.dp
         ),
-        border = BorderStroke(1.dp, BrandColors.CardBorder)
+        border = BorderStroke(1.dp, TownDesignTokens.Colors.border)
     ) {
         Column(
-            modifier = Modifier.padding(20.dp),
+            modifier = Modifier.padding(TownDesignTokens.Spacing.xl),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(text = icon, fontSize = 32.sp)
-            Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
-            Text(text = name, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = if (isLocked) BrandColors.TextSecondary else BrandColors.TextPrimary)
+            Spacer(modifier = Modifier.height(TownDesignTokens.Spacing.sm))
+            Text(
+                text = name,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = if (isLocked) TownDesignTokens.Colors.textSecondary else TownDesignTokens.Colors.textPrimary
+            )
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = if (isLocked) "即将开放" else desc, fontSize = 12.sp, color = BrandColors.TextSecondary)
+            Text(
+                text = if (isLocked) "即将开放" else desc,
+                style = MaterialTheme.typography.bodySmall,
+                color = TownDesignTokens.Colors.textSecondary
+            )
             if (!isLocked) {
-                Spacer(modifier = Modifier.height(AppDimens.paddingSmall))
-                Text(text = "$count 件", fontSize = 13.sp, color = color, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(TownDesignTokens.Spacing.sm))
+                Text(
+                    text = "$count 件",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = color,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
     }

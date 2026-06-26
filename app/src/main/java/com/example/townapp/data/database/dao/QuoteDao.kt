@@ -16,6 +16,15 @@ interface QuoteDao {
     @Query("SELECT * FROM quotes WHERE roleId = :roleId AND sceneId = :sceneId")
     suspend fun getByRoleAndScene(roleId: String, sceneId: String): List<QuoteEntity>
 
+    @Query("SELECT * FROM quotes WHERE roleId = :roleId AND sceneId = :sceneId AND :score BETWEEN consumptionMin AND consumptionMax ORDER BY RANDOM() LIMIT 1")
+    suspend fun getRandomByRoleSceneAndScore(roleId: String, sceneId: String, score: Int): QuoteEntity?
+
+    @Query("SELECT * FROM quotes WHERE roleId = :roleId AND :score BETWEEN consumptionMin AND consumptionMax ORDER BY RANDOM() LIMIT 1")
+    suspend fun getRandomByRoleAndScore(roleId: String, score: Int): QuoteEntity?
+
+    @Query("SELECT * FROM quotes WHERE sceneId = :sceneId AND :score BETWEEN consumptionMin AND consumptionMax ORDER BY RANDOM() LIMIT 1")
+    suspend fun getRandomBySceneAndScore(sceneId: String, score: Int): QuoteEntity?
+
     @Query("SELECT * FROM quotes WHERE sceneId = :sceneId")
     suspend fun getByScene(sceneId: String): List<QuoteEntity>
 

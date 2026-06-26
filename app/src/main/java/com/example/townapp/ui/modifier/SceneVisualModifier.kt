@@ -6,6 +6,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.scale
@@ -15,6 +16,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.dp
+import com.example.townapp.ui.animation.TownAnimationSpec
+import com.example.townapp.ui.theme.TownDesignTokens
 import kotlin.random.Random
 
 /**
@@ -188,7 +191,208 @@ private fun DrawScope.drawMemoryNoise(count: Int) {
     }
 }
 
-// ==================== 4. 复合 Modifier 工厂 ====================
+// ==================== 4. 柔光氛围效果 ====================
+
+/**
+ * 顶部暖光效果 Modifier
+ *
+ * 在页面顶部添加柔和的暖光渐变，营造温暖氛围
+ * 白天使用金黄色柔光，夜晚使用柔和的月光蓝
+ *
+ * @param isNight 是否夜间模式
+ * @param intensity 光效强度 0f ~ 1f
+ */
+fun Modifier.topGlowEffect(
+    isNight: Boolean = false,
+    intensity: Float = 0.15f
+): Modifier = this.drawWithCache {
+    val safeIntensity = intensity.coerceIn(0f, 1f)
+    val glowColor = if (isNight) {
+        Color(0xFF6B8DB5).copy(alpha = 0.12f * safeIntensity)
+    } else {
+        Color(0xFFFFE4B5).copy(alpha = 0.25f * safeIntensity)
+    }
+    val brush = Brush.verticalGradient(
+        colors = listOf(
+            glowColor,
+            Color.Transparent
+        ),
+        startY = 0f,
+        endY = size.height * 0.4f
+    )
+    onDrawWithContent {
+        drawContent()
+        drawRect(brush = brush)
+    }
+}
+
+/**
+ * 底部柔焦效果 Modifier
+ *
+ * 在页面底部添加朦胧渐变，营造层次感和深度
+ * 用于衬托底部操作栏，柔和过渡
+ */
+fun Modifier.bottomFadeEffect(
+    isNight: Boolean = false,
+    intensity: Float = 0.3f
+): Modifier = this.drawWithCache {
+    val safeIntensity = intensity.coerceIn(0f, 1f)
+    val fadeColor = if (isNight) {
+        TownDesignTokens.Colors.nightDeep.copy(alpha = 0.6f * safeIntensity)
+    } else {
+        TownDesignTokens.Colors.bgBase.copy(alpha = 0.8f * safeIntensity)
+    }
+    val brush = Brush.verticalGradient(
+        colors = listOf(
+            Color.Transparent,
+            fadeColor
+        ),
+        startY = size.height * 0.7f,
+        endY = size.height
+    )
+    onDrawWithContent {
+        drawContent()
+        drawRect(brush = brush)
+    }
+}
+
+/**
+ * 柔和径向光晕效果
+ *
+ * 在指定位置添加一个柔和的径向光晕
+ * 用于营造氛围光源效果（如台灯、月光）
+ *
+ * @param centerX 光晕中心 X 轴比例 0f ~ 1f
+ * @param centerY 光晕中心 Y 轴比例 0f ~ 1f
+ * @param color 光晕颜色
+ * @param radius 光晕半径比例 0f ~ 1f（相对于最短边）
+ */
+fun Modifier.radialGlow(
+    centerX: Float = 0.5f,
+    centerY: Float = 0.3f,
+    color: Color = Color(0x20FFE4B5),
+    radius: Float = 0.5f
+): Modifier = this.drawWithCache {
+    val safeRadius = radius.coerceIn(0.1f, 1f)
+    val brush = Brush.radialGradient(
+        colors = listOf(
+            color,
+            color.copy(alpha = color.alpha * 0.5f),
+            Color.Transparent
+        ),
+        center = Offset(size.width * centerX, size.height * centerY),
+        radius = size.minDimension * safeRadius
+    )
+    onDrawWithContent {
+        drawContent()
+        drawRect(brush = brush)
+    }
+}
+
+// ==================== 5. 昼夜背景效果 ====================
+
+/**
+ * 昼夜渐变背景 Modifier
+ *
+ * 提供柔和的多层渐变背景，替代纯色背景
+ * 白天：温暖米色渐变 + 顶部暖光
+ * 夜晚：深蓝紫色渐变 + 柔和月光
+ *
+ * @param isNight 是否夜间模式
+ * @param animated 是否启用过渡动画
+ */
+@Composable
+fun Modifier.dayNightBackground(
+    isNight: Boolean,
+    animated: Boolean = true
+): Modifier = composed {
+    if (animated) {
+        val transitionProgress by animateFloatAsState(
+            targetValue = if (isNight) 1f else 0f,
+            animationSpec = TownAnimationSpec.tweenAmbient(),
+            label = "day-night-bg"
+        )
+        this.drawWithCache {
+            val colors = if (transitionProgress < 0.5f) {
+                listOf(
+                    lerpColor(TownDesignTokens.Colors.Gradient.dayTop, TownDesignTokens.Colors.Gradient.nightTop, transitionProgress * 2),
+                    lerpColor(TownDesignTokens.Colors.Gradient.dayBottom, TownDesignTokens.Colors.Gradient.nightBottom, transitionProgress * 2)
+                )
+            } else {
+                listOf(
+                    lerpColor(TownDesignTokens.Colors.Gradient.dayTop, TownDesignTokens.Colors.Gradient.nightTop, transitionProgress * 2),
+                    lerpColor(TownDesignTokens.Colors.Gradient.dayBottom, TownDesignTokens.Colors.Gradient.nightBottom, transitionProgress * 2)
+                )
+            }
+            val brush = Brush.verticalGradient(
+                colors = listOf(
+                    interp(TownDesignTokens.Colors.Gradient.dayTop, TownDesignTokens.Colors.Gradient.nightTop, transitionProgress),
+                    interp(TownDesignTokens.Colors.Gradient.dayBottom, TownDesignTokens.Colors.Gradient.nightBottom, transitionProgress)
+                )
+            )
+            onDrawWithContent {
+                drawRect(brush = brush)
+                drawContent()
+            }
+        }
+    } else {
+        this.drawWithCache {
+            val brush = Brush.verticalGradient(
+                colors = if (isNight) {
+                    listOf(
+                        TownDesignTokens.Colors.Gradient.nightTop,
+                        TownDesignTokens.Colors.Gradient.nightMid,
+                        TownDesignTokens.Colors.Gradient.nightBottom
+                    )
+                } else {
+                    listOf(
+                        TownDesignTokens.Colors.Gradient.dayTop,
+                        TownDesignTokens.Colors.Gradient.dayBottom
+                    )
+                }
+            )
+            onDrawWithContent {
+                drawRect(brush = brush)
+                drawContent()
+            }
+        }
+    }
+}
+
+// ==================== 6. 辅助函数 ====================
+
+private fun interp(color1: Color, color2: Color, fraction: Float): Color {
+    val f = fraction.coerceIn(0f, 1f)
+    return Color(
+        red = color1.red + (color2.red - color1.red) * f,
+        green = color1.green + (color2.green - color1.green) * f,
+        blue = color1.blue + (color2.blue - color1.blue) * f,
+        alpha = color1.alpha + (color2.alpha - color1.alpha) * f
+    )
+}
+
+private fun lerpColor(color1: Color, color2: Color, fraction: Float): Color {
+    return interp(color1, color2, fraction)
+}
+
+// ==================== 7. 复合 Modifier 工厂 ====================
+
+/**
+ * 完整氛围背景 Modifier（推荐用于页面根容器）
+ *
+ * 包含：渐变背景 + 顶部柔光 + 底部柔焦
+ * 昼夜自动切换，带柔和过渡动画
+ *
+ * @param isNight 是否夜间模式
+ */
+@Composable
+fun Modifier.atmosphereBackground(
+    isNight: Boolean
+): Modifier = composed {
+    this
+        .dayNightBackground(isNight = isNight, animated = true)
+        .topGlowEffect(isNight = isNight, intensity = if (isNight) 0.1f else 0.15f)
+}
 
 /**
  * 剧情淡入淡出 Modifier（备用，尚未启用）

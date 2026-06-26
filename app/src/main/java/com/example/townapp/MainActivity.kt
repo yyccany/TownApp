@@ -42,6 +42,7 @@ import com.example.townapp.ui.screens.ResidentScreen
 import com.example.townapp.ui.screens.SimulationScreen
 import com.example.townapp.ui.screens.DataViewerScreen
 import com.example.townapp.ui.viewmodel.TownViewModel
+import com.example.townapp.ui.viewmodel.HomeViewModel
 import com.example.townapp.feature.human_narrative.cognition.ui.CognitionAwakeningScreen
 import com.example.townapp.ui.theme.TownTheme
 import kotlinx.coroutines.Dispatchers
@@ -53,6 +54,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.example.townapp.feature.town_simulation.StructuredLogger
 import com.example.townapp.feature.town_simulation.ExceptionHandler
+import com.example.townapp.data.asset.TextAssetLoader
 import com.example.townapp.data.repository.DataIntegrationManager
 import com.example.townapp.data.repository.SimulationDataSwitch
 
@@ -62,6 +64,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // 初始化文本加载器（必须最先初始化，所有文案依赖它）
+        TextAssetLoader.init(this)
         
         // 设置沉浸式状态栏
         setupImmersiveStatusBar()
@@ -242,11 +247,11 @@ fun TownApp(database: TownDatabase) {
     val productViewModel = remember { ProductViewModel(database.productDao()) }
     val context = LocalContext.current
     val gameSaveRepository = remember { GameSaveRepository(context) }
-    val townViewModel = remember { TownViewModel.Factory(gameSaveRepository).create(TownViewModel::class.java) }
+    val homeViewModel = remember { HomeViewModel.Factory(gameSaveRepository).create(HomeViewModel::class.java) }
 
     // 尝试读取本地存档，无存档则保持默认初始状态
     LaunchedEffect(Unit) {
-        townViewModel.tryLoadGame()
+        homeViewModel.tryLoadGame()
     }
 
     val isLoading by productViewModel.isLoading.collectAsState()
@@ -280,34 +285,34 @@ fun TownApp(database: TownDatabase) {
                     .background(Color(0xFFFFF9EC))
             ) {
                 when {
-                    selectedProduct != null -> {
-                        com.example.townapp.ui.components.ProductDetailPanel(
-                            product = selectedProduct!!,
-                            isChildMode = false,
-                            onClose = { selectedProduct = null }
-                        )
-                    }
-                    isLoading -> {
-                        LoadingIndicator()
-                    }
-                    else -> {
-                        when (currentTab) {
-                            "town" -> {
-                                com.example.townapp.ui.screens.TownHomeScreen(
-                                    viewModel = townViewModel,
-                                    onNavigate = { route ->
-                                        when {
-                                            route == "resident" -> currentTab = "resident"
-                                            route == "cognitive" -> currentTab = "cognitive"
-                                            route == "food" -> currentTab = "food"
-                                            else -> {}
-                                        }
-                                    }
+                            selectedProduct != null -> {
+                                com.example.townapp.ui.components.ProductDetailPanel(
+                                    product = selectedProduct!!,
+                                    isChildMode = false,
+                                    onClose = { selectedProduct = null }
                                 )
                             }
+                            isLoading -> {
+                                LoadingIndicator()
+                            }
+                            else -> {
+                                when (currentTab) {
+                                    "town" -> {
+                                        com.example.townapp.ui.screens.TownHomeScreen(
+                                            viewModel = homeViewModel,
+                                            onNavigate = { route ->
+                                                when {
+                                                    route == "resident" -> currentTab = "resident"
+                                                    route == "cognitive" -> currentTab = "cognitive"
+                                                    route == "food" -> currentTab = "food"
+                                                    else -> {}
+                                                }
+                                            }
+                                        )
+                                    }
                             "resident" -> {
                                 ResidentScreen(
-                                    viewModel = townViewModel,
+                                    viewModel = homeViewModel,
                                     onBack = { currentTab = "town" }
                                 )
                             }
@@ -342,7 +347,7 @@ fun TownApp(database: TownDatabase) {
                             }
                             "settings" -> {
                                 SettingsScreen(
-                                    viewModel = townViewModel,
+                                    viewModel = homeViewModel,
                                     onBack = { currentTab = "town" },
                                     onNavigateToArchive = { currentTab = "archive" },
                                     onNavigateToDocument = { currentTab = "document" }
@@ -352,12 +357,18 @@ fun TownApp(database: TownDatabase) {
                                 DocumentScreen()
                             }
                             "archive" -> {
+                                var records by remember { mutableStateOf(emptyList<com.example.townapp.data.database.entity.NpcLifeRecordEntity>()) }
+                                var nightStates by remember { mutableStateOf(emptyList<com.example.townapp.data.database.entity.NightStateEntity>()) }
+                                
+                                LaunchedEffect(Unit) {
+                                    records = database.npcLifeRecordDao().getRecordsByNpcId("player")
+                                    nightStates = database.nightStateDao().getStatesByNpcId("player")
+                                }
+                                
                                 LifeArchiveScreen(
-                                    archives = emptyList(),
-                                    onCreateArchive = { _, _, _ -> },
-                                    onUpdateArchive = { _, _, _, _ -> },
-                                    onDeleteArchive = { },
-                                    onBack = { currentTab = "settings" }
+                                    onBack = { currentTab = "settings" },
+                                    records = records,
+                                    nightStates = nightStates
                                 )
                             }
                             else -> {

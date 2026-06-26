@@ -6,6 +6,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.example.townapp.ConsumptionSeedData
 import com.example.townapp.SeedData
 import com.example.townapp.data.database.dao.*
 import com.example.townapp.data.database.entity.*
@@ -26,9 +27,11 @@ import com.example.townapp.data.database.entity.*
         /** 万物薪俸小镇 v2：身体-空间-精神 三层闭环系统 */
         UserSpaceState::class, UserMentalState::class,
         /** v1.4 新增：人生轨迹归档 + 夜间状态 */
-        NpcLifeRecordEntity::class, NightStateEntity::class
+        NpcLifeRecordEntity::class, NightStateEntity::class,
+        /** v1.5 消费系统：商品标签 + 精神文案库 */
+        GoodsConsumptionTagEntity::class, MindTextLibEntity::class
     ],
-    version = 12,
+    version = 13,
     exportSchema = true
 )
 abstract class TownDatabase : RoomDatabase() {
@@ -67,6 +70,10 @@ abstract class TownDatabase : RoomDatabase() {
     abstract fun npcLifeRecordDao(): NpcLifeRecordDao
     abstract fun nightStateDao(): NightStateDao
 
+    /** v1.5 消费系统 DAO：商品标签 + 精神文案库 */
+    abstract fun goodsConsumptionTagDao(): GoodsConsumptionTagDao
+    abstract fun mindTextLibDao(): MindTextLibDao
+
     companion object {
         @Volatile
         private var INSTANCE: TownDatabase? = null
@@ -79,17 +86,20 @@ abstract class TownDatabase : RoomDatabase() {
                     .addCallback(object : RoomDatabase.Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
                             super.onCreate(db)
-                            // 数据库表创建完成后，异步执行种子数据插入
                             val pendingInstance = INSTANCE
                             if (pendingInstance != null) {
                                 kotlin.concurrent.thread {
                                     try {
                                         val seeds = SeedData.all()
+                                        val consumptionSeeds = ConsumptionSeedData
                                         kotlinx.coroutines.runBlocking {
                                             pendingInstance.foodNutritionDao().insertAll(seeds.first)
                                             pendingInstance.foodRiskDao().insertAll(seeds.second)
+                                            pendingInstance.goodsConsumptionTagDao().insertAll(consumptionSeeds.goodsTags())
+                                            pendingInstance.mindTextLibDao().insertAll(consumptionSeeds.mindTexts())
+                                            pendingInstance.quoteDao().insertAll(consumptionSeeds.quotes())
                                         }
-                                        Log.d("ROOM_DB_INIT", "SeedData插入完成：营养${seeds.first.size}条，风险${seeds.second.size}条")
+                                        Log.d("ROOM_DB_INIT", "SeedData插入完成：营养${seeds.first.size}条，风险${seeds.second.size}条，消费标签${consumptionSeeds.goodsTags().size}条，独白文案${consumptionSeeds.mindTexts().size}条，NPC对话${consumptionSeeds.quotes().size}条")
                                     } catch (e: Exception) {
                                         Log.e("ROOM_DB_INIT", "SeedData插入失败", e)
                                     }

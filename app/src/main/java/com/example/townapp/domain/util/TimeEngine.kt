@@ -80,6 +80,8 @@ data class TimeState(
 data class TickResult(
     /** 推进后的时间状态 */
     val newState: TimeState,
+    /** 本次tick推进了多少小时（1~8，高年龄段一次tick推进更多小时） */
+    val hoursAdvanced: Int = 1,
     /** 是否触发了新的一天 */
     val isNewDay: Boolean = false,
     /** 是否触发了新的一周 */

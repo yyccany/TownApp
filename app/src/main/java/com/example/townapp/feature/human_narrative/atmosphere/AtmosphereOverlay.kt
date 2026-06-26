@@ -62,11 +62,6 @@ fun AtmosphereOverlay(
         animationSpec = tween(durationMillis = 1500),
         label = "atmosphere-bottom"
     )
-    val animatedCenter by animateColorAsState(
-        targetValue = centerColor,
-        animationSpec = tween(durationMillis = 1500),
-        label = "atmosphere-center"
-    )
 
     // 三层叠加：顶部渐变 + 底部渐变 + 中心径向
     Box(
@@ -118,39 +113,39 @@ private fun getAtmosphereColors(
     val seasonTone = getSeasonTone(seasonId)
 
     return when (timeOfDay) {
-        // ================== 清晨 5-8 ==================
+        // ================== 清晨 5-8：莫兰迪暖米光 ==================
         TimeOfDay.DAWN -> Triple(
-            Color(0xFFFFE4B5).copy(alpha = 0.35f * seasonTone.brightness),   // 浅暖黄
-            Color(0xFFFFD700).copy(alpha = 0.15f * seasonTone.brightness),
-            Color(0xFFFFE4B5).copy(alpha = 0.20f * seasonTone.brightness)
+            Color(0xFFF5E6C8).copy(alpha = 0.25f * seasonTone.brightness),   // 浅暖米
+            Color(0xFFEED9B6).copy(alpha = 0.12f * seasonTone.brightness),
+            Color(0xFFF8EED8).copy(alpha = 0.15f * seasonTone.brightness)
         )
 
-        // ================== 上午 / 下午 8-17 ==================
+        // ================== 上午 / 下午 8-17：极淡暖光，不挡地图 ==================
         TimeOfDay.DAY -> Triple(
-            Color.Transparent,
+            Color(0xFFFFFDF5).copy(alpha = 0.08f * seasonTone.brightness),
             Color.Transparent,
             Color.Transparent
         )
 
-        // ================== 黄昏 17-19 ==================
+        // ================== 黄昏 17-19：莫兰迪暖橘光 ==================
         TimeOfDay.DUSK -> Triple(
-            Color(0xFFFF8C00).copy(alpha = 0.30f * seasonTone.brightness),   // 橙红
-            Color(0xFFDC143C).copy(alpha = 0.20f * seasonTone.brightness), // 深红
-            Color(0xFFFFA500).copy(alpha = 0.25f * seasonTone.brightness)
+            Color(0xFFE8B88A).copy(alpha = 0.22f * seasonTone.brightness),   // 莫兰迪橘
+            Color(0xFFD99A78).copy(alpha = 0.15f * seasonTone.brightness), // 灰橘
+            Color(0xFFF0CCAA).copy(alpha = 0.18f * seasonTone.brightness)
         )
 
-        // ================== 夜晚 19-22 ==================
+        // ================== 夜晚 19-22：莫兰迪灰蓝光 ==================
         TimeOfDay.NIGHT -> Triple(
-            Color(0xFF000080).copy(alpha = 0.40f * seasonTone.brightness),   // 深蓝
-            Color(0xFF191970).copy(alpha = 0.30f * seasonTone.brightness), // 午夜蓝
-            Color(0xFF4169E1).copy(alpha = 0.15f * seasonTone.brightness)  // 月光蓝
+            Color(0xFF3A4458).copy(alpha = 0.35f * seasonTone.brightness),   // 莫兰迪深蓝灰
+            Color(0xFF2D3648).copy(alpha = 0.25f * seasonTone.brightness), // 深灰蓝
+            Color(0xFF5A6A80).copy(alpha = 0.12f * seasonTone.brightness)  // 浅灰蓝月光
         )
 
-        // ================== 深夜 22-5 ==================
+        // ================== 深夜 22-5：莫兰迪深灰蓝 ==================
         TimeOfDay.MIDNIGHT -> Triple(
-            Color(0xFF000033).copy(alpha = 0.55f * seasonTone.brightness),   // 极深蓝
-            Color(0xFF000000).copy(alpha = 0.45f * seasonTone.brightness),
-            Color(0xFF1E1E3F).copy(alpha = 0.25f * seasonTone.brightness)
+            Color(0xFF242935).copy(alpha = 0.50f * seasonTone.brightness),   // 深灰蓝
+            Color(0xFF1A1E28).copy(alpha = 0.40f * seasonTone.brightness),
+            Color(0xFF343C4E).copy(alpha = 0.20f * seasonTone.brightness)
         )
     }
 }

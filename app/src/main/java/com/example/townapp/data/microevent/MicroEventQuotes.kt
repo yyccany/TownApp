@@ -1,5 +1,8 @@
 package com.example.townapp.data.microevent
 
+import com.example.townapp.data.asset.GameText
+import com.example.townapp.data.asset.TextAssetLoader
+
 /**
  * 微事件语录数据
  * 
@@ -7,18 +10,86 @@ package com.example.townapp.data.microevent
  * 1. 永远不惩罚：所有事件都不会降低你的任何状态
  * 2. 只有陪伴：每个事件都只有一句软乎乎的话
  * 3. 触发频率：每10-30分钟随机触发一次，绝对不频繁
+ * 
+ * 数据源：
+ * - 原有角色陪伴事件（硬编码，保留特色角色语气）
+ * - micro_events.md 中新增的事件（动态读取，支持MD扩充）
  */
 
 object MicroEventQuotes {
     
     /**
-     * 获取所有微事件
+     * 获取所有微事件 = 原有角色事件 + MD新增事件
      */
     fun getAllEvents(): List<MicroEvent> = 
+        getBuiltInEvents() + mdEvents
+
+    private fun getBuiltInEvents(): List<MicroEvent> =
         getBodyEvents() + 
         getHouseworkEvents() + 
         getEnvironmentEvents() + 
         getMoodEvents()
+
+    private val mdEvents: List<MicroEvent> by lazy { loadMdEvents() }
+
+    private fun loadMdEvents(): List<MicroEvent> {
+        return try {
+            val entries = TextAssetLoader.get().getAllMarkdownEntries(GameText.MICRO_EVENTS)
+            entries.mapNotNull { entry -> convertEntryToEvent(entry) }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    private fun convertEntryToEvent(entry: com.example.townapp.data.asset.MarkdownEntry): MicroEvent? {
+        val content = entry.fields["TEXT"] ?: entry.fields.values.firstOrNull() ?: return null
+        val typeStr = entry.attributes["type"] ?: return null
+        val id = "md_${entry.key}"
+
+        if (typeStr in listOf("body", "housework", "weather", "mood")) {
+            return null
+        }
+
+        val (character, eventType, decoratedContent) = when (typeStr) {
+            "season" -> Triple(
+                TownCharacter.DORO,
+                MicroEventType.ENVIRONMENT,
+                if (content.endsWith("🥺") || content.endsWith("💛")) content else "$content💛🥺"
+            )
+            "leisure" -> {
+                val chars = listOf(TownCharacter.TAFFI, TownCharacter.GUGAGA, TownCharacter.DORO)
+                val char = chars.random()
+                val suffix = when (char) {
+                    TownCharacter.TAFFI -> "😺"
+                    TownCharacter.GUGAGA -> "💛"
+                    TownCharacter.DORO -> "💛🥺"
+                }
+                Triple(char, MicroEventType.MOOD, "$content$suffix")
+            }
+            "small_moment" -> {
+                val chars = listOf(TownCharacter.TAFFI, TownCharacter.GUGAGA, TownCharacter.DORO)
+                val char = chars.random()
+                val suffix = when (char) {
+                    TownCharacter.TAFFI -> "😺"
+                    TownCharacter.GUGAGA -> "💛"
+                    TownCharacter.DORO -> "💛🥺"
+                }
+                Triple(char, MicroEventType.MOOD, "$content$suffix")
+            }
+            else -> return null
+        }
+
+        return MicroEvent(
+            id = id,
+            type = eventType,
+            triggerCondition = "",
+            character = character,
+            content = decoratedContent,
+            isPositive = true,
+            priority = 1,
+            tags = listOf(typeStr)
+        )
+    }
     
     // ============================================
     // 身体微事件（塔菲负责）

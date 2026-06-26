@@ -29,8 +29,18 @@ import com.example.townapp.feature.human_narrative.cognition.CognitionReflection
 import com.example.townapp.feature.human_narrative.cognition.ReflectionChoice
 import com.example.townapp.data.repository.GameSaveRepository
 import com.example.townapp.data.repository.UnifiedFoodRepository
+import com.example.townapp.data.asset.GameText
+import com.example.townapp.data.microevent.MicroEventQuotes
+import com.example.townapp.data.microevent.MicroEventType
+import com.example.townapp.data.microevent.TownCharacter
+import com.example.townapp.data.extension.UserCognitiveCardLibrary
+import com.example.townapp.data.gameevent.GameEventGenerator
 import com.example.townapp.domain.ClothingBusiness
 import com.example.townapp.feature.food.FoodBusiness
+import com.example.townapp.feature.food.FoodNutritionCalculator
+import com.example.townapp.feature.food.FoodCostCalculator
+import com.example.townapp.feature.food.FoodRatingCalculator
+import com.example.townapp.feature.food.FoodEvolutionCalculator
 import com.example.townapp.domain.SalaryCalculator
 import com.example.townapp.domain.engine.SimulationEngine
 import com.example.townapp.domain.usecase.SimulationControlUseCase
@@ -57,10 +67,13 @@ import com.example.townapp.domain.PublicEventScheduler
 import com.example.townapp.domain.PublicEventScheduler.PublicEventResult
 import com.example.townapp.domain.PublicEventScheduler.FanStyle
 import com.example.townapp.domain.ClothingMaintenance
+import com.example.townapp.domain.consumption.ConsumptionSystem
+import com.example.townapp.domain.spiritmodel.IdiomCritiqueManager
 import com.example.townapp.domain.util.TimeEngine
 import com.example.townapp.domain.util.TimeTickEngine
 import com.example.townapp.domain.util.TimeState
 import com.example.townapp.domain.util.TickResult
+import com.example.townapp.core.constants.NarrativePacingConfig
 import com.example.townapp.domain.DailySettlement
 import com.example.townapp.domain.DailyStats
 import com.example.townapp.domain.WeeklySettlement
@@ -214,7 +227,7 @@ enum class MedicineType {
     WESTERN, CHINESE, MIXED
 }
 
-class TownViewModel(
+open class TownViewModel(
     private val gameSaveRepository: GameSaveRepository? = null
 ) : ViewModel() {
 
@@ -300,12 +313,13 @@ class TownViewModel(
         _eventLog.value = emptyList()
         _weeklyEvents.value = emptyList()
         _currentWeek.value = 1
-        _showWeeklyBrief.value = false
+        dismissWeeklyBrief()
         _weeklyStats.value = WeeklyStats()
-        _showFoodPicker.value = false
-        _showWeeklyPlanDialog.value = false
+        hideFoodPicker()
+        hideWeeklyPlanEditor()
         _editingDayOfWeek.value = 1
         _foodEatCount.value = emptyMap()
+        _consumptionScore.value = ConsumptionSystem.OrientationScore()
 
         // 重置纪念馆统计
         _memorialMealCount.value = 0
@@ -348,7 +362,7 @@ class TownViewModel(
         _cuisineDishes.value = emptyList()
         _residents.value = emptyList()
         _lastFeedingResult.value = null
-        _petDialogue.value = null
+        clearPetDialogue()
         _selectedRecipeId.value = null
 
         // 重置穿搭
@@ -497,7 +511,11 @@ class TownViewModel(
 
     /** 宠物对话文本（用餐后触发，展示完自动清空） */
     private val _petDialogue = MutableStateFlow<String?>(null)
-    val petDialogue: StateFlow<String?> = _petDialogue.asStateFlow()
+    open val petDialogue: StateFlow<String?> = _petDialogue.asStateFlow()
+
+    protected open fun setPetDialogue(text: String?) {
+        _petDialogue.value = text
+    }
 
     private val _selectedRecipeId = MutableStateFlow<Int?>(null)
     val selectedRecipeId: StateFlow<Int?> = _selectedRecipeId.asStateFlow()
@@ -619,6 +637,13 @@ class TownViewModel(
     /** 自动生活模式：工作日自动处理基础生活开销与物资消耗（默认开启） */
     private val _autoLifeEnabled = MutableStateFlow(true)
     val autoLifeEnabled: StateFlow<Boolean> = _autoLifeEnabled.asStateFlow()
+
+    /** 14个系统轮询计数器：保证每个系统文档轮流出场，不会有MD被长期闲置 */
+    private var systemRoundRobinIdx = 0
+
+    /** 跨tick叙事去重集合：记录最近已显示的叙事hashCode，避免重复 */
+    private val recentNarrativeKeysGlobal = mutableSetOf<Int>()
+    private val maxRecentNarrativeKeys = 100
 
     /** 当日饮食计划 */
     private val _dailyDietPlan = MutableStateFlow(DietSystem.DailyDietPlan())
@@ -1500,13 +1525,13 @@ class TownViewModel(
                 addEventLog("【小城镇看到】${commentary}")
             }
             // 触发宠物反馈
-            _petDialogue.value = PetManager.getWearReply(
+            setPetDialogue(PetManager.getWearReply(
                 itemName = item.name,
                 material = item.material,
                 category = item.category,
                 isIQTax = item.isIQTax,
                 wearCount = item.wearCount
-            )
+            ))
             // 纯内存模式：已通过addEventLog记录
             return WearFeedback(bodyFeedback, sparkle, commentary)
         }
@@ -2622,6 +2647,14 @@ class TownViewModel(
     private val _vanityTrait = MutableStateFlow(false)
     val vanityTrait: StateFlow<Boolean> = _vanityTrait.asStateFlow()
 
+    // ============================================
+    // 消费价值观系统 —— 以人为本，分清本末
+    // 不评判，只客观呈现不同消费选择的长期身心反馈
+    // ============================================
+    /** 消费倾向四维评分（吃/穿/住/行），分值越高越偏向人本路线（养护自身优先） */
+    private val _consumptionScore = MutableStateFlow(ConsumptionSystem.OrientationScore())
+    open val consumptionScore: StateFlow<ConsumptionSystem.OrientationScore> = _consumptionScore.asStateFlow()
+
     /** 本周社交活跃度评分（0-100，决定相亲候选池是否解锁） */
     private val _weeklySocialScore = MutableStateFlow(0)
     val weeklySocialScore: StateFlow<Int> = _weeklySocialScore.asStateFlow()
@@ -2640,7 +2673,15 @@ class TownViewModel(
 
     /** 当前待处理的中等/重大事件选项 */
     private val _pendingWeekEventChoices = MutableStateFlow<List<WeekEventChoice>?>(null)
-    val pendingWeekEventChoices: StateFlow<List<WeekEventChoice>?> = _pendingWeekEventChoices.asStateFlow()
+    open val pendingWeekEventChoices: StateFlow<List<WeekEventChoice>?> = _pendingWeekEventChoices.asStateFlow()
+
+    protected open fun setPendingWeekEventChoices(choices: List<WeekEventChoice>?) {
+        _pendingWeekEventChoices.value = choices
+    }
+
+    open fun closeWeekEventChoiceDialog() {
+        setPendingWeekEventChoices(null)
+    }
 
     /** 连续平淡周数计数器 */
     private var _consecutiveMundaneWeeks = 0
@@ -2686,7 +2727,7 @@ class TownViewModel(
 
     /** 是否显示周简报 */
     private val _showWeeklyBrief = MutableStateFlow(false)
-    val showWeeklyBrief: StateFlow<Boolean> = _showWeeklyBrief.asStateFlow()
+    open val showWeeklyBrief: StateFlow<Boolean> = _showWeeklyBrief.asStateFlow()
 
     /** 本周统计数据 */
     private val _weeklyStats = MutableStateFlow(WeeklyStats())
@@ -2694,23 +2735,23 @@ class TownViewModel(
 
     /** 是否显示食物选择弹窗 */
     private val _showFoodPicker = MutableStateFlow(false)
-    val showFoodPicker: StateFlow<Boolean> = _showFoodPicker.asStateFlow()
+    open val showFoodPicker: StateFlow<Boolean> = _showFoodPicker.asStateFlow()
 
     /** 是否显示周计划编辑弹窗 */
     private val _showWeeklyPlanDialog = MutableStateFlow(false)
-    val showWeeklyPlanDialog: StateFlow<Boolean> = _showWeeklyPlanDialog.asStateFlow()
+    open val showWeeklyPlanDialog: StateFlow<Boolean> = _showWeeklyPlanDialog.asStateFlow()
 
     /** 当前正在编辑的天数 */
     private val _editingDayOfWeek = MutableStateFlow(1)
     val editingDayOfWeek: StateFlow<Int> = _editingDayOfWeek.asStateFlow()
 
     /** 显示周计划编辑弹窗 */
-    fun showWeeklyPlanEditor() {
+    open fun showWeeklyPlanEditor() {
         _showWeeklyPlanDialog.value = true
     }
 
     /** 关闭周计划编辑弹窗 */
-    fun hideWeeklyPlanEditor() {
+    open fun hideWeeklyPlanEditor() {
         _showWeeklyPlanDialog.value = false
     }
 
@@ -2784,8 +2825,122 @@ class TownViewModel(
     /** 本月周度统计缓存（用于月度汇总） */
     private val _monthlyWeeklyStats = mutableListOf<WeeklyStats>()
 
+    // ====== 本周真实行为累积器（用于人生轨迹推进，每周末重置）======
+    private var _weekOvertimeDays = 0        // 本周加班天数
+    private var _weekJunkFoodDays = 0        // 本周吃垃圾食品（pricePer100g<=20）天数
+    private var _weekGoodFoodDays = 0        // 本周吃优质食物（pricePer100g>=50）天数
+    private var _weekLateNights = 0          // 本周熬夜天数（23点后未休息）
+    private var _weekGoodSleepDays = 0       // 本周好睡眠天数（22-23点间休息）
+    private var _weekSocialContacts = 0      // 本周NPC社交接触次数
+    private var _weekLeisureDays = 0         // 本周有休闲活动天数
+    private var _weekWorkDays = 0            // 本周工作天数
+    private var _weekTotalWorkHours = 0.0    // 本周累计工作小时数
+    // 长期跨周累积（人生轨迹）
+    private var _consecutiveOvertimeWeeks = 0  // 连续加班周数
+    private var _consecutiveBadDietWeeks = 0   // 连续饮食不健康周数
+    private var _consecutiveGoodRestWeeks = 0  // 连续休息好周数
+    private var _consecutiveLonelyWeeks = 0    // 连续孤独周数（无社交）
+    private var _weeksAtJob = 0                // 入职周数（用于晋升判断）
+    private var _unemployedWeeks = 0           // 失业持续周数
+    private var _preUnemploymentIncome = 0.0   // 失业前月薪（用于找工作参考）
+    private val _knownChronicConditions = mutableSetOf<String>()  // FatigueBusiness已检测到的慢性病（避免重复提示）
+
+    // ====== 熟人系统：遇到的NPC不再永远是陌生人 ======
+    // key: "身份标签"（work_colleague/market_vendor/park_walker等）, value: 熟悉度0-100
+    private val _acquaintanceFamiliarity = mutableMapOf<String, Int>()
+    // key: 身份标签, value: 名字池中的索引（稳定让同一个人有同一个名字）
+    private val _acquaintanceName = mutableMapOf<String, String>()
+    private val _acquaintanceMetAt = mutableMapOf<String, Int>()  // 第几天认识的
+    // 同事/菜市场摊主/公园常见的人/邻居/便利店店员等不同场景的身份标签和名字
+    private val _npcArchetypes = mapOf(
+        "work_colleague" to listOf("小陈", "大刘", "张姐", "李哥", "王姐", "小周", "老赵", "阿梅"),
+        "market_vendor" to listOf("卖菜阿姨", "水果摊大哥", "肉铺老板", "鱼摊叔", "豆腐店阿婆"),
+        "park_walker" to listOf("遛狗的大爷", "跑步的姑娘", "遛娃的妈妈", "打太极的老伯", "下棋的大叔"),
+        "neighbor" to listOf("隔壁阿姨", "对门的姑娘", "楼下大叔", "楼上的小朋友"),
+        "convenience_store" to listOf("便利店小哥", "收银员小妹"),
+        "cafe_regular" to listOf("常坐窗边的男生", "带电脑加班的女生", "看书的大哥"),
+        "bus_stop" to listOf("一起等车的上班族", "送孙子上学的奶奶"),
+        "gym_buddy" to listOf("常来跑步的男生", "练瑜伽的姐姐"),
+    )
+    // 根据熟悉度返回称呼：陌生人→身份描述、眼熟→"那个常xx的人"、认识→名字、熟络→昵称/外号
+    private fun getNpcDisplayName(archetype: String): String {
+        val familiarity = _acquaintanceFamiliarity[archetype] ?: 0
+        val name = _acquaintanceName[archetype]
+        return when {
+            familiarity >= 60 && name != null -> name
+            familiarity >= 25 -> "那个常见的${name ?: _npcArchetypes[archetype]?.firstOrNull() ?: "人"}"
+            else -> _npcArchetypes[archetype]?.random() ?: "一个路人"
+        }
+    }
+    // 遇到某类NPC时：可能是新认识的、也可能是熟面孔
+    private fun encounterNpc(archetype: String): String {
+        val day = _gameDay.value
+        val prevFam = _acquaintanceFamiliarity[archetype] ?: 0
+        // 第一次遇到：随机给一个名字（稳定分配）
+        if (prevFam == 0) {
+            val name = (_npcArchetypes[archetype] ?: listOf("一个路人")).random()
+            _acquaintanceName[archetype] = name
+            _acquaintanceMetAt[archetype] = day
+            _acquaintanceFamiliarity[archetype] = 8
+            return "遇到了${name}，第一次打招呼。"
+        }
+        // 已经认识：熟悉度增加，关系进展时产生叙事
+        val gain = when {
+            prevFam < 25 -> (8 + (Math.random() * 6).toInt())  // 刚认识时增长快
+            prevFam < 50 -> (4 + (Math.random() * 4).toInt())
+            prevFam < 80 -> (1 + (Math.random() * 3).toInt())
+            else -> 1  // 很熟了变化慢
+        }
+        val newFam = (prevFam + gain).coerceAtMost(100)
+        _acquaintanceFamiliarity[archetype] = newFam
+        val name = _acquaintanceName[archetype] ?: "一个熟人"
+        val daysKnown = day - (_acquaintanceMetAt[archetype] ?: day)
+        // 关系里程碑叙事（只在刚好跨过阈值时触发）
+        val milestone = when {
+            prevFam < 25 && newFam >= 25 -> "和${name}打了好几次招呼，算是眼熟了。"
+            prevFam < 50 && newFam >= 50 -> "和${name}慢慢熟了，偶尔会聊上几句。"
+            prevFam < 75 && newFam >= 75 -> "和${name}算是朋友了，会互相问候近况。"
+            else -> null
+        }
+        if (milestone != null) return milestone
+        // 日常搭话（低概率产生小互动叙事）
+        return when {
+            newFam >= 50 && Math.random() < 0.2 -> when (archetype) {
+                "work_colleague" -> listOf(
+                    "和${name}聊了聊最近的工作，她说最近也挺累的。",
+                    "${name}给你带了杯咖啡，顺手的事，但还挺暖的。",
+                    "中午和${name}一起吃了个饭。"
+                ).random()
+                "market_vendor" -> listOf(
+                    "${name}多给了你一把葱，说今天新鲜。",
+                    "和${name}聊了两句菜价，他说最近进价又涨了。"
+                ).random()
+                "neighbor" -> listOf(
+                    "在楼道里遇到${name}，互相点了点头。",
+                    "${name}说今天快递帮你顺手收了。"
+                ).random()
+                else -> "${name}和你打了个招呼。"
+            }
+            newFam >= 25 && Math.random() < 0.15 -> "又遇到${name}，打了个招呼。"
+            else -> ""
+        }
+    }
+
+    // ====== 当日行为标志（每天isNewDay时重置，用于累积到周统计）======
+    private var _dayDidOvertime = false
+    private var _dayDidJunkFood = false
+    private var _dayDidGoodFood = false
+    private var _dayDidLeisure = false
+    private var _dayDidWork = false
+    private var _dayWorkHours = 0.0
+    private var _daySocialContacts = 0
+    private var _daySleptBefore23: Boolean? = null  // null=未睡，true=23点前睡好，false=23点后才睡/没睡
+
     /** 疲劳事件冷却（避免重复记录） */
     private var _lastFatigueEventDay = 0
+
+    /** AI自动生活：记录上一小时做了什么，避免重复 */
+    private var _lastHourAction: String = ""
 
     /** v2.0 事件日志日限频（工作日最多5条/天，周末15条/天） */
     private var _lastEventLogDay = 0
@@ -2854,8 +3009,8 @@ class TownViewModel(
     // 🌟 时间心跳订阅（下沉至 TimeTickEngine）
     // ============================================
     private fun startTimeTick() {
-        // 启动全局节拍引擎
-        TimeTickEngine.start(viewModelScope, intervalMs = 5000L)
+        // 启动全局节拍引擎（v3.0 30分钟速通，分阶段动态节奏）
+        TimeTickEngine.start(viewModelScope)
         // 订阅 tick 事件，执行业务逻辑
         viewModelScope.launch {
             TimeTickEngine.tickFlow.collect { result ->
@@ -2880,7 +3035,43 @@ class TownViewModel(
         _playerAge.value = result.newState.age
 
         if (result.isNewDay) {
-            // 每日结算
+            // === 将上一日行为累积到周统计 ===
+            if (_dayDidWork) _weekWorkDays++
+            _weekTotalWorkHours += _dayWorkHours
+            if (_dayDidOvertime) _weekOvertimeDays++
+            if (_dayDidJunkFood) _weekJunkFoodDays++
+            if (_dayDidGoodFood) _weekGoodFoodDays++
+            if (_dayDidLeisure) _weekLeisureDays++
+            _weekSocialContacts += _daySocialContacts
+            // 睡眠统计：23点前休息算好睡眠，null/23点后算熬夜
+            when (_daySleptBefore23) {
+                true -> _weekGoodSleepDays++
+                false -> _weekLateNights++
+                null -> _weekLateNights++  // 整夜没休息也算熬夜
+            }
+            // 重置当日标志
+            _dayDidOvertime = false
+            _dayDidJunkFood = false
+            _dayDidGoodFood = false
+            _dayDidLeisure = false
+            _dayDidWork = false
+            _dayWorkHours = 0.0
+            _daySocialContacts = 0
+            _daySleptBefore23 = null
+
+            _todayPlanExecuted.value = false
+            onNewDayStart()
+
+            // 每天出门前自动根据天气/场景选穿搭（真正调用穿搭业务逻辑）
+            try {
+                val outfitScene = when (result.newState.weekDay) {
+                    in 1..5 -> OutfitScene.COMMUTE
+                    6 -> OutfitScene.DATE
+                    else -> OutfitScene.HOME
+                }
+                autoSelectOutfit(outfitScene)
+            } catch (_: Exception) {}
+
             val dailyStats = DailySettlement.settle(
                 weekday = result.newState.weekDay,
                 weather = _weatherState.value,
@@ -2917,210 +3108,1226 @@ class TownViewModel(
             // —— 月度结算 ——
             if (result.isNewMonth) {
                 tickMonthly(result)
+                try { doMonthlyClothingMaintenance() } catch (_: Exception) {}
+                try {
+                    val seasonDesc = FatigueBusiness.getSeasonalDescription(result.newState.month)
+                    if (seasonDesc.isNotBlank()) {
+                        addEventLog(seasonDesc)
+                    }
+                } catch (_: Exception) {}
             }
         }
 
-        // 2. 状态衰减
+        // 2. 状态由真实行为驱动，不再随机波动
         val body = _bodyState.value
         var updatedBody = body
+        val mental = _mentalState.value
 
-        // 纪念馆：判断昨晚是否熬夜（能量低说明没休息好）
-        if (body.energy < 40) {
+        // 纪念馆：深夜能量低时记录熬夜
+        if ((result.newState.hour >= 22 || result.newState.hour < 6) && body.energy < 40) {
             _memorialLateNightCount.value += 1
         }
 
-        // 每游戏小时衰减
-        val newSatiety = (body.satiety - 2).coerceIn(0, 100)
-        val newEnergy = (body.energy - 1).coerceIn(0, 100)
-        val newMood = (body.mood - 1).coerceIn(0, 100)
-        val newHealth = (body.healthScore - 1).coerceIn(0, 100)
-
-        updatedBody = body.copy(
-            satiety = newSatiety,
-            energy = newEnergy,
-            mood = newMood,
-            healthScore = newHealth,
-            updateTime = System.currentTimeMillis()
-        )
-
-        // 精神状态自然衰减
-        val mental = _mentalState.value
-        val newHappiness = (mental.happiness - 1).coerceIn(0, 100)
-        val newAnxiety = (mental.anxiety + 1).coerceIn(0, 100)
-        _mentalState.value = mental.copy(
-            happiness = newHappiness,
-            anxiety = newAnxiety,
-            updateTime = System.currentTimeMillis()
-        ).coerce()
-
-        // ============================================
-        // 2.5 工时-疲劳联动（v1.4 第二阶段）
-        // ============================================
-        val spaceState = _spaceState.value
-        val baseWorkHours = spaceState.workHoursPerDay.toDouble()
-        val adjustedWorkHours = FatigueBusiness.getAdjustedWorkHours(baseWorkHours, _lifePathType.value)
-        val workStartHour = 9
-        val workEndHour = (workStartHour + adjustedWorkHours.toInt()).coerceAtMost(22)
-
-        // 工作时间段内累积疲劳和工时
-        if (result.newState.hour in workStartHour until workEndHour) {
-            val hourlyFatigue = 4 // 每小时工作产生4点疲劳
-            val newFatigue = (updatedBody.fatigueLevel + hourlyFatigue).coerceIn(0, 100)
-            val newDailyWorkHours = updatedBody.dailyWorkHours + 1.0
-            updatedBody = updatedBody.copy(
-                fatigueLevel = newFatigue,
-                dailyWorkHours = newDailyWorkHours,
-                weeklyWorkHours = body.weeklyWorkHours + 1.0
-            )
-        }
-
-        // 非工作时间，疲劳自然缓慢恢复
-        if (result.newState.hour !in workStartHour until workEndHour && updatedBody.fatigueLevel > 10) {
-            val recoveryRate = when (result.newState.hour) {
-                in 0..6 -> 3  // 深夜睡眠恢复更快
-                else -> 1     // 其他时间缓慢恢复
-            }
-            updatedBody = updatedBody.copy(
-                fatigueLevel = (updatedBody.fatigueLevel - recoveryRate).coerceIn(0, 100)
-            )
-        }
-
-        // 每日结算（午夜0点）
         if (result.isNewDay) {
-            val todayWorkHours = updatedBody.dailyWorkHours
-            val isOvertime = todayWorkHours > baseWorkHours
-
-            // 更新加班连续天数
-            val newStreak = if (isOvertime) body.overtimeStreakDays + 1 else 0
-            val newTotalOvertime = if (isOvertime) {
-                body.totalOvertimeHours + (todayWorkHours - baseWorkHours)
-            } else body.totalOvertimeHours
-
             updatedBody = updatedBody.copy(
-                dailyWorkHours = 0.0,          // 重置今日工时
-                overtimeStreakDays = newStreak,
-                totalOvertimeHours = newTotalOvertime
+                dailyWorkHours = 0.0
             )
 
-            // 每周结算（每7天重置周工时）
             if (_gameDay.value % 7 == 0) {
                 updatedBody = updatedBody.copy(weeklyWorkHours = 0.0)
             }
-
-            // 记录疲劳事件（每天最多一次）
-            if (_lastFatigueEventDay != _gameDay.value) {
-                _lastFatigueEventDay = _gameDay.value
-                val fatigueMsg = GentleTextProvider.describeWorkDayMood(
-                    updatedBody.fatigueLevel, newStreak
-                )
-                addEventLog(fatigueMsg)
-
-                // 疲劳过高时发出额外提醒
-                if (updatedBody.fatigueLevel > 80) {
-                    val symptoms = FatigueBusiness.calculateBodyImpact(updatedBody).systolicSymptoms
-                    if (symptoms.isNotEmpty()) {
-                        addEventLog(GentleTextProvider.describeFatigueSymptoms(symptoms))
-                    }
-                }
-            }
         }
 
-        // 应用疲劳对身体和精神的影响（每4小时）
-        if (result.newState.hour % 4 == 0 && updatedBody.fatigueLevel > 30) {
-            val bodyImpact = FatigueBusiness.calculateBodyImpact(updatedBody)
+        // 3. 简单兜底机制：数值极端时自动恢复（不再每小时触发）
+        if (updatedBody.energy < 20) {
             updatedBody = updatedBody.copy(
-                energy = (updatedBody.energy + bodyImpact.energyDelta).coerceIn(0, 100),
-                healthScore = (updatedBody.healthScore + bodyImpact.healthDelta).coerceIn(0, 100),
-                immuneLevel = (updatedBody.immuneLevel + bodyImpact.immuneDelta).coerceIn(0, 100),
-                mood = (updatedBody.mood + bodyImpact.moodDelta).coerceIn(0, 100),
-                comfortLevel = (updatedBody.comfortLevel + bodyImpact.comfortDelta).coerceIn(0, 100)
+                energy = 60,
+                mood = (updatedBody.mood + 10).coerceIn(0, 100),
+                fatigueLevel = (updatedBody.fatigueLevel - 20).coerceIn(0, 100)
             )
-
-            // 更新精神状态
-            val mentalImpact = FatigueBusiness.calculateMentalImpact(updatedBody, _mentalState.value)
-            _mentalState.value = _mentalState.value.copy(
-                anxiety = (_mentalState.value.anxiety + mentalImpact.anxietyDelta).coerceIn(0, 100),
-                happiness = (_mentalState.value.happiness + mentalImpact.happinessDelta).coerceIn(0, 100),
-                sleepQuality = (_mentalState.value.sleepQuality + mentalImpact.sleepQualityDelta).coerceIn(0, 100),
-                workStress = (_mentalState.value.workStress + mentalImpact.workStressDelta).coerceIn(0, 100),
-                burnoutRisk = (_mentalState.value.burnoutRisk + mentalImpact.burnoutRiskDelta).coerceIn(0, 100),
-                senseOfControl = (_mentalState.value.senseOfControl + mentalImpact.controlDelta).coerceIn(0, 100)
-            ).coerce()
         }
-
-        // 3. 自动兜底机制：饿了自动吃、困了自动睡、健康低了自动休息
-        // 只在深夜时段（0-6点）自动睡觉
-        if (result.newState.hour in 0..6 && newEnergy < 30) {
-            // 自动睡觉：恢复精力和心情，也恢复疲劳
-            val energyRecovery = 50.coerceAtMost(100 - newEnergy)
-            val moodRecovery = 20.coerceAtMost(100 - newMood)
-            val healthRecovery = 10.coerceAtMost(100 - newHealth)
-            val fatigueRecovery = 25.coerceAtMost(updatedBody.fatigueLevel)
+        if (updatedBody.satiety < 20) {
+            autoEatByConsumptionScore(_consumptionScore.value.overall)
+        }
+        if (updatedBody.healthScore < 20) {
             updatedBody = updatedBody.copy(
-                energy = (newEnergy + energyRecovery).coerceIn(0, 100),
-                mood = (newMood + moodRecovery).coerceIn(0, 100),
-                healthScore = (newHealth + healthRecovery).coerceIn(0, 100),
-                fatigueLevel = (updatedBody.fatigueLevel - fatigueRecovery).coerceIn(0, 100)
+                healthScore = 50,
+                energy = (updatedBody.energy + 10).coerceIn(0, 100)
             )
-            if (newEnergy < 20) { // 只在真的很困时记录日志
-                addEventLog(GentleTextProvider.describeAutoSleep())
-            }
-        }
-
-        // 极度饥饿时自动吃最便宜的食物
-        if (newSatiety < 15) {
-            val food = getCheapestFood()
-            if (food != null) {
-                val satietyRecovery = 40.coerceAtMost(100 - newSatiety)
-                val cost = food.pricePer100g * food.typicalServing / 100.0
-                val currentSavings = _spaceState.value.currentSavings
-                val newSavings = (currentSavings - cost).coerceAtLeast(0.0)
-
-                updatedBody = updatedBody.copy(
-                    satiety = (newSatiety + satietyRecovery).coerceIn(0, 100),
-                    mood = (updatedBody.mood).coerceIn(0, 100)
-                )
-                _spaceState.value = _spaceState.value.copy(currentSavings = newSavings)
-
-                addEventLog(GentleTextProvider.describeAutoEat(food.name, cost))
-
-                // 如果存款花完了，自动换成最便宜的房子
-                if (newSavings < _spaceState.value.monthlyRent) {
-                    _spaceState.value = _spaceState.value.copy(
-                        addressName = "最便宜的住处",
-                        monthlyRent = 500.0,
-                        light = 30,
-                        areaSqm = 10
-                    ).coerce()
-                    addEventLog("存款不够交房租，你自动搬到了更便宜的住处")
-                }
-            }
-        }
-
-        // 健康极低时自动休息
-        if (newHealth < 15) {
-            val healthRecovery = 15.coerceAtMost(100 - newHealth)
-            val energyRecovery = 10.coerceAtMost(100 - updatedBody.energy)
-            updatedBody = updatedBody.copy(
-                healthScore = (updatedBody.healthScore + healthRecovery).coerceIn(0, 100),
-                energy = (updatedBody.energy + energyRecovery).coerceIn(0, 100)
-            )
-            if (_eventLog.value.lastOrNull()?.contains("自动休息") != true) {
-                addEventLog(GentleTextProvider.describeAutoRest())
-            }
         }
 
         _bodyState.value = updatedBody.coerce()
 
         // ============================================
-        // 4. 随机事件分发（V2.0 概率调优）
+        // 3.5 按游戏时间驱动真实行为（AI托管真正在玩游戏）
+        //    行为→状态变化→经济后果→生成叙事（因果链：先做事，后说话）
         // ============================================
-        dispatchRandomEvents(result.newState.hour)
+        val behaviorLog = mutableListOf<String>()
+        // 行为信号——记录本tick真实发生的事，传给叙事生成器精准选MD文案
+        var behaviorDidWork = false
+        var behaviorDidOvertime = false
+        var behaviorDidEat = false
+        var behaviorDidLeisure = false
+        var behaviorDidRest = false
+        var behaviorDidCommute = false
+        var behaviorMealType: String? = null  // breakfast/lunch/dinner/snack
+        var behaviorIsWeekend = false
+        var behaviorHour = result.newState.hour
+        if (_autoLifeEnabled.value) {
+            val hour = result.newState.hour
+            val weekDay = result.newState.weekDay
+            val isWorkday = weekDay in 1..5
+            val isWeekend = weekDay >= 6
+            behaviorIsWeekend = isWeekend
+            val ticks = result.hoursAdvanced.coerceAtLeast(1)
+            val curBody = _bodyState.value
+            var energyDelta = 0
+            var fatigueDelta = 0
+            var workHoursDelta = 0.0
+            var earnedIncome = 0.0
+            var hDelta = 0
+            var aDelta = 0
+            var lDelta = 0
+            var didWork = false
+            var didOvertime = false
+            var didLeisure = false
+            var didRest = false
+            var didCommute = false
+            var didEat = false
+            var ateFoodName = ""
+            var ateFoodCost = 0.0
+
+            // ====== 状态驱动行为偏差（让每天不再一样）======
+            // 角色的身心状态真实影响今天的行为选择——不是每个工作日都一模一样
+            val curMental = _mentalState.value
+            val weather = _weatherState.value
+            val temperature = getTemperatureForMonth(result.newState.month)
+            // 工作效率系数：低能量/高疲劳/低心情时工作效率下降（摸鱼/走神）
+            val workEfficiency = when {
+                curBody.energy < 20 -> 0.4     // 极低能量：大部分时间在摸鱼
+                curBody.energy < 40 -> 0.7     // 低能量：效率打折
+                curBody.fatigueLevel > 80 -> 0.5  // 极度疲劳：只能勉强撑着
+                curBody.fatigueLevel > 60 -> 0.8
+                curMental.anxiety > 70 -> 0.7   // 高度焦虑：注意力分散
+                curMental.happiness < 20 -> 0.8 // 心情极差：提不起劲
+                else -> 1.0
+            }
+            // 主动加班概率：心情好+不疲劳时可能主动多做一点
+            val overtimeProbability = when {
+                curBody.energy > 70 && curBody.fatigueLevel < 30 && curMental.happiness > 50 -> 0.15
+                curBody.energy > 50 && curBody.fatigueLevel < 50 -> 0.08
+                curMental.anxiety > 60 -> 0.05  // 焦虑时更容易"怕做不完"而加班
+                else -> 0.0
+            }
+            // 慰劳性进食：心情差/疲劳/低能量时更可能选高消费食物（用吃的安慰自己）
+            val comfortEatingBias = when {
+                curMental.happiness < 30 -> 20    // 心情差时消费分+20（更倾向于贵/好食物慰劳）
+                curBody.fatigueLevel > 70 -> 15   // 累的时候想吃点好的
+                curBody.energy < 30 -> 10
+                curMental.loneliness > 70 -> 15   // 孤独时也容易慰劳性进食
+                else -> 0
+            }
+            // 社交主动性：孤独/周末没事时更可能主动接触人
+            val socialBias = when {
+                curMental.loneliness > 70 -> 0.25  // 很孤独时主动找社交
+                curMental.loneliness > 50 -> 0.12
+                isWeekend && curMental.happiness > 60 -> 0.15 // 周末心情好找朋友
+                else -> 0.0
+            }
+            // 早睡/熬夜倾向：疲劳/低能量→早睡；好心情/周末→可能熬一会儿
+            val earlySleepProb = when {
+                curBody.fatigueLevel > 75 -> 0.85
+                curBody.energy < 25 -> 0.75
+                curBody.healthScore < 40 -> 0.7
+                else -> 0.45
+            }
+            val stayUpProb = when {
+                isWeekend && curMental.happiness > 50 -> 0.2
+                curMental.anxiety > 70 -> 0.25  // 焦虑容易失眠/刷手机熬夜
+                curMental.loneliness > 70 -> 0.2 // 孤独时容易熬到很晚
+                else -> 0.05
+            }
+            // 天气影响
+            val weatherModifier = when (weather) {
+                WeatherState.SUNNY -> if (temperature in 18.0..27.0) 1.08 else 0.95  // 好天气心情好效率高；高温略降
+                WeatherState.RAINY, WeatherState.STORM -> 0.85  // 雨天通勤疲惫、效率略降
+                WeatherState.CLOUDY -> 1.0
+                WeatherState.OVERCAST -> 0.95
+                WeatherState.HAZY -> 0.88  // 雾霾天精神差
+            }
+            // 今天是否摸鱼/迟到（低能量+工作日有概率）
+            val slackingOff = isWorkday && (curBody.energy < 30 || curBody.fatigueLevel > 80) && Math.random() < 0.25
+            // 今天是否请病假（健康很差+工作日）
+            val sickDay = isWorkday && curBody.healthScore < 25 && curBody.energy < 20 && Math.random() < 0.3
+
+            // --- 通勤时段（8点去上班、18点下班回家）---
+            // 天气/状态影响通勤疲惫度；病假/失业日不通勤
+            val isEmployed0 = _spaceState.value.monthlyIncome > 0
+            if ((hour == 8 || hour == 18) && isWorkday && !sickDay && isEmployed0) {
+                val commuteFatigue = when (weather) {
+                    WeatherState.RAINY, WeatherState.STORM -> 4  // 雨天通勤更累
+                    WeatherState.HAZY -> 4  // 雾霾天不舒服
+                    WeatherState.OVERCAST -> 3
+                    WeatherState.SUNNY -> if (temperature > 30) 4 else 2  // 高温通勤累
+                    WeatherState.CLOUDY -> 2
+                }
+                fatigueDelta += commuteFatigue * ticks
+                energyDelta -= (3 + if (temperature > 30) 1 else 0) * ticks
+                didCommute = true
+                behaviorDidCommute = true
+                behaviorLog.add(if (hour == 8) "commute_to_work" else "commute_back_home")
+                // 雨天/雾霾低概率迟到叙事
+                if (Math.random() < 0.05 && (weather == WeatherState.RAINY || weather == WeatherState.STORM || weather == WeatherState.HAZY)) {
+                    val reason = if (weather == WeatherState.HAZY) "雾霾天能见度低，路上慢了点" else "下雨路滑堵了一会儿"
+                    addEventLog(reason)
+                }
+            }
+
+            // --- 早/晚时段的穿搭切换与宠物互动（无论通勤与否，每天都会发生）---
+            if (hour == 8 && _outfitMode.value == OutfitSceneManager.OutfitMode.AUTO) {
+                try {
+                    val morningScene = if (isWorkday && _spaceState.value.monthlyIncome > 0 && !sickDay) OutfitScene.COMMUTE else OutfitScene.HOME
+                    autoSelectOutfit(morningScene)
+                } catch (_: Exception) {}
+            }
+            if (hour == 18 && _outfitMode.value == OutfitSceneManager.OutfitMode.AUTO) {
+                try { autoSelectOutfit(OutfitScene.HOME) } catch (_: Exception) {}
+            }
+            // 晚上回家时宠物低概率迎接
+            if (hour == 18 && Math.random() < 0.2) {
+                addEventLog(listOf(
+                    "开门的时候小家伙凑了过来，软乎乎的。",
+                    "家里小家伙在门口等你回来。",
+                    "小家伙今天好像也在家等了你一天。"
+                ).random())
+            }
+            // 傍晚/周末邻居低概率相遇
+            if ((hour == 18 || (isWeekend && hour in 10..16)) && Math.random() < 0.04) {
+                val msg = encounterNpc("neighbor")
+                if (msg.isNotEmpty()) addEventLog(msg)
+            }
+            // 通勤等车时遇到一起等车的人
+            if (hour == 8 && isWorkday && Math.random() < 0.03) {
+                val msg = encounterNpc("bus_stop")
+                if (msg.isNotEmpty()) addEventLog(msg)
+            }
+
+            // --- 工作时间：工作日9-12点、14-17点真正在工作 ---
+            // 病假不工作；失业不上班；摸鱼日效率系数打折；天气/状态影响效率
+            val isEmployed = _spaceState.value.monthlyIncome > 0
+            val isWorkHour = isWorkday && (hour in 9..11 || hour in 14..17) && !sickDay && isEmployed
+            val isOvertimeHour = isWorkday && isEmployed && (hour in 18..20) && Math.random() < overtimeProbability + if (isWorkday) 0.05 else 0.0
+            // 失业叙事：工作日白天在家投简历/发呆
+            if (isWorkday && !isEmployed && !sickDay && hour in 9..11 && Math.random() < 0.12) {
+                addEventLog(listOf(
+                    "今天在家投了几份简历，心里有点没底",
+                    "刷了一会儿招聘网站，看得眼睛发花",
+                    "下楼走了走，心里想着工作的事",
+                    "在家待了一上午，有点坐不住"
+                ).random())
+            }
+            if (isWorkHour && curBody.energy > 15) {
+                val effectiveEfficiency = workEfficiency * weatherModifier
+                workHoursDelta = 1.0 * effectiveEfficiency * ticks
+                val energyPerHour = 7 + if (temperature > 30) 1 else 0  // 高温消耗更多
+                energyDelta -= (energyPerHour * ticks).toInt()
+                fatigueDelta += ((3 + if (effectiveEfficiency < 0.7) -1 else 0) * ticks).toInt()  // 摸鱼反而不那么累
+                aDelta += if (isOvertimeHour) 2 * ticks else 1 * ticks
+                lDelta -= 1 * ticks
+                didWork = true
+                didOvertime = isOvertimeHour
+                _dayDidWork = true
+                _dayWorkHours += workHoursDelta
+                if (isOvertimeHour) _dayDidOvertime = true
+                behaviorDidWork = true
+                behaviorDidOvertime = isOvertimeHour
+                val hourlyWage = getHourlyWage()
+                earnedIncome = hourlyWage * workHoursDelta  // 摸鱼日工资按实际效率算
+                if (earnedIncome > 0) {
+                    _spaceState.value = _spaceState.value.copy(
+                        currentSavings = _spaceState.value.currentSavings + earnedIncome
+                    )
+                }
+                behaviorLog.add(if (isOvertimeHour) "work_overtime" else "work_regular")
+                // 摸鱼的叙事
+                if (slackingOff && Math.random() < 0.3) {
+                    addEventLog(listOf(
+                        "今天有点提不起劲，对着屏幕发了好一会儿呆",
+                        "下午有点困，泡了杯茶慢慢喝着",
+                        "事情不多，磨磨蹭蹭地做着",
+                        "没什么状态，今天就算是划水的一天吧"
+                    ).random())
+                }
+                // 同事搭话（低概率，工作时间）
+                if (Math.random() < 0.05) {
+                    val encounterMsg = encounterNpc("work_colleague")
+                    if (encounterMsg.isNotEmpty()) addEventLog(encounterMsg)
+                }
+            }
+            // 病假叙事（在工作块外，sickDay整天在家休息）
+            if (sickDay && hour == 9) {
+                addEventLog("身体不太舒服，今天请了假在家休息。")
+                energyDelta += 5
+                fatigueDelta -= 3
+            }
+
+            // --- 三餐（慰劳性进食偏差应用到消费分选择）---
+            val isMealTime = (hour == 7) || (hour == 12) || (hour == 18)
+            val adjustedConsumptionScore = (_consumptionScore.value.overall + comfortEatingBias).coerceIn(0, 100)
+            if (isMealTime && curBody.satiety < 70 && !sickDay) {
+                try {
+                    val beforeSatiety = _bodyState.value.satiety
+                    val beforeSavings = _spaceState.value.currentSavings
+                    val fq = autoEatByConsumptionScore(adjustedConsumptionScore)
+                    didEat = true
+                    behaviorDidEat = true
+                    behaviorMealType = when (hour) { 7 -> "breakfast"; 12 -> "lunch"; else -> "dinner" }
+                    ateFoodCost = beforeSavings - _spaceState.value.currentSavings
+                    when (fq) { -1 -> _dayDidJunkFood = true; 1 -> _dayDidGoodFood = true }
+                    behaviorLog.add(if (hour == 7) "eat_breakfast" else if (hour == 12) "eat_lunch" else "eat_dinner")
+                    // 慰劳性进食叙事（低心情+吃了好食物时偶尔表达）
+                    if (comfortEatingBias > 0 && fq >= 0 && Math.random() < 0.15) {
+                        addEventLog(listOf(
+                            "今天想对自己好一点，点了份想吃的",
+                            "有点累，吃点好的补充一下",
+                            "不想委屈自己，想吃什么就吃什么",
+                            "一个人吃饭也要好好吃"
+                        ).random())
+                    }
+                    // 买菜/便利店时遇到摊主/店员（晚餐时概率更高）
+                    val vendorChance = when (hour) {
+                        18 -> 0.08  // 下班买菜
+                        12 -> 0.04
+                        else -> 0.02
+                    }
+                    if (Math.random() < vendorChance) {
+                        val archetype = if (adjustedConsumptionScore >= 55) "convenience_store" else "market_vendor"
+                        val msg = encounterNpc(archetype)
+                        if (msg.isNotEmpty()) addEventLog(msg)
+                    }
+                } catch (_: Exception) {}
+            }
+            if (hour in 10..11 && Math.random() < 0.2 + socialBias * 0.5) {
+                try {
+                    val fq = autoEatByConsumptionScore(adjustedConsumptionScore)
+                    didEat = true; behaviorDidEat = true; behaviorMealType = "snack"
+                    when (fq) { -1 -> _dayDidJunkFood = true; 1 -> _dayDidGoodFood = true }
+                    behaviorLog.add("snack_morning")
+                } catch (_: Exception) {}
+            }
+            if (hour in 15..16 && Math.random() < 0.15 + socialBias * 0.5) {
+                try {
+                    val fq = autoEatByConsumptionScore(adjustedConsumptionScore)
+                    didEat = true; behaviorDidEat = true; behaviorMealType = "snack"
+                    when (fq) { -1 -> _dayDidJunkFood = true; 1 -> _dayDidGoodFood = true }
+                    behaviorLog.add("snack_afternoon")
+                } catch (_: Exception) {}
+            }
+
+            // --- 晚间休闲（19-22点） ---
+            // 疲劳/早睡倾向高时跳过休闲直接休息；高孤独/好天气+周末时更可能外出/社交
+            val leisureChance = when {
+                curBody.fatigueLevel > 80 -> 0.25  // 太累了不休闲
+                curBody.energy < 25 -> 0.3
+                isWeekend && weather == WeatherState.SUNNY && temperature in 18.0..27.0 -> 0.85  // 好天气周末外出
+                isWeekend -> 0.75
+                else -> 0.6
+            }
+            if (hour in 19..22 && Math.random() < leisureChance) {
+                try {
+                    val cat = when {
+                        isWeekend && curMental.loneliness > 60 && Math.random() < socialBias + 0.2 -> LeisureCategory.WEEKEND
+                        isWeekend -> LeisureCategory.WEEKEND
+                        else -> LeisureCategory.WEEKDAY_EVENING
+                    }
+                    doLeisureActivity(cat)
+                    didLeisure = true
+                    _dayDidLeisure = true
+                    _daySocialContacts++
+                    behaviorDidLeisure = true
+                    behaviorLog.add("leisure")
+                    // 休闲时遇到的人：周末户外→公园，工作日晚间→咖啡馆/健身房
+                    if (Math.random() < 0.08 + socialBias * 0.2) {
+                        val leisNpc = when {
+                            isWeekend && weather == WeatherState.SUNNY -> "park_walker"
+                            Math.random() < 0.5 -> "cafe_regular"
+                            else -> "gym_buddy"
+                        }
+                        val msg = encounterNpc(leisNpc)
+                        if (msg.isNotEmpty()) addEventLog(msg)
+                    }
+                } catch (_: Exception) {}
+            }
+
+            // --- 公共活动（周末白天）：好天气+孤独/好心情时概率提升 ---
+            val publicEventChance = when {
+                weather == WeatherState.SUNNY && temperature in 15.0..28.0 -> 0.35
+                weather == WeatherState.RAINY || weather == WeatherState.STORM || weather == WeatherState.HAZY -> 0.05
+                curMental.loneliness > 60 -> 0.3 + socialBias
+                else -> 0.2
+            }
+            if (isWeekend && hour in 10..16 && Math.random() < publicEventChance) {
+                try {
+                    doPublicEventActivity()
+                    _daySocialContacts++
+                    behaviorLog.add("public_event")
+                    // 公共活动遇到公园/邻居熟人
+                    if (Math.random() < 0.12) {
+                        val npcType = if (Math.random() < 0.6) "park_walker" else "neighbor"
+                        val msg = encounterNpc(npcType)
+                        if (msg.isNotEmpty()) addEventLog(msg)
+                    }
+                } catch (_: Exception) {}
+            }
+
+            // --- 深夜休息（22点-6点） ---
+            if ((hour >= 22 || hour < 6) && curBody.energy < 70) {
+                val restChance = when {
+                    hour in 23..5 -> 0.9  // 深夜大概率休息
+                    hour == 22 -> earlySleepProb  // 22点根据疲劳度决定
+                    Math.random() < stayUpProb -> 0.0  // 熬夜概率
+                    else -> 0.3
+                }
+                if (Math.random() < restChance) {
+                    try {
+                        rest(); didRest = true; behaviorDidRest = true; behaviorLog.add("rest")
+                        if (_daySleptBefore23 == null) {
+                            _daySleptBefore23 = (hour <= 22)
+                        }
+                    } catch (_: Exception) {}
+                } else if (hour in 22..23 && Math.random() < stayUpProb) {
+                    // 熬夜：刷手机/发呆，疲劳略增、精力降
+                    energyDelta -= 3
+                    fatigueDelta += 4
+                    aDelta += 1
+                    if (Math.random() < 0.1) {
+                        addEventLog(listOf(
+                            "睡不着，刷了会儿手机",
+                            "晚上有点精神，想再待一会儿",
+                            "夜里很安静，就这么坐着也挺好",
+                            "有点失眠，翻来覆去了一阵"
+                        ).random())
+                    }
+                }
+            }
+
+            // --- 应用行为驱动的身体状态变化 ---
+            if (workHoursDelta > 0.0 || fatigueDelta != 0 || energyDelta != 0) {
+                val nb = _bodyState.value.copy(
+                    energy = (_bodyState.value.energy + energyDelta).coerceIn(0, 100),
+                    fatigueLevel = (_bodyState.value.fatigueLevel + fatigueDelta).coerceIn(0, 100),
+                    dailyWorkHours = _bodyState.value.dailyWorkHours + workHoursDelta,
+                    weeklyWorkHours = _bodyState.value.weeklyWorkHours + workHoursDelta,
+                    updateTime = System.currentTimeMillis()
+                ).coerce()
+                _bodyState.value = nb
+                // 用FatigueBusiness计算疲劳对心理的真实影响（焦虑/快乐/倦怠风险）
+                val mentalImpact = FatigueBusiness.calculateMentalImpact(nb, _mentalState.value)
+                aDelta += mentalImpact.anxietyDelta
+                hDelta += mentalImpact.happinessDelta
+            }
+
+            // --- 应用行为驱动的精神状态变化 ---
+            if (didLeisure) { hDelta += 3; aDelta -= 2; lDelta -= 3 }
+            if (didRest) { hDelta += 1; aDelta -= 1 }
+            if (didWork && earnedIncome > 0) { hDelta += 1 }
+            if (hDelta != 0 || aDelta != 0 || lDelta != 0) {
+                val nm = _mentalState.value.copy(
+                    happiness = (_mentalState.value.happiness + hDelta).coerceIn(0, 100),
+                    anxiety = (_mentalState.value.anxiety + aDelta).coerceIn(0, 100),
+                    loneliness = (_mentalState.value.loneliness + lDelta).coerceIn(0, 100),
+                    updateTime = System.currentTimeMillis()
+                ).coerce()
+                _mentalState.value = nm
+            }
+
+            // --- 周末自然恢复 ---
+            if (isWeekend && !isWorkHour) {
+                _bodyState.value = _bodyState.value.copy(
+                    fatigueLevel = (_bodyState.value.fatigueLevel - 2 * ticks).coerceIn(0, 100),
+                    mood = (_bodyState.value.mood + 1).coerceIn(0, 100)
+                ).coerce()
+            }
+
+            // --- 每日固定开支（交通+餐饮+日用），按工作日/周末均摊 ---
+            val dailyExpense = if (isWorkday) {
+                _spaceState.value.monthlyRent * 0.02 + 15.0
+            } else {
+                _spaceState.value.monthlyRent * 0.02 + 25.0
+            }
+            if (result.isNewDay) {
+                _spaceState.value = _spaceState.value.copy(
+                    currentSavings = (_spaceState.value.currentSavings - dailyExpense).coerceAtLeast(0.0)
+                )
+            }
+        }
 
         // ============================================
-        // 5. 科研进度推进（v2.1 科研与技术流通体系）
+        // 4. 身体状态真实衰减（由BodyStateBusiness驱动，非随机）
+        // ============================================
+        _bodyState.value = BodyStateBusiness.applyHourlyDecay(_bodyState.value, result.hoursAdvanced.coerceAtLeast(1)).coerce()
+
+        // ============================================
+        // 5. AI生活叙事生成（基于真实行为结果，而非随机文本拼贴）
+        // ============================================
+        if (_autoLifeEnabled.value) {
+            generateLifeNarrative(
+                hour = result.newState.hour,
+                weekDay = result.newState.weekDay,
+                age = result.newState.age,
+                hoursAdvanced = result.hoursAdvanced,
+                didWork = behaviorDidWork,
+                didOvertime = behaviorDidOvertime,
+                didEat = behaviorDidEat,
+                didLeisure = behaviorDidLeisure,
+                didRest = behaviorDidRest,
+                didCommute = behaviorDidCommute,
+                mealType = behaviorMealType
+            )
+        }
+
+        // ============================================
+        // 6. 科研进度推进（v2.1 科研与技术流通体系）
         // ============================================
         tickResearchProgress(1)
+
+        // ============================================
+        // 7. 随机事件分发（V2.0 概率调优）
+        // ============================================
+        dispatchRandomEvents(result.newState.hour)
+    }
+
+    /**
+     * AI生活叙事生成（v8.0 行为驱动精准匹配版）
+     * 核心改动：
+     * 1. 行为信号优先：本tick发生了什么（工作/吃饭/休息/休闲/通勤），就先从对应系统MD文档抽文案
+     * 2. 轮询兜底：无行为发生时才使用系统轮询，保证文档全覆盖
+     * 3. 对应关系：工作→职业经济+社交心理；吃饭→饮食健康；休息→核心人生+认知反思+夜晚独白；休闲→文化娱乐+陪伴
+     */
+    private fun generateLifeNarrative(
+        hour: Int, weekDay: Int, age: Int, hoursAdvanced: Int = 1,
+        didWork: Boolean = false, didOvertime: Boolean = false,
+        didEat: Boolean = false, didLeisure: Boolean = false,
+        didRest: Boolean = false, didCommute: Boolean = false,
+        mealType: String? = null
+    ) {
+        val body = _bodyState.value
+        val mental = _mentalState.value
+        val scoreOverall = _consumptionScore.value.overall
+        val isWeekend = weekDay >= 6
+        val currentMonth = _currentMonth.value
+        val season = when (currentMonth) {
+            in 3..5 -> "spring"
+            in 6..8 -> "summer"
+            in 9..11 -> "autumn"
+            else -> "winter"
+        }
+
+        val timeOfDay = NarrativePacingConfig.getTimeOfDay(hour, isWeekend)
+        val timeOfDayStr = when (timeOfDay) {
+            NarrativePacingConfig.TimeOfDay.NIGHT -> "night"
+            NarrativePacingConfig.TimeOfDay.MEAL_TIME -> "meal"
+            NarrativePacingConfig.TimeOfDay.WORK_TIME -> "work"
+            NarrativePacingConfig.TimeOfDay.FREE_TIME -> "free"
+        }
+        val isTired = body.fatigueLevel > 60
+        val isAnxious = mental.anxiety > 50
+        val healthLow = body.healthScore < 60
+
+        fun tryAdd(text: String): Boolean {
+            if (text.isBlank()) return false
+            val key = text.hashCode()
+            if (key in recentNarrativeKeysGlobal) return false
+            if (addEventLog(text)) {
+                recentNarrativeKeysGlobal.add(key)
+                if (recentNarrativeKeysGlobal.size > maxRecentNarrativeKeys) {
+                    val iter = recentNarrativeKeysGlobal.iterator()
+                    if (iter.hasNext()) iter.remove()
+                }
+                return true
+            }
+            return false
+        }
+
+        fun tryAddByType(type: String, maxRetries: Int = 3): Boolean {
+            repeat(maxRetries) {
+                val text = GameText.randomByType(
+                    type, age, scoreOverall,
+                    timeOfDay = timeOfDayStr, isTired = isTired, isAnxious = isAnxious, season = season
+                )
+                if (tryAdd(text)) return true
+            }
+            return false
+        }
+
+        fun weightedRandomSelect(weightMap: Map<String, Int>): String? {
+            val totalWeight = weightMap.values.sum()
+            if (totalWeight <= 0) return null
+            var rand = Math.random() * totalWeight
+            for ((key, weight) in weightMap) {
+                rand -= weight
+                if (rand <= 0) return key
+            }
+            return weightMap.keys.firstOrNull()
+        }
+
+        val allSystems = NarrativePacingConfig.ALL_SYSTEMS
+        val scenarioPools = NarrativePacingConfig.getScenarioPools(age, timeOfDay, isTired, isAnxious, healthLow)
+        val multiplier = hoursAdvanced.coerceAtLeast(1)
+
+        // 行为驱动优先：有行为发生时大幅降低轮询数量，避免把精准的行为叙事淹没
+        val hasBehavior = didWork || didEat || didLeisure || didRest || didCommute
+        val forcedSystemCount = (if (hasBehavior) 0 else NarrativePacingConfig.getForcedSystemCountPerTick(age)) * multiplier
+        val sceneTargetCount = (if (hasBehavior) 0 else NarrativePacingConfig.getSceneContentCount(age)) * multiplier
+        val bonusCount = 0
+
+        var added = 0
+
+        // ============================================
+        // 第零阶段（最高优先级）：行为驱动精准叙事
+        // 本tick真正发生了什么行为，就从对应系统MD文档里抽文案——这才是MD文档的正确用法
+        // 工作→职业经济/社交心理；吃饭→饮食健康/食物描写；休息→夜晚独白/认知反思；休闲→文化娱乐/陪伴；通勤→物质生活
+        // ============================================
+        val behaviorTypes = mutableListOf<String>()
+        if (didWork) {
+            behaviorTypes.add(GameText.SYS_CAREER_ECON)
+            // 工作中有同事社交概率加社交心理
+            if (Math.random() < 0.4) behaviorTypes.add(GameText.SYS_SOCIAL_PSYCH)
+            if (didOvertime && Math.random() < 0.5) behaviorTypes.add(GameText.SYS_COGNITION)
+        }
+        if (didCommute) {
+            behaviorTypes.add(GameText.SYS_MATERIAL_LIFE)
+        }
+        if (didEat) {
+            behaviorTypes.add(GameText.SYS_DIET_HEALTH)
+            if (Math.random() < 0.3) behaviorTypes.add(GameText.SCENE_FOOD)
+        }
+        if (didRest) {
+            // 深夜休息走夜晚独白/核心人生；白天小休走认知反思
+            if (hour >= 22 || hour < 6) {
+                behaviorTypes.add(GameText.SCENE_NIGHT_MONO)
+                if (Math.random() < 0.3) behaviorTypes.add(GameText.SYS_CORE_LIFE)
+            } else {
+                behaviorTypes.add(GameText.SYS_COGNITION)
+            }
+        }
+        if (didLeisure) {
+            behaviorTypes.add(GameText.SYS_CULTURE_ENT)
+            if (Math.random() < 0.4) behaviorTypes.add(GameText.SYS_COMPANION)
+            if (isWeekend && Math.random() < 0.3) behaviorTypes.add(GameText.SCENE_LEISURE)
+        }
+        // 新的一天：早晨起床
+        if (hour in 6..7 && !didWork && !didEat) {
+            if (Math.random() < 0.3) behaviorTypes.add(GameText.SYS_CORE_LIFE)
+        }
+        // 有行为时：优先从精准MD池抽1-2条（不再让轮询覆盖行为叙事）
+        for (bType in behaviorTypes.take(2)) {
+            if (added >= 2) break
+            if (tryAddByType(bType, 2)) added++
+        }
+
+        // ============================================
+        // 第一阶段：状态驱动真实生活事件（StateDrivenEventEngine - 15种身心状态触发的真实生活片段）
+        // 设计原则：只呈现事实，不评判，不惩罚；符合"不操作也不会死"的自动兜底
+        // ============================================
+        if (Math.random() < 0.08) {
+            try {
+                val space = _spaceState.value
+                val triggeredEvents = StateDrivenEventEngine.evaluateTriggers(body, space, mental, mental.daysInNegativeState)
+                val topEvent = StateDrivenEventEngine.pickTopEvent(triggeredEvents)
+                if (topEvent != null) {
+                    val severity = topEvent.severity
+                    val triggerChance = when (severity) {
+                        EventSeverity.CRITICAL -> 0.3
+                        EventSeverity.HIGH -> 0.25
+                        EventSeverity.MODERATE -> 0.2
+                        EventSeverity.LOW -> 0.15
+                        else -> 0.2
+                    }
+                    if (Math.random() < triggerChance) {
+                        tryAdd(topEvent.description)
+                        added++
+
+                        if (topEvent.immediateCostYuan > 0) {
+                            val gentleCost = (topEvent.immediateCostYuan * 0.3).coerceAtMost(_spaceState.value.currentSavings * 0.1)
+                            if (gentleCost > 0) {
+                                _spaceState.value = _spaceState.value.copy(
+                                    currentSavings = (_spaceState.value.currentSavings - gentleCost).coerceAtLeast(0.0)
+                                )
+                            }
+                        }
+                    }
+                }
+            } catch (_: Exception) {}
+        }
+
+        if (body.fatigueLevel > 60 && Math.random() < 0.12) {
+            try {
+                val impact = FatigueBusiness.calculateBodyImpact(body)
+                if (impact.systolicSymptoms.isNotEmpty()) {
+                    val symptom = impact.systolicSymptoms.random()
+                    val fatigueNarratives = listOf(
+                        "你感觉$symptom。",
+                        "$symptom，身体在提醒你该歇一歇了。",
+                        "最近有点$symptom，是累了吧。",
+                        "$symptom。没关系，慢慢来。"
+                    )
+                    tryAdd(fatigueNarratives.random())
+                }
+            } catch (_: Exception) {}
+        }
+
+        if (Math.random() < 0.05) {
+            try {
+                val allGameEvents = GameEventGenerator.getAllEvents()
+                val candidateEvents = when {
+                    timeOfDay == NarrativePacingConfig.TimeOfDay.WORK_TIME && mental.anxiety < 40 -> allGameEvents.filter {
+                        it.type == com.example.townapp.data.gameevent.EventType.WORKPLACE
+                    }
+                    _spaceState.value.currentSavings < _spaceState.value.monthlyRent * 2 -> allGameEvents.filter {
+                        it.type == com.example.townapp.data.gameevent.EventType.ECONOMIC_DISPUTE
+                    }
+                    mental.loneliness > 60 -> allGameEvents.filter {
+                        it.type == com.example.townapp.data.gameevent.EventType.SOCIAL_CONFLICT
+                    }
+                    age > 40 && Math.random() < 0.3 -> allGameEvents.filter {
+                        it.type == com.example.townapp.data.gameevent.EventType.POLICY_CHANGE
+                    }
+                    else -> allGameEvents
+                }
+                if (candidateEvents.isNotEmpty()) {
+                    val selectedEvent = candidateEvents.random()
+                    val selectedChoice = selectedEvent.choices.random()
+                    val eventNarrative = "${selectedEvent.description}${selectedChoice.consequence}"
+                    tryAdd(eventNarrative)
+                    added++
+
+                    if (selectedChoice.moneyChange < 0) {
+                        val gentleCost = (-selectedChoice.moneyChange).toDouble().coerceAtMost(_spaceState.value.currentSavings * 0.08)
+                        if (gentleCost > 0) {
+                            _spaceState.value = _spaceState.value.copy(
+                                currentSavings = (_spaceState.value.currentSavings - gentleCost).coerceAtLeast(0.0)
+                            )
+                        }
+                    } else if (selectedChoice.moneyChange > 0) {
+                        val gentleGain = selectedChoice.moneyChange.toDouble() * 0.5
+                        _spaceState.value = _spaceState.value.copy(
+                            currentSavings = _spaceState.value.currentSavings + gentleGain
+                        )
+                    }
+                }
+            } catch (_: Exception) {}
+        }
+
+        // ============================================
+        // 第一阶段：14个业务系统强制轮询（保证所有系统文档高频使用，零闲置）
+        // ============================================
+        var forcedAdded = 0
+        val totalSystems = allSystems.size
+        repeat(forcedSystemCount) {
+            if (forcedAdded >= forcedSystemCount) return@repeat
+            var attempts = 0
+            while (attempts < totalSystems) {
+                val sysIdx = (systemRoundRobinIdx + attempts) % totalSystems
+                val sys = allSystems[sysIdx]
+                if (tryAddByType(sys, 2)) {
+                    systemRoundRobinIdx = (sysIdx + 1) % totalSystems
+                    forcedAdded++
+                    added++
+                    break
+                }
+                attempts++
+            }
+            if (attempts >= totalSystems) {
+                systemRoundRobinIdx = (systemRoundRobinIdx + 1) % totalSystems
+            }
+        }
+
+        // ============================================
+        // 第二阶段：场景权重池抽取（按年龄+时段+状态智能匹配，使用权重）
+        // ============================================
+        val combinedWeights = mutableMapOf<String, Int>()
+        scenarioPools.weights.forEach { (k, v) -> combinedWeights[k] = v }
+
+        var sceneAdded = 0
+        val allSources = scenarioPools.systemIds + scenarioPools.sceneTypes
+        var sceneAttempts = 0
+        while (sceneAdded < sceneTargetCount && sceneAttempts < sceneTargetCount * 3) {
+            val selected = weightedRandomSelect(combinedWeights) ?: allSources.shuffled().firstOrNull()
+            if (selected != null && tryAddByType(selected, 2)) {
+                sceneAdded++
+                added++
+                combinedWeights[selected] = (combinedWeights[selected] ?: 1) / 2
+            }
+            sceneAttempts++
+        }
+
+        // ============================================
+        // 第三阶段：彩蛋池（RARE_SCENE_SOURCES 稀有源稳定出场）
+        // ============================================
+        val rareSources = NarrativePacingConfig.RARE_SCENE_SOURCES.shuffled()
+        var bonusAdded = 0
+        for (src in rareSources) {
+            if (bonusAdded >= bonusCount) break
+            if (tryAddByType(src, 2)) bonusAdded++
+        }
+
+        // NPC对话：已改为行为触发的熟人系统（工作/买菜/休闲时真实遇到），此处不再随机抽MD文案
+        // 保留极低概率（2%）的NPC季节对话作为远处飘来的闲谈/环境音
+        if (Math.random() < 0.02) {
+            val dialog = GameText.randomNpcSeasonDialog(season = season, scoreOverall = scoreOverall)
+            if (dialog.isNotBlank()) tryAdd("（" + dialog.take(60) + "）")
+        }
+
+        val currentSeason = when (currentMonth) {
+            in 3..5 -> Season.SPRING
+            in 6..8 -> Season.SUMMER
+            in 9..11 -> Season.AUTUMN
+            else -> Season.WINTER
+        }
+        val weather = _weatherState.value
+        val savings = _spaceState.value.currentSavings
+        val monthlyIncome = _spaceState.value.monthlyIncome
+
+        val leisureProb = when (timeOfDay) {
+            NarrativePacingConfig.TimeOfDay.FREE_TIME -> 0.12
+            NarrativePacingConfig.TimeOfDay.MEAL_TIME -> 0.05
+            else -> 0.0
+        }
+        if (Math.random() < leisureProb) {
+            try {
+                val leisureCategory = when {
+                    isWeekend -> LeisureCategory.WEEKEND
+                    hour in 19..23 -> LeisureCategory.WEEKDAY_EVENING
+                    else -> LeisureCategory.WEEKDAY_EVENING
+                }
+                val leisureResult = LeisureManager.selectLeisure(
+                    category = leisureCategory, weather = weather, season = currentSeason,
+                    age = age, fatigue = body.fatigueLevel, savings = savings, monthlyIncome = monthlyIncome
+                )
+                if (leisureResult != null) {
+                    val text = if (leisureResult.event.description.isNotBlank()) {
+                        "${leisureResult.reason}。${leisureResult.event.description}"
+                    } else {
+                        leisureResult.reason
+                    }
+                    tryAdd(text)
+                }
+            } catch (_: Exception) {}
+        }
+
+        if (isWeekend && timeOfDay == NarrativePacingConfig.TimeOfDay.FREE_TIME && Math.random() < 0.06) {
+            try {
+                val publicEventResult = PublicEventScheduler.checkAndTrigger(
+                    month = currentMonth, year = _currentYear.value, weather = weather,
+                    age = age, fatigue = body.fatigueLevel, savings = savings, monthlyIncome = monthlyIncome
+                )
+                if (publicEventResult != null) {
+                    val text = if (publicEventResult.event.description.isNotBlank()) {
+                        "${publicEventResult.reason}。${publicEventResult.event.description}"
+                    } else {
+                        publicEventResult.reason
+                    }
+                    tryAdd(text)
+                }
+            } catch (_: Exception) {}
+        }
+
+        if (Math.random() < 0.05) {
+            try {
+                val narrative = ConsumptionSystem.getOrientationNarrative(_consumptionScore.value)
+                if (!narrative.isNullOrBlank()) tryAdd(narrative)
+            } catch (_: Exception) {}
+        }
+
+        if (Math.random() < 0.04) {
+            try {
+                val result = listOfNotNull(
+                    IdiomCritiqueManager.triggerIdiomEvent(),
+                    IdiomCritiqueManager.triggerSpotlightEvent(),
+                    IdiomCritiqueManager.triggerCompanionEvent()
+                ).randomOrNull()
+                if (result != null) {
+                    val text = result.eventText.removePrefix("微事件: ").removePrefix("成语: ")
+                        .removePrefix("陪伴: ").removePrefix("闪光点: ")
+                        .removePrefix("认知剖析: ").removePrefix("认知卡片: ")
+                        .removePrefix("模拟场景: ")
+                    tryAdd(text)
+                }
+            } catch (_: Exception) {}
+        }
+
+        if (Math.random() < 0.06 && timeOfDay == NarrativePacingConfig.TimeOfDay.FREE_TIME) {
+            try {
+                val item = AestheticBusiness.aestheticLibrary.random()
+                val observationTemplates = listOf(
+                    "你看着手边的${item.name}，${item.description}。",
+                    "${item.name}。${item.description}。",
+                    "目光落在${item.name}上，${item.description}。",
+                    "你突然注意到${item.name}——${item.description}。"
+                )
+                tryAdd(observationTemplates.random())
+            } catch (_: Exception) {}
+        }
+
+        if (hour in 19..22 && Math.random() < 0.08) {
+            val petSayings = listOf(
+                "「小东西」趴在你脚边打了个哈欠，懒洋洋地看了你一眼。",
+                "「小东西」蹭了蹭你的脚踝，好像在说「我在呢」。",
+                "「小东西」安安静静地窝在旁边，你不说话，它也不说话。",
+                "「小东西」抬头看了你一眼，又把脑袋埋回爪子里，陪着你。",
+                "「小东西」在你旁边翻了个身，露出肚子。它信你。"
+            )
+            tryAdd(petSayings.random())
+        }
+
+        if (Math.random() < 0.1) {
+            try {
+                val allEvents = MicroEventQuotes.getAllEvents()
+                val weatherKeyword = when (_weatherState.value) {
+                    com.example.townapp.data.model.WeatherState.SUNNY -> "晴天"
+                    com.example.townapp.data.model.WeatherState.CLOUDY,
+                    com.example.townapp.data.model.WeatherState.OVERCAST -> "阴天"
+                    com.example.townapp.data.model.WeatherState.RAINY,
+                    com.example.townapp.data.model.WeatherState.STORM -> "下雨"
+                    else -> ""
+                }
+
+                val candidateEvents = when {
+                    body.fatigueLevel > 65 -> allEvents.filter {
+                        it.type == MicroEventType.BODY && (it.triggerCondition.contains("困") || it.triggerCondition.contains("哈欠") || it.triggerCondition.contains("眼睛") || it.triggerCondition.contains("头发"))
+                    }
+                    mental.anxiety > 55 -> allEvents.filter {
+                        it.type == MicroEventType.MOOD && (it.triggerCondition.contains("难过") || it.triggerCondition.contains("心情不好"))
+                    }
+                    mental.happiness < 40 -> allEvents.filter {
+                        it.type == MicroEventType.MOOD && (it.triggerCondition.contains("无聊") || it.triggerCondition.contains("陪伴") || it.triggerCondition.contains("发呆"))
+                    }
+                    mental.happiness > 70 -> allEvents.filter {
+                        it.type == MicroEventType.MOOD && (it.triggerCondition.contains("状态都是绿色") || it.triggerCondition.contains("吃完饭") || it.triggerCondition.contains("倒了垃圾") || it.triggerCondition.contains("擦了桌子") || it.triggerCondition.contains("洗了衣服"))
+                    }
+                    timeOfDay == NarrativePacingConfig.TimeOfDay.NIGHT -> allEvents.filter {
+                        it.type == MicroEventType.ENVIRONMENT && it.triggerCondition.contains("天黑")
+                    }
+                    weatherKeyword.isNotEmpty() -> allEvents.filter {
+                        it.type == MicroEventType.ENVIRONMENT && it.triggerCondition.contains(weatherKeyword)
+                    }.ifEmpty {
+                        allEvents.filter { it.type == MicroEventType.ENVIRONMENT || it.type == MicroEventType.MOOD }
+                    }
+                    hour in 7..9 -> allEvents.filter {
+                        it.type == MicroEventType.ENVIRONMENT || it.type == MicroEventType.BODY
+                    }
+                    else -> allEvents.filter {
+                        it.type == MicroEventType.MOOD || it.type == MicroEventType.ENVIRONMENT || it.type == MicroEventType.HOUSEWORK
+                    }
+                }
+
+                if (candidateEvents.isNotEmpty()) {
+                    val selected = candidateEvents.random()
+                    val cleanedContent = selected.content
+                        .replace(Regex("[\\uD83C-\\uDBFF\\uDC00-\\uDFFF]+"), "")
+                        .replace(Regex("[😺🐧🥺💛✨🌸👍🎉💤🌧️☀️🌙💧☁️💨❄️🌅🌤️🌆🌑]"), "")
+                        .trim()
+                    val characterName = when (selected.character) {
+                        TownCharacter.TAFFI -> "塔菲"
+                        TownCharacter.GUGAGA -> "咕咕嘎嘎"
+                        TownCharacter.DORO -> "朵朵"
+                    }
+                    tryAdd("$characterName：$cleanedContent")
+                }
+            } catch (_: Exception) {}
+        }
+
+        if (Math.random() < 0.06) {
+            try {
+                val allConvQuotes = NormalConversationQuotes.getAllQuotes()
+                val candidateQuotes = when {
+                    mental.anxiety > 55 || mental.happiness < 35 -> allConvQuotes.filter {
+                        it.type == ConversationType.COMFORT || it.type == ConversationType.SUPPORT || it.type == ConversationType.ENCOURAGEMENT
+                    }
+                    mental.happiness > 70 -> allConvQuotes.filter {
+                        it.type == ConversationType.CELEBRATION || it.type == ConversationType.HUMOR
+                    }
+                    timeOfDay == NarrativePacingConfig.TimeOfDay.NIGHT -> allConvQuotes.filter {
+                        it.type == ConversationType.REFLECTION || it.type == ConversationType.INSIGHT
+                    }
+                    else -> allConvQuotes.filter {
+                        it.type == ConversationType.OBSERVATION || it.type == ConversationType.INSIGHT || it.type == ConversationType.HUMOR
+                    }
+                }
+                if (candidateQuotes.isNotEmpty()) {
+                    val selected = candidateQuotes.random()
+                    val cleanedContent = selected.content
+                        .replace(Regex("[\\uD83C-\\uDBFF\\uDC00-\\uDFFF]+"), "")
+                        .replace(Regex("[😺🐧🥺💛✨🌸👍🎉💤🌧️☀️🌙💧☁️💨❄️🌅🌤️🌆🌑💪🤔👀🤝😄💡]"), "")
+                        .replace("喵～", "")
+                        .replace("嘎嘎！", "")
+                        .trim()
+                    val characterName = when (selected.character) {
+                        TownCharacter.TAFFI -> "塔菲"
+                        TownCharacter.GUGAGA -> "咕咕嘎嘎"
+                        TownCharacter.DORO -> "朵朵"
+                    }
+                    tryAdd("$characterName：$cleanedContent")
+                }
+            } catch (_: Exception) {}
+        }
+
+        if (Math.random() < 0.12) {
+            try {
+                val presetCards = UserCognitiveCardLibrary.getPresetCards()
+                val selected = presetCards.random()
+                val cardText = "${selected.title}。${selected.content}"
+                tryAdd(cardText)
+            } catch (_: Exception) {}
+        }
+
+        if (Math.random() < 0.15) {
+            try {
+                val allFrustrations = DailyFrustrations.allFrustrations
+                val candidates = when {
+                    timeOfDay == NarrativePacingConfig.TimeOfDay.WORK_TIME -> allFrustrations.filter {
+                        it.category == DailyFrustrationCategory.WORK_ERROR || it.category == DailyFrustrationCategory.INTERPERSONAL
+                    }
+                    timeOfDay == NarrativePacingConfig.TimeOfDay.NIGHT -> allFrustrations.filter {
+                        it.category == DailyFrustrationCategory.HEALTH || it.category == DailyFrustrationCategory.ENVIRONMENTAL
+                    }
+                    else -> allFrustrations
+                }
+                if (candidates.isNotEmpty()) {
+                    val selected = candidates.random()
+                    val fragments = listOf(selected.triggerHint + selected.bodyFeeling, selected.sparkle, selected.townCommentary)
+                    tryAdd(fragments.random())
+                }
+            } catch (_: Exception) {}
+        }
+
+        if ((mental.anxiety > 50 || age > 35) && Math.random() < 0.12) {
+            try {
+                val allSayings = TraditionalSayingsLibrary.allSayings
+                val candidates = when {
+                    age < 30 && mental.anxiety > 50 -> allSayings.filter { it.trigger == SayingTrigger.YOUTH_CAREER || it.trigger == SayingTrigger.WORKPLACE_CONFLICT }
+                    age in 30..45 -> allSayings.filter { it.trigger == SayingTrigger.MIDLIFE_CRISIS || it.trigger == SayingTrigger.MARRIAGE_PRESSURE }
+                    else -> allSayings
+                }
+                if (candidates.isNotEmpty()) {
+                    val selected = candidates.random()
+                    val sayingText = "长辈常说「${selected.originalSaying}」。${selected.modernAlternative}"
+                    tryAdd(sayingText)
+                }
+            } catch (_: Exception) {}
+        }
+
+        if (Math.random() < 0.08) {
+            try {
+                val allEncounters = CrossClassEncounters.encounters
+                if (allEncounters.isNotEmpty()) {
+                    val selected = allEncounters.random()
+                    val fragments = listOf(selected.bodyFeeling, selected.sparkle, selected.townCommentary)
+                    val fragment = fragments.random()
+                    tryAdd(fragment)
+                }
+            } catch (_: Exception) {}
+        }
+
+        if (Math.random() < 0.08) {
+            try {
+                val allDialogues = CrossProfessionDialogues.dialogues
+                if (allDialogues.isNotEmpty()) {
+                    val selected = allDialogues.random()
+                    val fragments = listOf(selected.sparkle, selected.townCommentary)
+                    val fragment = fragments.random()
+                    if (fragment.isNotBlank()) tryAdd(fragment)
+                }
+            } catch (_: Exception) {}
+        }
+
+        if (timeOfDay == NarrativePacingConfig.TimeOfDay.MEAL_TIME && body.satiety < 70) {
+            autoEatByConsumptionScore(scoreOverall)
+        }
+
+        applyNarrativeStateChange(
+            hour = hour,
+            isWorkTime = timeOfDay == NarrativePacingConfig.TimeOfDay.WORK_TIME,
+            isMealTime = timeOfDay == NarrativePacingConfig.TimeOfDay.MEAL_TIME,
+            isNight = timeOfDay == NarrativePacingConfig.TimeOfDay.NIGHT,
+            age = age,
+            scoreOverall = scoreOverall,
+            hoursAdvanced = hoursAdvanced
+        )
+
+        _lastHourAction = when (timeOfDay) {
+            NarrativePacingConfig.TimeOfDay.NIGHT -> "sleep"
+            NarrativePacingConfig.TimeOfDay.MEAL_TIME -> "eat"
+            NarrativePacingConfig.TimeOfDay.WORK_TIME -> "work"
+            NarrativePacingConfig.TimeOfDay.FREE_TIME -> "idle"
+        }
+    }
+
+    /**
+     * 触发随机行为反馈（v3.1 权重化版本，使用NarrativePacingConfig）
+     */
+    private fun triggerRandomBehavior(season: String, scoreOverall: Int, age: Int, lifeStage: LifeStage) {
+        val weights = NarrativePacingConfig.getBehaviorWeights(age, scoreOverall).toMutableMap()
+
+        // 基于健康、存款等动态调整
+        if (scoreOverall <= 40 && _spaceState.value.currentSavings > 500) {
+            weights["luxury_buy"] = 3
+        } else if (scoreOverall >= 60 && _spaceState.value.currentSavings > 1000) {
+            weights["luxury_buy"] = 1
+        }
+        if (_bodyState.value.fatigueLevel >= 50) {
+            weights["work_overtime"] = 0
+        }
+
+        // 权重随机选择
+        val available = weights.filter { it.value > 0 }
+        if (available.isEmpty()) return
+
+        val totalWeight = available.values.sum()
+        var rand = Math.random() * totalWeight
+        var actionKey = available.keys.first()
+        for ((key, weight) in available) {
+            rand -= weight
+            if (rand <= 0) {
+                actionKey = key
+                break
+            }
+        }
+
+        val reaction = GameText.reaction(actionKey, scoreOverall)
+        if (reaction.eventLog.isNotEmpty()) {
+            addEventLog(reaction.eventLog)
+            if (reaction.petDialog.isNotEmpty() && Math.random() < 0.3) {
+                setPetDialogue(reaction.petDialog)
+            }
+            if (reaction.scoreDelta != 0) {
+                updateConsumptionScore(reaction.scoreDelta)
+            }
+        }
+    }
+
+    /**
+     * 叙事化状态更新：根据年龄段配置波动幅度，自然波动
+     */
+    private fun applyNarrativeStateChange(
+        hour: Int,
+        isWorkTime: Boolean,
+        isMealTime: Boolean,
+        isNight: Boolean,
+        age: Int,
+        scoreOverall: Int,
+        hoursAdvanced: Int
+    ) {
+        if (Math.random() < 0.12) {
+            try {
+                val risks = BodyStateBusiness.assessHealthRisks(_bodyState.value)
+                if (risks.isNotEmpty()) {
+                    val risk = risks.random()
+                    if (risk.description.isNotBlank()) {
+                        addEventLog(risk.description)
+                    }
+                }
+            } catch (_: Exception) {}
+        }
+    }
+
+    /**
+     * 根据消费分随机触发不同类型的NPC对话
+     */
+    private fun triggerRandomNpcDialog(scoreOverall: Int) {
+        val npcTypes = when {
+            scoreOverall >= 60 -> listOf("practical", "practical", "neutral", "practical")
+            scoreOverall <= 40 -> listOf("vanity", "vanity", "neutral", "neutral")
+            else -> listOf("practical", "vanity", "neutral", "neutral", "neutral")
+        }
+        val dialog = GameText.npcDialog(
+            type = npcTypes.random(),
+            identity = "all",
+            consumptionScore = scoreOverall
+        )
+        if (dialog.isNotEmpty()) addEventLog(dialog)
+    }
+
+    private fun updateConsumptionScore(delta: Int) {
+        val current = _consumptionScore.value
+        // 均匀影响四个维度，简化处理
+        _consumptionScore.value = current.copy(
+            food = (current.food + delta).coerceIn(0, 100),
+            clothing = (current.clothing + delta).coerceIn(0, 100),
+            housing = (current.housing + delta).coerceIn(0, 100),
+            transport = (current.transport + delta).coerceIn(0, 100)
+        )
+    }
+
+    /**
+     * 根据消费分自动选择不同档次的食物，触发MD里的食物反馈
+     */
+    /** @return -1=垃圾食品/廉价食物，0=普通，1=优质食物 */
+    private fun autoEatByConsumptionScore(consumptionScore: Int): Int {
+        val foods = _foodItems.value
+        if (foods.isEmpty()) {
+            _bodyState.value = _bodyState.value.copy(
+                satiety = (_bodyState.value.satiety + 30).coerceIn(0, 100),
+                energy = (_bodyState.value.energy + 5).coerceIn(0, 100)
+            ).coerce()
+            return 0
+        }
+
+        val food = when {
+            consumptionScore >= 60 -> foods.filter { it.pricePer100g >= 50 }.randomOrNull() ?: foods.last()
+            consumptionScore <= 40 -> foods.filter { it.pricePer100g <= 20 }.randomOrNull() ?: foods.first()
+            else -> foods[foods.size / 2]
+        }
+        val foodQuality = when {
+            food.pricePer100g <= 20 -> -1
+            food.pricePer100g >= 50 -> 1
+            else -> 0
+        }
+
+        val cost = FoodCostCalculator.calculateCostPerMeal(food)
+        val body = _bodyState.value
+
+        // 使用FoodNutritionCalculator真实计算营养密度（不再硬编码）
+        val nutrientDensity = FoodNutritionCalculator.calculateNutrientDensity(food)
+        val healthRiskPair = FoodRatingCalculator.getHealthRiskLevel(food)
+        val healthRisk = healthRiskPair.second
+        val nutritionGrade = FoodRatingCalculator.getNutritionGrade(food).first
+        val evolutionMismatch = FoodEvolutionCalculator.calculateEvolutionMismatch(food)
+
+        // 饱腹感：高蛋白/高纤维食物更饱，高碳水/精加工食物饱腹感低且血糖波动大
+        val satietyGain = ((25 + nutrientDensity * 35 - healthRisk * 10).toInt()).coerceIn(15, 55)
+        // 能量：营养密度高、健康风险低的食物能量恢复多
+        val energyGain = ((3 + nutrientDensity * 10 - healthRisk * 5).toInt()).coerceIn(0, 14)
+        // 心情：好吃和贵的食物心情好（高消费档位的溢价是心情价值）
+        val moodFromPrice = (food.pricePer100g / 15.0).coerceIn(0.0, 6.0)
+        val moodGain = ((moodFromPrice + nutrientDensity * 4 - healthRisk * 2).toInt()).coerceIn(-2, 12)
+        // 营养平衡：营养密度高增加，健康风险高/进化错配高降低
+        val nutritionDelta = ((nutrientDensity * 8 - healthRisk * 6 - evolutionMismatch * 3).toInt()).coerceIn(-6, 7)
+        // 肠胃负担：高脂肪/高碳水/高加工度食物负担重
+        val gastroDelta = ((healthRisk * 15 + evolutionMismatch * 5).toInt()).coerceIn(0, 18)
+        // 血糖波动：高碳水低纤维食物波动大
+        val bloodSugarChange = (0.3 + (food.carbohydratePer100g / 100.0) * 1.5 - food.fiberPer100g / 20.0).coerceIn(0.2, 2.0)
+
+        _spaceState.value = _spaceState.value.copy(
+            currentSavings = (_spaceState.value.currentSavings - cost).coerceAtLeast(0.0)
+        )
+        _bodyState.value = body.copy(
+            satiety = (body.satiety + satietyGain).coerceIn(0, 100),
+            energy = (body.energy + energyGain).coerceIn(0, 100),
+            mood = (body.mood + moodGain).coerceIn(0, 100),
+            nutritionBalance = (body.nutritionBalance + nutritionDelta).coerceIn(0, 100),
+            gastroBurden = (body.gastroBurden + gastroDelta).coerceIn(0, 100),
+            bloodSugar = (body.bloodSugar + bloodSugarChange).coerceIn(3.0, 8.0),
+            comfortLevel = (body.comfortLevel + if (nutrientDensity > 0.5) 4 else 1).coerceIn(0, 100)
+        ).coerce()
+
+        // 低概率在文案中带出真实评级（不评判，只陈述事实）
+        val eatNote = if (Math.random() < 0.08 && nutritionGrade != "营养一般") {
+            "（${nutritionGrade}）"
+        } else ""
+        addEventLog(GentleTextProvider.describeAutoEat(food.name + eatNote, cost))
+        return foodQuality
     }
 
     /**
@@ -3218,7 +4425,7 @@ class TownViewModel(
     // ============================================
 
     /** 吃饭：从食物列表选择 */
-    fun showFoodPicker() {
+    open fun showFoodPicker() {
         // 时段判断：仅早/中/晚三个饭点可正常打开
         val currentHour = gameHour.value
         val isBreakfast = currentHour in 6..9
@@ -3233,13 +4440,13 @@ class TownViewModel(
         }
     }
 
-    fun hideFoodPicker() {
+    open fun hideFoodPicker() {
         _showFoodPicker.value = false
     }
 
     /** 清空宠物对话（展示完毕后调用，避免重复显示） */
-    fun clearPetDialogue() {
-        _petDialogue.value = null
+    open fun clearPetDialogue() {
+        setPetDialogue(null)
     }
 
     /** 手动吃一份食物 */
@@ -3270,7 +4477,7 @@ class TownViewModel(
                 addEventLog("【闪光点】${sparkle}")
                 addEventLog("【小城镇看到】${commentary}")
             }
-            _showFoodPicker.value = false
+            hideFoodPicker()
 
             // 更新食物使用频率
             val currentCounts = _foodEatCount.value.toMutableMap()
@@ -3292,8 +4499,14 @@ class TownViewModel(
                 nutritionalScore = food.nutrientDensityScore
             )
             if (reply != null) {
-                _petDialogue.value = reply
+                setPetDialogue(reply)
             }
+
+            // 更新消费倾向评分（饮食维度）
+            val currentScore = _consumptionScore.value
+            _consumptionScore.value = currentScore.copy(
+                food = ConsumptionSystem.updateFoodScore(currentScore.food, food)
+            )
         } catch (e: Exception) {
             android.util.Log.e("TownViewModel", "吃饭操作异常: ${e.message}", e)
             addEventLog("出了点小问题，没吃成")
@@ -3900,6 +5113,41 @@ class TownViewModel(
         _todayPlanExecuted.value = false
         updateShoppingMode()
         calculateWeeklyExpense()
+        // 应用消费价值观长期效果（不评判，只让身体诚实反馈）
+        applyConsumptionLongTermEffect()
+
+        // 居住空间对每日状态基线的持续影响（HousingBusiness计算加成）
+        try {
+            val space = _spaceState.value
+            val spaceQuality = space.overallSpaceQuality
+            val bonus = getHousingBonus()
+            // 每天从居住环境获得的基线影响：心情小幅波动，疲劳累积受效率加成调节
+            val moodBaseDelta = (bonus.happinessBonus / 10.0).toInt().coerceIn(-3, 4)
+            val fatigueBaseDelta = -(bonus.productivityBonus / 20.0).toInt().coerceIn(-3, 3)
+            _bodyState.value = _bodyState.value.copy(
+                mood = (_bodyState.value.mood + moodBaseDelta).coerceIn(0, 100),
+                fatigueLevel = (_bodyState.value.fatigueLevel - fatigueBaseDelta).coerceIn(0, 100)
+            ).coerce()
+            // 低概率在叙事中带出住房感受（不评判，只陈述）
+            if (Math.random() < 0.04 && spaceQuality < 40) {
+                val feel = listOf(
+                    "房间里堆了些东西，找东西的时候有点费劲",
+                    "早上醒来看着熟悉的天花板，发了一会儿呆",
+                    "住处有点挤，但好歹是个能遮风挡雨的地方",
+                    "窗外的光线不太好，开了灯才亮起来"
+                ).random()
+                addEventLog(feel)
+            } else if (Math.random() < 0.04 && spaceQuality > 75) {
+                val feel = listOf(
+                    "阳光照进来，落在收拾好的桌面上",
+                    "房间里安安静静的，很自在",
+                    "这个住了一阵子的地方，慢慢有了生活的样子",
+                    "早上空气很好，深呼吸了一口"
+                ).random()
+                addEventLog(feel)
+            }
+        } catch (_: Exception) {}
+
         // 每日有 20% 概率触发爱好随机事件（系统自动）
         if (kotlin.random.Random.nextInt(100) < 20) {
             triggerHobbyRandomEvent()
@@ -3909,6 +5157,31 @@ class TownViewModel(
             triggerAgeLifeEvent()
         }
         executeTodayPlan()
+    }
+
+    /**
+     * 应用消费倾向带来的长期身心效果
+     * 你怎么花钱，身体就怎么慢慢反馈给你
+     */
+    private fun applyConsumptionLongTermEffect() {
+        val score = _consumptionScore.value
+        val effect = ConsumptionSystem.calculateLongTermEffect(score)
+        val body = _bodyState.value
+
+        // 更新健康和情绪（缓慢累积，不突变）
+        val newHealth = (body.healthScore + effect.healthDeltaPerDay).toInt().coerceIn(0, 100)
+        val newMood = (body.mood + effect.moodDeltaPerDay).toInt().coerceIn(0, 100)
+
+        _bodyState.value = body.copy(
+            healthScore = newHealth,
+            mood = newMood
+        )
+
+        // 当消费倾向持续偏向某一端时，偶尔给出一句温柔的看见（不评判，只陈述）
+        val narrative = ConsumptionSystem.getOrientationNarrative(score)
+        if (narrative != null && kotlin.random.Random.nextInt(100) < 15) {
+            addEventLog(narrative)
+        }
     }
 
     /** 是否允许手动操作（周日编辑模式或今日计划未执行） */
@@ -3934,12 +5207,12 @@ class TownViewModel(
     }
 
     /** 触发周简报 */
-    fun triggerWeeklyBrief() {
+    open fun triggerWeeklyBrief() {
         _showWeeklyBrief.value = true
     }
 
     /** 关闭周简报 */
-    fun dismissWeeklyBrief() {
+    open fun dismissWeeklyBrief() {
         _showWeeklyBrief.value = false
     }
 
@@ -3949,16 +5222,24 @@ class TownViewModel(
             val body = _bodyState.value
             val currentHour = gameHour.value
 
-            // 基础恢复值
-            var energyRecovery = 30.coerceAtMost(100 - body.energy)
-            var healthRecovery = 10.coerceAtMost(100 - body.healthScore)
-            var moodChange = 10.coerceAtMost(100 - body.mood) - body.mood
+            // 用HousingBusiness根据真实住房状态计算加成（休息恢复受居住环境影响）
+            val housingBonus = getHousingBonus()
+            val recoveryMultiplier = (1.0 + housingBonus.happinessBonus / 100.0 + housingBonus.productivityBonus / 200.0)
+                .coerceIn(0.5, 1.8)
+            val fatigueRecoveryBonus = (housingBonus.happinessBonus * 0.3).toInt().coerceIn(-10, 15)
+
+            // 基础恢复值（受住房倍率影响）
+            var energyRecovery = (30 * recoveryMultiplier).toInt().coerceAtMost(100 - body.energy)
+            var healthRecovery = (10 * recoveryMultiplier).toInt().coerceAtMost(100 - body.healthScore)
+            var moodChange = ((10 * recoveryMultiplier).toInt().coerceAtMost(100 - body.mood) - body.mood).coerceIn(-20, 20)
+            var fatigueReduction = (15 * recoveryMultiplier).toInt() + fatigueRecoveryBonus
 
             // 时段判断
             when {
                 // 深夜（23点后）休息：额外降低疲惫值
                 currentHour >= 23 || currentHour < 5 -> {
                     energyRecovery += 20  // 额外恢复
+                    fatigueReduction += 10
                     addEventLog(GentleTextProvider.describeRest("night"))
                 }
                 // 白天频繁休息（10-17点）：增加轻微空虚值
@@ -3975,6 +5256,7 @@ class TownViewModel(
                 energy = (body.energy + energyRecovery).coerceIn(0, 100),
                 healthScore = (body.healthScore + healthRecovery).coerceIn(0, 100),
                 mood = (body.mood + moodChange).coerceIn(0, 100),
+                fatigueLevel = (body.fatigueLevel - fatigueReduction).coerceIn(0, 100),
                 updateTime = System.currentTimeMillis()
             ).coerce()
 
@@ -4245,33 +5527,31 @@ class TownViewModel(
     /** 添加事件日志（去重 + 日限频，最多保留20条）
      *  v2.0 限频规则：工作日每天最多5条，周末每天最多15条，重大事件不受限
      */
-    private fun addEventLog(msg: String, isMajor: Boolean = false) {
+    protected fun addEventLog(msg: String, isMajor: Boolean = false): Boolean {
         val current = _eventLog.value.toMutableList()
-        // 不连续添加相同的日志
-        if (current.firstOrNull() == msg) return
+        if (current.firstOrNull() == msg) return false
 
-        // 日限频（非重大事件）
         if (!isMajor) {
             val dayOfWeek = (_gameDay.value % 7).let { if (it == 0) 7 else it }
             val isWeekend = dayOfWeek == 6 || dayOfWeek == 7
-            val maxDailyEvents = if (isWeekend) 15 else 5
+            val maxDailyEvents = if (isWeekend) 300 else 200
 
             if (_gameDay.value != _lastEventLogDay) {
                 _lastEventLogDay = _gameDay.value
                 _dailyEventCount = 0
             }
-            if (_dailyEventCount >= maxDailyEvents) return
+            if (_dailyEventCount >= maxDailyEvents) return false
         }
 
         current.add(0, msg)
-        if (current.size > 20) {
+        if (current.size > 500) {
             current.removeAt(current.size - 1)
         }
         _eventLog.value = current
         if (!isMajor) _dailyEventCount++
 
-        // 同时添加到本周事件列表
         addWeeklyEvent(msg)
+        return true
     }
 
     /** 品类对应的图标emoji */
@@ -4558,6 +5838,29 @@ class TownViewModel(
         7 -> 32.0; 8 -> 30.0; 9 -> 24.0; 10 -> 18.0; 11 -> 10.0; else -> 3.0
     }
 
+    /** 从当前UserSpaceState推导HousingStats并计算装修加成（HousingBusiness统一入口） */
+    private fun getHousingBonus(): HousingBusiness.DecorationBonus {
+        val space = _spaceState.value
+        val derivedStyle = when {
+            space.furnitureLevel >= 85 -> "适老化日式"
+            space.furnitureLevel >= 65 -> "日式极简"
+            space.furnitureLevel >= 45 -> "现代简约"
+            space.furnitureLevel >= 25 -> "北欧风"
+            space.cleanliness < 25 -> "杂物堆"
+            else -> "毛坯房"
+        }
+        val idleEst = ((100 - space.cleanliness) * 0.6).toInt().coerceIn(0, 60)
+        val stats = HousingStats(
+            livesInBasement = space.isDark && space.areaSqm < 12,
+            hasHouseLoan = space.hasDebt, hasCar = false,
+            commuteTime = space.commuteMinutesOneWay.toDouble(),
+            hasSunlight = !space.isDark, carCount = 0,
+            usesPublicTransport = space.commuteMinutesOneWay in 15..90,
+            decorationStyle = derivedStyle, idleItemsCount = idleEst
+        )
+        return HousingBusiness.calculateDecorationBonus(stats)
+    }
+
     /** 应用每日统计数据到身体/心理状态 */
     private fun applyDailyStats(stats: DailyStats) {
         val body = _bodyState.value
@@ -4773,7 +6076,7 @@ class TownViewModel(
     }
 
     /** 应用玩家对周事件的选择 */
-    fun applyWeekEventChoice(choice: WeekEventChoice) {
+    open fun applyWeekEventChoice(choice: WeekEventChoice) {
         val space = _spaceState.value
         val body = _bodyState.value
 
@@ -4799,13 +6102,82 @@ class TownViewModel(
         if (choice.socialScoreDelta != 0) {
             _weeklySocialScore.value = (_weeklySocialScore.value + choice.socialScoreDelta).coerceIn(0, 100)
         }
-        // 职业影响
+        // 职业影响：真正改变月薪而不是只打日志
         if (choice.careerImpact.isNotEmpty()) {
+            val curIncome = _spaceState.value.monthlyIncome
+            val newIncome = when {
+                choice.careerImpact.contains("薪资上调20%") -> curIncome * 1.2
+                choice.careerImpact.contains("薪资上调") -> {
+                    val percent = Regex("""上调(\d+)%""").find(choice.careerImpact)?.groupValues?.get(1)?.toIntOrNull() ?: 10
+                    curIncome * (1 + percent / 100.0)
+                }
+                choice.careerImpact.contains("失业") -> {
+                    _preUnemploymentIncome = curIncome.coerceAtLeast(3000.0)
+                    _unemployedWeeks = 0
+                    _weeksAtJob = 0
+                    0.0
+                }
+                choice.careerImpact.contains("降薪") -> curIncome * 0.8
+                else -> curIncome
+            }
+            if (newIncome != curIncome) {
+                _spaceState.value = _spaceState.value.copy(monthlyIncome = newIncome)
+                _unemployedWeeks = if (newIncome == 0.0) 0 else -1  // -1表示有工作
+            }
             addEventLog("职业变动：${choice.careerImpact}")
         }
 
         addEventLog(choice.description)
-        _pendingWeekEventChoices.value = null
+        closeWeekEventChoiceDialog()
+    }
+
+    /**
+     * AI自动选择周事件：根据角色当前状态/消费偏好/存款/性格做出选择
+     * 这是AI托管真正"体验人生"的关键——不只是弹对话框等玩家选，AI自己会做决策
+     */
+    private fun aiAutoResolveWeekChoices(choices: List<WeekEventChoice>) {
+        if (choices.isEmpty()) return
+        val body = _bodyState.value
+        val mental = _mentalState.value
+        val savings = _spaceState.value.currentSavings
+        val income = _spaceState.value.monthlyIncome
+        val consumption = _consumptionScore.value.overall
+
+        // 给每个选项打分，选得分最高的
+        val scored = choices.map { choice ->
+            var score = 0.0
+            // 经济理性：存款<1000时倾向省钱；存款>3倍月收入时愿意花钱
+            val savingsBuffer = savings / income.coerceAtLeast(1.0)
+            if (choice.savingsDelta < 0) {
+                score += if (savingsBuffer < 1.0) -20.0
+                else if (savingsBuffer < 2.0) -5.0
+                else if (savingsBuffer > 5.0) 5.0
+                else 0.0
+                // 消费观：consumption高的人愿意花钱
+                score += (consumption - 50) / 10.0
+            } else if (choice.savingsDelta > 0) {
+                score += if (savingsBuffer < 1.0) 15.0 else 3.0
+            }
+            // 健康：健康差时优先选补健康的
+            if (choice.healthDelta > 0) score += if (body.healthScore < 40) 20.0 else 5.0
+            if (choice.healthDelta < 0) score += if (body.healthScore < 40) -25.0 else -5.0
+            // 心情：心情差时优先选补心情的
+            if (choice.moodDelta > 0) score += if (body.mood < 30) 15.0 else 4.0
+            if (choice.moodDelta < 0) score += if (mental.anxiety > 70) -10.0 else -2.0
+            // 社交：孤独时优先选社交
+            if (choice.socialScoreDelta > 0) score += if (mental.loneliness > 60) 12.0 else 3.0
+            // 职业：看当前状态——健康差不拼升职，失业一定找工作
+            if (choice.careerImpact.contains("升职") || choice.careerImpact.contains("上调")) {
+                score += if (body.healthScore > 60 && body.fatigueLevel < 60) 8.0 else -8.0
+            }
+            if (choice.careerImpact.contains("失业")) score -= 50.0  // 尽量不选失业路径
+            // 加一点随机性，模拟"今天状态不一样"
+            score += (Math.random() - 0.5) * 6
+            choice to score
+        }
+        val chosen = scored.maxByOrNull { it.second }?.first ?: choices.first()
+        addEventLog("（${chosen.label}）")
+        applyWeekEventChoice(chosen)
     }
 
     // ============================================
@@ -5026,18 +6398,25 @@ class TownViewModel(
                 val summary = generateMundaneSummary()
                 _weeklyEventSummary.value = summary
                 addEventLog("本周平淡：$summary")
+                closeWeekEventChoiceDialog()
             }
             WeeklyEventTier.MEDIUM -> {
                 _consecutiveMundaneWeeks = 0
                 val event = generateMediumEvent()
                 if (event != null) {
                     _weeklyEventSummary.value = event.first
-                    _pendingWeekEventChoices.value = event.second
                     addEventLog("【生活琐事】${event.first}", isMajor = true)
+                    if (_autoLifeEnabled.value) {
+                        // AI托管：自动决策，不弹对话框，人生继续推进
+                        aiAutoResolveWeekChoices(event.second)
+                    } else {
+                        setPendingWeekEventChoices(event.second)
+                    }
                 } else {
                     //  fallback 到平淡
                     _weeklyEventSummary.value = generateMundaneSummary()
                     _consecutiveMundaneWeeks = 1
+                    closeWeekEventChoiceDialog()
                 }
             }
             WeeklyEventTier.MAJOR -> {
@@ -5045,18 +6424,27 @@ class TownViewModel(
                 val event = generateMajorEvent()
                 if (event != null) {
                     _weeklyEventSummary.value = event.first
-                    _pendingWeekEventChoices.value = event.second
                     addEventLog("【人生节点】${event.first}", isMajor = true)
+                    if (_autoLifeEnabled.value) {
+                        aiAutoResolveWeekChoices(event.second)
+                    } else {
+                        setPendingWeekEventChoices(event.second)
+                    }
                 } else {
                     // fallback 到中等
                     val medium = generateMediumEvent()
                     if (medium != null) {
                         _weeklyEventSummary.value = medium.first
-                        _pendingWeekEventChoices.value = medium.second
                         addEventLog("【生活琐事】${medium.first}", isMajor = true)
+                        if (_autoLifeEnabled.value) {
+                            aiAutoResolveWeekChoices(medium.second)
+                        } else {
+                            setPendingWeekEventChoices(medium.second)
+                        }
                     } else {
                         _weeklyEventSummary.value = generateMundaneSummary()
                         _consecutiveMundaneWeeks = 1
+                        closeWeekEventChoiceDialog()
                     }
                 }
             }
@@ -5066,6 +6454,231 @@ class TownViewModel(
         if (weeklyStats.summary.isNotEmpty()) {
             addEventLog("周末总结：${weeklyStats.summary}", isMajor = true)
         }
+
+        // ====== 真实行为驱动的人生轨迹推进 ======
+        // 本周做了什么，真的会累积成下周的状态——这才是"体验人生"
+        val body = _bodyState.value
+        val mental = _mentalState.value
+        val space = _spaceState.value
+        var d_health = 0; var d_fatigue = 0; var d_energy = 0
+        var d_nutrition = 0; var d_gastro = 0; var d_comfort = 0
+        var d_skin = 0; var d_toxin = 0.0
+        var d_anxiety = 0; var d_happiness = 0; var d_loneliness = 0
+        var d_income = 0.0
+        val lifeNotes = mutableListOf<String>()
+
+        // --- 失业/就业逻辑 ---
+        if (space.monthlyIncome <= 0) {
+            _unemployedWeeks++
+            d_anxiety += 2
+            d_happiness -= 2
+            d_fatigue -= 1  // 不上班反而不那么累
+            // 投简历找工作：2-8周不等，状态好/社交多/存款少时更快找到
+            val jobSearchBase = 2 + (Math.random() * 6).toInt()
+            val jobSearchModifier = when {
+                body.healthScore > 70 -> -1
+                _weekSocialContacts >= 2 -> -1
+                space.currentSavings < space.monthlyIncome.coerceAtLeast(3000.0) -> -1  // 存款紧迫更积极
+                mental.loneliness > 60 -> 1  // 意志消沉找得慢
+                mental.anxiety > 70 -> 1
+                else -> 0
+            }
+            val findJobWeek = (jobSearchBase + jobSearchModifier).coerceIn(2, 10)
+            if (_unemployedWeeks >= findJobWeek) {
+                val newIncome = (_preUnemploymentIncome * (0.7 + Math.random() * 0.5)).coerceAtLeast(3000.0)
+                d_income = newIncome - space.monthlyIncome
+                lifeNotes.add("投了一段时间简历，终于找到了新工作，月薪${newIncome}元。")
+                _unemployedWeeks = 0
+                _weeksAtJob = 0
+            } else if (_unemployedWeeks == 1) {
+                lifeNotes.add("开始投简历找工作，心里有点慌。")
+            } else if (_unemployedWeeks == 3) {
+                lifeNotes.add("找工作已经几周了，面试了几家，还在等消息。")
+            }
+        } else {
+            _unemployedWeeks = -1  // 有工作
+            _weeksAtJob++
+        }
+
+        // --- 加班轨迹：连续加班周数影响健康与心情 ---
+        if (_weekOvertimeDays >= 3) {
+            _consecutiveOvertimeWeeks++
+            d_health -= (_consecutiveOvertimeWeeks * 2).coerceAtMost(10)
+            d_fatigue += (_consecutiveOvertimeWeeks * 4).coerceAtMost(15)
+            d_energy -= 3
+            d_anxiety += 1
+            d_toxin += 0.5
+            // 累积加班时长到身体总加班小时（FatigueBusiness长期损伤评估依赖此字段）
+            _bodyState.value = _bodyState.value.copy(
+                totalOvertimeHours = _bodyState.value.totalOvertimeHours + _weekOvertimeDays * 2.5
+            )
+            if (_consecutiveOvertimeWeeks >= 3) {
+                lifeNotes.add("连续${_consecutiveOvertimeWeeks}周加班，身体开始发出信号——肩颈发紧，睡得也浅了。")
+            }
+        } else {
+            _consecutiveOvertimeWeeks = 0
+        }
+
+        // --- FatigueBusiness：长期加班/高龄+高疲劳 → 慢性病信号 ---
+        val chronicDamages = FatigueBusiness.assessLongTermDamage(_bodyState.value, _playerAge.value)
+        for (damage in chronicDamages) {
+            if (!_knownChronicConditions.contains(damage)) {
+                _knownChronicConditions.add(damage)
+                d_health -= 5
+                lifeNotes.add("体检报告提示：$damage。身体在替你记住那些熬过来的夜。")
+            }
+        }
+
+        // --- 晋升：入职8周以上、本周工作5天以上、无连续加班倦怠 → 薪资小涨 ---
+        if (_weeksAtJob >= 8 && _weekWorkDays >= 5 && _weekOvertimeDays <= 2 && _consecutiveOvertimeWeeks < 2) {
+            if (Math.random() < 0.2) {
+                val raise = (space.monthlyIncome * 0.05).coerceAtLeast(200.0)
+                d_income += raise
+                lifeNotes.add("工作了一段时间，能力被看到了——月薪涨了${raise.toInt()}元。")
+                _weeksAtJob = 0
+            }
+        }
+
+        // --- 饮食轨迹：连续不健康饮食周影响营养与健康 ---
+        if (_weekJunkFoodDays >= 4 && _weekGoodFoodDays <= 1) {
+            _consecutiveBadDietWeeks++
+            d_nutrition -= (_consecutiveBadDietWeeks * 3).coerceAtMost(12)
+            d_gastro += (_consecutiveBadDietWeeks * 4).coerceAtMost(15)
+            d_skin -= 2
+            if (_consecutiveBadDietWeeks >= 3) d_health -= 3
+            if (_consecutiveBadDietWeeks >= 2) {
+                lifeNotes.add("连着几周吃得随便，肠胃有点不舒服，脸上也冒了颗痘。")
+            }
+        } else if (_weekGoodFoodDays >= 4 && _weekJunkFoodDays <= 1) {
+            _consecutiveBadDietWeeks = 0
+            d_nutrition += 4
+            d_gastro -= 4
+            d_comfort += 3
+            d_skin += 2
+            if (_consecutiveGoodRestWeeks >= 2) {
+                lifeNotes.add("这段时间吃得规律，身体感觉轻快了一些。")
+            }
+        } else {
+            _consecutiveBadDietWeeks = 0
+        }
+
+        // --- 睡眠轨迹：持续熬夜 → 疲劳累积/皮肤变差；持续好睡眠 → 精力恢复 ---
+        if (_weekLateNights >= 4) {
+            _consecutiveGoodRestWeeks = 0
+            d_energy -= 4
+            d_fatigue += 5
+            d_skin -= 3
+            d_toxin += 0.5
+            d_anxiety += 2
+            if (_weekLateNights >= 5) {
+                lifeNotes.add("这周睡得太晚，白天有点昏昏沉沉的。")
+            }
+        } else if (_weekGoodSleepDays >= 4) {
+            _consecutiveGoodRestWeeks++
+            d_energy += 3
+            d_fatigue -= 6
+            d_skin += 2
+            d_anxiety -= 2
+            d_happiness += 2
+            if (_consecutiveGoodRestWeeks >= 2) {
+                lifeNotes.add("作息慢慢规律了，醒来的时候没那么累。")
+            }
+        }
+
+        // --- 社交轨迹：连续无社交 → 孤独累积；有熟人缓冲孤独感 ---
+        // 熟人关系：至少有1个熟悉度>=50的人，即使社交不多也不太孤独
+        val closeAcquaintances = _acquaintanceFamiliarity.count { it.value >= 50 }
+        val anyFamiliarFace = closeAcquaintances > 0
+        if (_weekSocialContacts <= 1) {
+            _consecutiveLonelyWeeks++
+            // 有熟人时孤独累积减半——楼下卖菜阿姨、隔壁邻居，即使没深交也是一种陪伴
+            val lonelinessGain = if (anyFamiliarFace)
+                (_consecutiveLonelyWeeks * 3).coerceAtMost(15) / 2
+            else
+                (_consecutiveLonelyWeeks * 3).coerceAtMost(15)
+            d_loneliness += lonelinessGain
+            if (_consecutiveLonelyWeeks >= 2 && !anyFamiliarFace) {
+                lifeNotes.add("这周没怎么和人说话，一个人吃饭的时候有点安静。")
+            } else if (_consecutiveLonelyWeeks >= 3 && anyFamiliarFace) {
+                lifeNotes.add("这周说的话不多，但买菜时阿姨多给了你一把葱，还是有点暖的。")
+            }
+        } else {
+            _consecutiveLonelyWeeks = 0
+            if (_weekSocialContacts >= 5 || closeAcquaintances >= 2) {
+                d_loneliness -= 5
+                d_happiness += 2
+            }
+            // 关系里程碑：有熟人变朋友时（熟悉度刚到75以上）
+            val newFriends = _acquaintanceFamiliarity.count { it.value >= 75 }
+            if (newFriends > 0 && Math.random() < 0.15) {
+                d_loneliness -= 3
+                d_happiness += 3
+            }
+        }
+
+        // --- 休闲/恢复：有休闲的周末 → 疲劳清除 ---
+        if (_weekLeisureDays >= 3) {
+            d_fatigue -= 8
+            d_happiness += 2
+            d_anxiety -= 2
+        }
+
+        // 应用所有长期轨迹变化
+        _bodyState.value = body.copy(
+            healthScore = (body.healthScore + d_health).coerceIn(0, 100),
+            fatigueLevel = (body.fatigueLevel + d_fatigue).coerceIn(0, 100),
+            energy = (body.energy + d_energy).coerceIn(0, 100),
+            nutritionBalance = (body.nutritionBalance + d_nutrition).coerceIn(0, 100),
+            gastroBurden = (body.gastroBurden + d_gastro).coerceIn(0, 100),
+            skinStatus = (body.skinStatus + d_skin).coerceIn(0, 100),
+            comfortLevel = (body.comfortLevel + d_comfort).coerceIn(0, 100),
+            toxinLevel = (body.toxinLevel + d_toxin).coerceIn(0.0, 100.0)
+        ).coerce()
+        _mentalState.value = mental.copy(
+            anxiety = (mental.anxiety + d_anxiety).coerceIn(0, 100),
+            happiness = (mental.happiness + d_happiness).coerceIn(0, 100),
+            loneliness = (mental.loneliness + d_loneliness).coerceIn(0, 100)
+        ).coerce()
+        if (d_income != 0.0) {
+            _spaceState.value = space.copy(
+                monthlyIncome = (space.monthlyIncome + d_income).coerceAtLeast(0.0)
+            )
+        }
+        // --- 生活档位自动调整：根据收入/存款决定简朴/普通/宽裕 ---
+        val finalIncome = _spaceState.value.monthlyIncome
+        val finalSavings = _spaceState.value.currentSavings
+        val appropriateTier = when {
+            finalIncome <= 0 -> AutoLifeTier.SIMPLE  // 失业立刻简朴
+            finalIncome >= 20000 && finalSavings >= finalIncome * 3 -> AutoLifeTier.COMFORTABLE
+            finalIncome >= 12000 && finalSavings >= finalIncome -> AutoLifeTier.COMFORTABLE
+            finalIncome < 5000 && finalSavings < finalIncome * 2 -> AutoLifeTier.SIMPLE
+            else -> AutoLifeTier.NORMAL
+        }
+        if (appropriateTier != _autoLifeTier.value) {
+            val oldTier = _autoLifeTier.value
+            _autoLifeTier.value = appropriateTier
+            val tierNote = when {
+                oldTier != AutoLifeTier.COMFORTABLE && appropriateTier == AutoLifeTier.COMFORTABLE ->
+                    "手头宽裕了些，伙食和日常开销也跟着好了一点。"
+                oldTier != AutoLifeTier.SIMPLE && appropriateTier == AutoLifeTier.SIMPLE ->
+                    "日子紧了些，开始精打细算过日子。"
+                else -> null
+            }
+            if (tierNote != null) addEventLog(tierNote, isMajor = true)
+        }
+        // 输出人生轨迹叙事（不评判，只陈述事实）
+        lifeNotes.forEach { addEventLog(it, isMajor = true) }
+
+        // ====== 重置本周累积器，准备下一周 ======
+        _weekOvertimeDays = 0
+        _weekJunkFoodDays = 0
+        _weekGoodFoodDays = 0
+        _weekLateNights = 0
+        _weekGoodSleepDays = 0
+        _weekSocialContacts = 0
+        _weekLeisureDays = 0
+        _weekWorkDays = 0
+        _weekTotalWorkHours = 0.0
         
         // 更新周统计数据用于周简报
         _weeklyStats.value = weeklyStats
@@ -5115,6 +6728,20 @@ class TownViewModel(
 
         _lastMonthlyStats.value = monthlyStats
         _monthlyWeeklyStats.clear()
+
+        // 应用月度财务结算：净收入（工资-房租-水电-食物-消费）真正加到储蓄
+        var newSavings = monthlyStats.currentSavings
+        var newMonthlyIncome = _spaceState.value.monthlyIncome
+        monthlyStats.majorEvents.forEach { event ->
+            newSavings = (newSavings + event.impact.savingsDelta).coerceAtLeast(0.0)
+            if (event.impact.incomeDelta != 0.0) {
+                newMonthlyIncome = (newMonthlyIncome + event.impact.incomeDelta).coerceAtLeast(0.0)
+            }
+        }
+        _spaceState.value = _spaceState.value.copy(
+            currentSavings = newSavings,
+            monthlyIncome = newMonthlyIncome
+        )
 
         // 更新纪念馆：月度收支
         _memorialMoneyDelta.value += (monthlyStats.netBalance)
@@ -8580,11 +10207,11 @@ class TownViewModel(
         addEventLog(GentleTextProvider.describeDrugUse(effect))
 
         // 触发宠物反馈
-        _petDialogue.value = PetManager.getDrugReply(
+        setPetDialogue(PetManager.getDrugReply(
             drugName = ingredient.label,
             category = ingredient.category.label,
             sideEffectTriggered = effect.sideEffectTriggered
-        )
+        ))
 
         return effect
     }
@@ -9386,6 +11013,23 @@ class TownViewModel(
         _autoLifeEnabled.value = !_autoLifeEnabled.value
         val state = if (_autoLifeEnabled.value) "开启" else "关闭"
         addEventLog("自动生活模式已${state}——工作日将自动处理基础生活开销")
+    }
+
+    /** 当前时间模式（速通/精细） */
+    val tickMode: StateFlow<TimeTickEngine.TickMode> = TimeTickEngine.currentMode
+
+    /** 切换时间模式：速通（自动变速30分钟走完一生）/ 精细（匀速慢节奏） */
+    fun toggleTickMode() {
+        val newMode = when (TimeTickEngine.currentMode.value) {
+            TimeTickEngine.TickMode.AUTO -> TimeTickEngine.TickMode.MANUAL
+            TimeTickEngine.TickMode.MANUAL -> TimeTickEngine.TickMode.AUTO
+        }
+        TimeTickEngine.setMode(newMode)
+        val modeName = when (newMode) {
+            TimeTickEngine.TickMode.AUTO -> "速通模式"
+            TimeTickEngine.TickMode.MANUAL -> "精细模式"
+        }
+        addEventLog("已切换至${modeName}——${if (newMode == TimeTickEngine.TickMode.AUTO) "约30分钟走完一生" else "慢节奏细看文字"}")
     }
 
     // ============================================
