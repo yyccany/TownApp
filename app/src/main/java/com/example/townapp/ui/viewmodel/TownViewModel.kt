@@ -2935,6 +2935,10 @@ open class TownViewModel(
     private var _dayWorkHours = 0.0
     private var _daySocialContacts = 0
     private var _daySleptBefore23: Boolean? = null  // null=未睡，true=23点前睡好，false=23点后才睡/没睡
+    private var _dayIncome = 0.0     // 当日工作收入
+    private var _dayFoodSpent = 0.0  // 当日餐饮花费
+    private var _dayGoodMeals = 0    // 当日吃了几顿正经饭
+    private var _dayJunkMeals = 0    // 当日几顿垃圾食品
 
     /** 疲劳事件冷却（避免重复记录） */
     private var _lastFatigueEventDay = 0
@@ -3049,6 +3053,31 @@ open class TownViewModel(
                 false -> _weekLateNights++
                 null -> _weekLateNights++  // 整夜没休息也算熬夜
             }
+
+            // === 生成昨日小结（必须在重置之前）：把真实数据编织成一句话 ===
+            val yesterdayIncome = _dayIncome.toInt()
+            val yesterdayFood = _dayFoodSpent.toInt()
+            val yesterdayWorkH = _dayWorkHours.toInt()
+            val totalMeals = _dayGoodMeals + _dayJunkMeals
+            val savings = _spaceState.value.currentSavings.toInt()
+            if (_gameDay.value > 1) {
+                val summary = buildString {
+                    if (yesterdayWorkH > 0) {
+                        append("昨天工作${yesterdayWorkH}小时")
+                        if (yesterdayIncome > 0) append("，挣了¥$yesterdayIncome")
+                    } else {
+                        append("昨天没有工作")
+                    }
+                    if (totalMeals > 0) {
+                        append("，吃饭花了¥$yesterdayFood")
+                        if (_dayGoodMeals >= 2 && _dayJunkMeals == 0) append("（吃得还挺规律）")
+                        else if (_dayJunkMeals >= 2) append("（随便对付了几顿）")
+                    }
+                    append("。存款余额 ¥$savings。")
+                }
+                addEventLog(summary, isMajor = true)
+            }
+
             // 重置当日标志
             _dayDidOvertime = false
             _dayDidJunkFood = false
@@ -3058,6 +3087,10 @@ open class TownViewModel(
             _dayWorkHours = 0.0
             _daySocialContacts = 0
             _daySleptBefore23 = null
+            _dayIncome = 0.0
+            _dayFoodSpent = 0.0
+            _dayGoodMeals = 0
+            _dayJunkMeals = 0
 
             _todayPlanExecuted.value = false
             onNewDayStart()
@@ -3347,6 +3380,7 @@ open class TownViewModel(
                     _spaceState.value = _spaceState.value.copy(
                         currentSavings = _spaceState.value.currentSavings + earnedIncome
                     )
+                    _dayIncome += earnedIncome
                 }
                 behaviorLog.add(if (isOvertimeHour) "work_overtime" else "work_regular")
                 // 摸鱼的叙事
@@ -3383,7 +3417,11 @@ open class TownViewModel(
                     behaviorDidEat = true
                     behaviorMealType = when (hour) { 7 -> "breakfast"; 12 -> "lunch"; else -> "dinner" }
                     ateFoodCost = beforeSavings - _spaceState.value.currentSavings
-                    when (fq) { -1 -> _dayDidJunkFood = true; 1 -> _dayDidGoodFood = true }
+                    _dayFoodSpent += ateFoodCost
+                    when (fq) {
+                        -1 -> { _dayDidJunkFood = true; _dayJunkMeals++ }
+                        1 -> { _dayDidGoodFood = true; _dayGoodMeals++ }
+                    }
                     behaviorLog.add(if (hour == 7) "eat_breakfast" else if (hour == 12) "eat_lunch" else "eat_dinner")
                     // 慰劳性进食叙事（低心情+吃了好食物时偶尔表达）
                     if (comfortEatingBias > 0 && fq >= 0 && Math.random() < 0.15) {
@@ -3592,9 +3630,11 @@ open class TownViewModel(
         tickResearchProgress(1)
 
         // ============================================
-        // 7. 随机事件分发（V2.0 概率调优）
+        // 7. 随机事件分发（词条模式下低频触发，只做点缀）
         // ============================================
-        dispatchRandomEvents(result.newState.hour)
+        if (Math.random() < 0.08) {
+            dispatchRandomEvents(result.newState.hour)
+        }
     }
 
     /**
@@ -3675,11 +3715,9 @@ open class TownViewModel(
         val scenarioPools = NarrativePacingConfig.getScenarioPools(age, timeOfDay, isTired, isAnxious, healthLow)
         val multiplier = hoursAdvanced.coerceAtLeast(1)
 
-        // 行为驱动优先：有行为发生时大幅降低轮询数量，避免把精准的行为叙事淹没
+        // 行为驱动优先：词条模式下，没有行为发生也最多只出1条状态/环境叙事，不发洪水
         val hasBehavior = didWork || didEat || didLeisure || didRest || didCommute
-        val forcedSystemCount = (if (hasBehavior) 0 else NarrativePacingConfig.getForcedSystemCountPerTick(age)) * multiplier
-        val sceneTargetCount = (if (hasBehavior) 0 else NarrativePacingConfig.getSceneContentCount(age)) * multiplier
-        val bonusCount = 0
+        val maxEntriesThisTick = if (hasBehavior) 2 else 1
 
         var added = 0
 
@@ -3720,426 +3758,49 @@ open class TownViewModel(
         if (hour in 6..7 && !didWork && !didEat) {
             if (Math.random() < 0.3) behaviorTypes.add(GameText.SYS_CORE_LIFE)
         }
-        // 有行为时：优先从精准MD池抽1-2条（不再让轮询覆盖行为叙事）
-        for (bType in behaviorTypes.take(2)) {
-            if (added >= 2) break
-            if (tryAddByType(bType, 2)) added++
+        // 有行为时：从精准MD池抽1条（词条模式：1件事=1条，不堆砌）
+        for (bType in behaviorTypes.take(1)) {
+            if (added >= maxEntriesThisTick) break
+            if (tryAddByType(bType, 1)) added++
         }
+        if (added >= maxEntriesThisTick) return
 
         // ============================================
-        // 第一阶段：状态驱动真实生活事件（StateDrivenEventEngine - 15种身心状态触发的真实生活片段）
-        // 设计原则：只呈现事实，不评判，不惩罚；符合"不操作也不会死"的自动兜底
+        // 状态驱动：只有身体/心理真的到了警戒线才说话，不做无病呻吟
+        // （词条模式：没行为的小时最多只允许1条状态/环境条目冒头）
         // ============================================
-        if (Math.random() < 0.08) {
-            try {
-                val space = _spaceState.value
-                val triggeredEvents = StateDrivenEventEngine.evaluateTriggers(body, space, mental, mental.daysInNegativeState)
-                val topEvent = StateDrivenEventEngine.pickTopEvent(triggeredEvents)
-                if (topEvent != null) {
-                    val severity = topEvent.severity
-                    val triggerChance = when (severity) {
-                        EventSeverity.CRITICAL -> 0.3
-                        EventSeverity.HIGH -> 0.25
-                        EventSeverity.MODERATE -> 0.2
-                        EventSeverity.LOW -> 0.15
-                        else -> 0.2
+        if (added < maxEntriesThisTick) {
+            // 高优先级：严重身体/心理警报（疲劳>80 或 焦虑>75）
+            if (body.fatigueLevel > 80 && Math.random() < 0.25) {
+                try {
+                    val impact = FatigueBusiness.calculateBodyImpact(body)
+                    if (impact.systolicSymptoms.isNotEmpty()) {
+                        val s = impact.systolicSymptoms.random()
+                        tryAdd(listOf("你感觉$s。身体在说，该歇了。", "$s，再撑下去要出事。", "最近一直$s，你有多久没好好睡一觉了？").random())
                     }
-                    if (Math.random() < triggerChance) {
-                        tryAdd(topEvent.description)
-                        added++
-
-                        if (topEvent.immediateCostYuan > 0) {
-                            val gentleCost = (topEvent.immediateCostYuan * 0.3).coerceAtMost(_spaceState.value.currentSavings * 0.1)
-                            if (gentleCost > 0) {
-                                _spaceState.value = _spaceState.value.copy(
-                                    currentSavings = (_spaceState.value.currentSavings - gentleCost).coerceAtLeast(0.0)
-                                )
-                            }
-                        }
-                    }
-                }
-            } catch (_: Exception) {}
-        }
-
-        if (body.fatigueLevel > 60 && Math.random() < 0.12) {
-            try {
-                val impact = FatigueBusiness.calculateBodyImpact(body)
-                if (impact.systolicSymptoms.isNotEmpty()) {
-                    val symptom = impact.systolicSymptoms.random()
-                    val fatigueNarratives = listOf(
-                        "你感觉$symptom。",
-                        "$symptom，身体在提醒你该歇一歇了。",
-                        "最近有点$symptom，是累了吧。",
-                        "$symptom。没关系，慢慢来。"
-                    )
-                    tryAdd(fatigueNarratives.random())
-                }
-            } catch (_: Exception) {}
-        }
-
-        if (Math.random() < 0.05) {
-            try {
-                val allGameEvents = GameEventGenerator.getAllEvents()
-                val candidateEvents = when {
-                    timeOfDay == NarrativePacingConfig.TimeOfDay.WORK_TIME && mental.anxiety < 40 -> allGameEvents.filter {
-                        it.type == com.example.townapp.data.gameevent.EventType.WORKPLACE
-                    }
-                    _spaceState.value.currentSavings < _spaceState.value.monthlyRent * 2 -> allGameEvents.filter {
-                        it.type == com.example.townapp.data.gameevent.EventType.ECONOMIC_DISPUTE
-                    }
-                    mental.loneliness > 60 -> allGameEvents.filter {
-                        it.type == com.example.townapp.data.gameevent.EventType.SOCIAL_CONFLICT
-                    }
-                    age > 40 && Math.random() < 0.3 -> allGameEvents.filter {
-                        it.type == com.example.townapp.data.gameevent.EventType.POLICY_CHANGE
-                    }
-                    else -> allGameEvents
-                }
-                if (candidateEvents.isNotEmpty()) {
-                    val selectedEvent = candidateEvents.random()
-                    val selectedChoice = selectedEvent.choices.random()
-                    val eventNarrative = "${selectedEvent.description}${selectedChoice.consequence}"
-                    tryAdd(eventNarrative)
-                    added++
-
-                    if (selectedChoice.moneyChange < 0) {
-                        val gentleCost = (-selectedChoice.moneyChange).toDouble().coerceAtMost(_spaceState.value.currentSavings * 0.08)
-                        if (gentleCost > 0) {
-                            _spaceState.value = _spaceState.value.copy(
-                                currentSavings = (_spaceState.value.currentSavings - gentleCost).coerceAtLeast(0.0)
-                            )
-                        }
-                    } else if (selectedChoice.moneyChange > 0) {
-                        val gentleGain = selectedChoice.moneyChange.toDouble() * 0.5
-                        _spaceState.value = _spaceState.value.copy(
-                            currentSavings = _spaceState.value.currentSavings + gentleGain
-                        )
-                    }
-                }
-            } catch (_: Exception) {}
-        }
-
-        // ============================================
-        // 第一阶段：14个业务系统强制轮询（保证所有系统文档高频使用，零闲置）
-        // ============================================
-        var forcedAdded = 0
-        val totalSystems = allSystems.size
-        repeat(forcedSystemCount) {
-            if (forcedAdded >= forcedSystemCount) return@repeat
-            var attempts = 0
-            while (attempts < totalSystems) {
-                val sysIdx = (systemRoundRobinIdx + attempts) % totalSystems
-                val sys = allSystems[sysIdx]
-                if (tryAddByType(sys, 2)) {
-                    systemRoundRobinIdx = (sysIdx + 1) % totalSystems
-                    forcedAdded++
-                    added++
-                    break
-                }
-                attempts++
+                } catch (_: Exception) {}
             }
-            if (attempts >= totalSystems) {
-                systemRoundRobinIdx = (systemRoundRobinIdx + 1) % totalSystems
+            if (added < maxEntriesThisTick && mental.anxiety > 75 && Math.random() < 0.2) {
+                tryAdd(listOf("心里有点发慌，好像有什么事没做完，但想不起来是什么。", "胸口闷闷的，深呼吸了几次还是没缓过来。", "莫名的焦躁，你拿起手机又放下，放下又拿起来。").random())
             }
         }
 
         // ============================================
-        // 第二阶段：场景权重池抽取（按年龄+时段+状态智能匹配，使用权重）
+        // 强制轮询/场景池/彩蛋池/NPC/随机游戏事件：全部关闭
+        // 词条模式下，这些是噪音，不展现真实生活
         // ============================================
-        val combinedWeights = mutableMapOf<String, Int>()
-        scenarioPools.weights.forEach { (k, v) -> combinedWeights[k] = v }
 
-        var sceneAdded = 0
-        val allSources = scenarioPools.systemIds + scenarioPools.sceneTypes
-        var sceneAttempts = 0
-        while (sceneAdded < sceneTargetCount && sceneAttempts < sceneTargetCount * 3) {
-            val selected = weightedRandomSelect(combinedWeights) ?: allSources.shuffled().firstOrNull()
-            if (selected != null && tryAddByType(selected, 2)) {
-                sceneAdded++
-                added++
-                combinedWeights[selected] = (combinedWeights[selected] ?: 1) / 2
+        // 词条模式：环境点缀——宠物晚间偶尔出现（<6%概率），其他随机MD/成语卡/语录/微事件全部关闭
+        if (added < maxEntriesThisTick) {
+            if (hour in 20..22 && Math.random() < 0.06) {
+                val petSayings = listOf(
+                    "「小东西」趴在你脚边打了个哈欠，懒洋洋地看了你一眼。",
+                    "「小东西」蹭了蹭你的脚踝，好像在说「我在呢」。",
+                    "「小东西」安安静静地窝在旁边，你不说话，它也不说话。",
+                    "「小东西」抬头看了你一眼，又把脑袋埋回爪子里，陪着你。"
+                )
+                tryAdd(petSayings.random())
             }
-            sceneAttempts++
-        }
-
-        // ============================================
-        // 第三阶段：彩蛋池（RARE_SCENE_SOURCES 稀有源稳定出场）
-        // ============================================
-        val rareSources = NarrativePacingConfig.RARE_SCENE_SOURCES.shuffled()
-        var bonusAdded = 0
-        for (src in rareSources) {
-            if (bonusAdded >= bonusCount) break
-            if (tryAddByType(src, 2)) bonusAdded++
-        }
-
-        // NPC对话：已改为行为触发的熟人系统（工作/买菜/休闲时真实遇到），此处不再随机抽MD文案
-        // 保留极低概率（2%）的NPC季节对话作为远处飘来的闲谈/环境音
-        if (Math.random() < 0.02) {
-            val dialog = GameText.randomNpcSeasonDialog(season = season, scoreOverall = scoreOverall)
-            if (dialog.isNotBlank()) tryAdd("（" + dialog.take(60) + "）")
-        }
-
-        val currentSeason = when (currentMonth) {
-            in 3..5 -> Season.SPRING
-            in 6..8 -> Season.SUMMER
-            in 9..11 -> Season.AUTUMN
-            else -> Season.WINTER
-        }
-        val weather = _weatherState.value
-        val savings = _spaceState.value.currentSavings
-        val monthlyIncome = _spaceState.value.monthlyIncome
-
-        val leisureProb = when (timeOfDay) {
-            NarrativePacingConfig.TimeOfDay.FREE_TIME -> 0.12
-            NarrativePacingConfig.TimeOfDay.MEAL_TIME -> 0.05
-            else -> 0.0
-        }
-        if (Math.random() < leisureProb) {
-            try {
-                val leisureCategory = when {
-                    isWeekend -> LeisureCategory.WEEKEND
-                    hour in 19..23 -> LeisureCategory.WEEKDAY_EVENING
-                    else -> LeisureCategory.WEEKDAY_EVENING
-                }
-                val leisureResult = LeisureManager.selectLeisure(
-                    category = leisureCategory, weather = weather, season = currentSeason,
-                    age = age, fatigue = body.fatigueLevel, savings = savings, monthlyIncome = monthlyIncome
-                )
-                if (leisureResult != null) {
-                    val text = if (leisureResult.event.description.isNotBlank()) {
-                        "${leisureResult.reason}。${leisureResult.event.description}"
-                    } else {
-                        leisureResult.reason
-                    }
-                    tryAdd(text)
-                }
-            } catch (_: Exception) {}
-        }
-
-        if (isWeekend && timeOfDay == NarrativePacingConfig.TimeOfDay.FREE_TIME && Math.random() < 0.06) {
-            try {
-                val publicEventResult = PublicEventScheduler.checkAndTrigger(
-                    month = currentMonth, year = _currentYear.value, weather = weather,
-                    age = age, fatigue = body.fatigueLevel, savings = savings, monthlyIncome = monthlyIncome
-                )
-                if (publicEventResult != null) {
-                    val text = if (publicEventResult.event.description.isNotBlank()) {
-                        "${publicEventResult.reason}。${publicEventResult.event.description}"
-                    } else {
-                        publicEventResult.reason
-                    }
-                    tryAdd(text)
-                }
-            } catch (_: Exception) {}
-        }
-
-        if (Math.random() < 0.05) {
-            try {
-                val narrative = ConsumptionSystem.getOrientationNarrative(_consumptionScore.value)
-                if (!narrative.isNullOrBlank()) tryAdd(narrative)
-            } catch (_: Exception) {}
-        }
-
-        if (Math.random() < 0.04) {
-            try {
-                val result = listOfNotNull(
-                    IdiomCritiqueManager.triggerIdiomEvent(),
-                    IdiomCritiqueManager.triggerSpotlightEvent(),
-                    IdiomCritiqueManager.triggerCompanionEvent()
-                ).randomOrNull()
-                if (result != null) {
-                    val text = result.eventText.removePrefix("微事件: ").removePrefix("成语: ")
-                        .removePrefix("陪伴: ").removePrefix("闪光点: ")
-                        .removePrefix("认知剖析: ").removePrefix("认知卡片: ")
-                        .removePrefix("模拟场景: ")
-                    tryAdd(text)
-                }
-            } catch (_: Exception) {}
-        }
-
-        if (Math.random() < 0.06 && timeOfDay == NarrativePacingConfig.TimeOfDay.FREE_TIME) {
-            try {
-                val item = AestheticBusiness.aestheticLibrary.random()
-                val observationTemplates = listOf(
-                    "你看着手边的${item.name}，${item.description}。",
-                    "${item.name}。${item.description}。",
-                    "目光落在${item.name}上，${item.description}。",
-                    "你突然注意到${item.name}——${item.description}。"
-                )
-                tryAdd(observationTemplates.random())
-            } catch (_: Exception) {}
-        }
-
-        if (hour in 19..22 && Math.random() < 0.08) {
-            val petSayings = listOf(
-                "「小东西」趴在你脚边打了个哈欠，懒洋洋地看了你一眼。",
-                "「小东西」蹭了蹭你的脚踝，好像在说「我在呢」。",
-                "「小东西」安安静静地窝在旁边，你不说话，它也不说话。",
-                "「小东西」抬头看了你一眼，又把脑袋埋回爪子里，陪着你。",
-                "「小东西」在你旁边翻了个身，露出肚子。它信你。"
-            )
-            tryAdd(petSayings.random())
-        }
-
-        if (Math.random() < 0.1) {
-            try {
-                val allEvents = MicroEventQuotes.getAllEvents()
-                val weatherKeyword = when (_weatherState.value) {
-                    com.example.townapp.data.model.WeatherState.SUNNY -> "晴天"
-                    com.example.townapp.data.model.WeatherState.CLOUDY,
-                    com.example.townapp.data.model.WeatherState.OVERCAST -> "阴天"
-                    com.example.townapp.data.model.WeatherState.RAINY,
-                    com.example.townapp.data.model.WeatherState.STORM -> "下雨"
-                    else -> ""
-                }
-
-                val candidateEvents = when {
-                    body.fatigueLevel > 65 -> allEvents.filter {
-                        it.type == MicroEventType.BODY && (it.triggerCondition.contains("困") || it.triggerCondition.contains("哈欠") || it.triggerCondition.contains("眼睛") || it.triggerCondition.contains("头发"))
-                    }
-                    mental.anxiety > 55 -> allEvents.filter {
-                        it.type == MicroEventType.MOOD && (it.triggerCondition.contains("难过") || it.triggerCondition.contains("心情不好"))
-                    }
-                    mental.happiness < 40 -> allEvents.filter {
-                        it.type == MicroEventType.MOOD && (it.triggerCondition.contains("无聊") || it.triggerCondition.contains("陪伴") || it.triggerCondition.contains("发呆"))
-                    }
-                    mental.happiness > 70 -> allEvents.filter {
-                        it.type == MicroEventType.MOOD && (it.triggerCondition.contains("状态都是绿色") || it.triggerCondition.contains("吃完饭") || it.triggerCondition.contains("倒了垃圾") || it.triggerCondition.contains("擦了桌子") || it.triggerCondition.contains("洗了衣服"))
-                    }
-                    timeOfDay == NarrativePacingConfig.TimeOfDay.NIGHT -> allEvents.filter {
-                        it.type == MicroEventType.ENVIRONMENT && it.triggerCondition.contains("天黑")
-                    }
-                    weatherKeyword.isNotEmpty() -> allEvents.filter {
-                        it.type == MicroEventType.ENVIRONMENT && it.triggerCondition.contains(weatherKeyword)
-                    }.ifEmpty {
-                        allEvents.filter { it.type == MicroEventType.ENVIRONMENT || it.type == MicroEventType.MOOD }
-                    }
-                    hour in 7..9 -> allEvents.filter {
-                        it.type == MicroEventType.ENVIRONMENT || it.type == MicroEventType.BODY
-                    }
-                    else -> allEvents.filter {
-                        it.type == MicroEventType.MOOD || it.type == MicroEventType.ENVIRONMENT || it.type == MicroEventType.HOUSEWORK
-                    }
-                }
-
-                if (candidateEvents.isNotEmpty()) {
-                    val selected = candidateEvents.random()
-                    val cleanedContent = selected.content
-                        .replace(Regex("[\\uD83C-\\uDBFF\\uDC00-\\uDFFF]+"), "")
-                        .replace(Regex("[😺🐧🥺💛✨🌸👍🎉💤🌧️☀️🌙💧☁️💨❄️🌅🌤️🌆🌑]"), "")
-                        .trim()
-                    val characterName = when (selected.character) {
-                        TownCharacter.TAFFI -> "塔菲"
-                        TownCharacter.GUGAGA -> "咕咕嘎嘎"
-                        TownCharacter.DORO -> "朵朵"
-                    }
-                    tryAdd("$characterName：$cleanedContent")
-                }
-            } catch (_: Exception) {}
-        }
-
-        if (Math.random() < 0.06) {
-            try {
-                val allConvQuotes = NormalConversationQuotes.getAllQuotes()
-                val candidateQuotes = when {
-                    mental.anxiety > 55 || mental.happiness < 35 -> allConvQuotes.filter {
-                        it.type == ConversationType.COMFORT || it.type == ConversationType.SUPPORT || it.type == ConversationType.ENCOURAGEMENT
-                    }
-                    mental.happiness > 70 -> allConvQuotes.filter {
-                        it.type == ConversationType.CELEBRATION || it.type == ConversationType.HUMOR
-                    }
-                    timeOfDay == NarrativePacingConfig.TimeOfDay.NIGHT -> allConvQuotes.filter {
-                        it.type == ConversationType.REFLECTION || it.type == ConversationType.INSIGHT
-                    }
-                    else -> allConvQuotes.filter {
-                        it.type == ConversationType.OBSERVATION || it.type == ConversationType.INSIGHT || it.type == ConversationType.HUMOR
-                    }
-                }
-                if (candidateQuotes.isNotEmpty()) {
-                    val selected = candidateQuotes.random()
-                    val cleanedContent = selected.content
-                        .replace(Regex("[\\uD83C-\\uDBFF\\uDC00-\\uDFFF]+"), "")
-                        .replace(Regex("[😺🐧🥺💛✨🌸👍🎉💤🌧️☀️🌙💧☁️💨❄️🌅🌤️🌆🌑💪🤔👀🤝😄💡]"), "")
-                        .replace("喵～", "")
-                        .replace("嘎嘎！", "")
-                        .trim()
-                    val characterName = when (selected.character) {
-                        TownCharacter.TAFFI -> "塔菲"
-                        TownCharacter.GUGAGA -> "咕咕嘎嘎"
-                        TownCharacter.DORO -> "朵朵"
-                    }
-                    tryAdd("$characterName：$cleanedContent")
-                }
-            } catch (_: Exception) {}
-        }
-
-        if (Math.random() < 0.12) {
-            try {
-                val presetCards = UserCognitiveCardLibrary.getPresetCards()
-                val selected = presetCards.random()
-                val cardText = "${selected.title}。${selected.content}"
-                tryAdd(cardText)
-            } catch (_: Exception) {}
-        }
-
-        if (Math.random() < 0.15) {
-            try {
-                val allFrustrations = DailyFrustrations.allFrustrations
-                val candidates = when {
-                    timeOfDay == NarrativePacingConfig.TimeOfDay.WORK_TIME -> allFrustrations.filter {
-                        it.category == DailyFrustrationCategory.WORK_ERROR || it.category == DailyFrustrationCategory.INTERPERSONAL
-                    }
-                    timeOfDay == NarrativePacingConfig.TimeOfDay.NIGHT -> allFrustrations.filter {
-                        it.category == DailyFrustrationCategory.HEALTH || it.category == DailyFrustrationCategory.ENVIRONMENTAL
-                    }
-                    else -> allFrustrations
-                }
-                if (candidates.isNotEmpty()) {
-                    val selected = candidates.random()
-                    val fragments = listOf(selected.triggerHint + selected.bodyFeeling, selected.sparkle, selected.townCommentary)
-                    tryAdd(fragments.random())
-                }
-            } catch (_: Exception) {}
-        }
-
-        if ((mental.anxiety > 50 || age > 35) && Math.random() < 0.12) {
-            try {
-                val allSayings = TraditionalSayingsLibrary.allSayings
-                val candidates = when {
-                    age < 30 && mental.anxiety > 50 -> allSayings.filter { it.trigger == SayingTrigger.YOUTH_CAREER || it.trigger == SayingTrigger.WORKPLACE_CONFLICT }
-                    age in 30..45 -> allSayings.filter { it.trigger == SayingTrigger.MIDLIFE_CRISIS || it.trigger == SayingTrigger.MARRIAGE_PRESSURE }
-                    else -> allSayings
-                }
-                if (candidates.isNotEmpty()) {
-                    val selected = candidates.random()
-                    val sayingText = "长辈常说「${selected.originalSaying}」。${selected.modernAlternative}"
-                    tryAdd(sayingText)
-                }
-            } catch (_: Exception) {}
-        }
-
-        if (Math.random() < 0.08) {
-            try {
-                val allEncounters = CrossClassEncounters.encounters
-                if (allEncounters.isNotEmpty()) {
-                    val selected = allEncounters.random()
-                    val fragments = listOf(selected.bodyFeeling, selected.sparkle, selected.townCommentary)
-                    val fragment = fragments.random()
-                    tryAdd(fragment)
-                }
-            } catch (_: Exception) {}
-        }
-
-        if (Math.random() < 0.08) {
-            try {
-                val allDialogues = CrossProfessionDialogues.dialogues
-                if (allDialogues.isNotEmpty()) {
-                    val selected = allDialogues.random()
-                    val fragments = listOf(selected.sparkle, selected.townCommentary)
-                    val fragment = fragments.random()
-                    if (fragment.isNotBlank()) tryAdd(fragment)
-                }
-            } catch (_: Exception) {}
         }
 
         if (timeOfDay == NarrativePacingConfig.TimeOfDay.MEAL_TIME && body.satiety < 70) {
@@ -4219,7 +3880,7 @@ open class TownViewModel(
         scoreOverall: Int,
         hoursAdvanced: Int
     ) {
-        if (Math.random() < 0.12) {
+        if (Math.random() < 0.02) {
             try {
                 val risks = BodyStateBusiness.assessHealthRisks(_bodyState.value)
                 if (risks.isNotEmpty()) {
@@ -5524,33 +5185,38 @@ open class TownViewModel(
         return com.example.townapp.data.LifePathBindingData.getBinding(_currentLifePathId)
     }
 
-    /** 添加事件日志（去重 + 日限频，最多保留20条）
-     *  v2.0 限频规则：工作日每天最多5条，周末每天最多15条，重大事件不受限
+    /** 添加事件日志（词条形式：[时间] 具体事 ｜ 数据）
+     *  自动加时间前缀，日限频50条，让每一条都值得看
      */
     protected fun addEventLog(msg: String, isMajor: Boolean = false): Boolean {
-        val current = _eventLog.value.toMutableList()
-        if (current.firstOrNull() == msg) return false
-
-        if (!isMajor) {
-            val dayOfWeek = (_gameDay.value % 7).let { if (it == 0) 7 else it }
-            val isWeekend = dayOfWeek == 6 || dayOfWeek == 7
-            val maxDailyEvents = if (isWeekend) 300 else 200
-
-            if (_gameDay.value != _lastEventLogDay) {
-                _lastEventLogDay = _gameDay.value
-                _dailyEventCount = 0
-            }
-            if (_dailyEventCount >= maxDailyEvents) return false
+        // 自动加时间前缀 [HH:00]（已有前缀的跳过，避免重复）
+        val timePrefixed = if (msg.startsWith("[") || msg.startsWith("第")) {
+            msg
+        } else {
+            val h = _timeState.value.hour
+            "[%02d:00] %s".format(h, msg)
         }
 
-        current.add(0, msg)
-        if (current.size > 500) {
+        val current = _eventLog.value.toMutableList()
+        if (current.firstOrNull() == timePrefixed) return false
+
+        // 严格限频：非major事件工作日40/天、周末60/天；major也走限频（只让日结等真正重要的过）
+        val maxDailyEvents = if (isMajor) 80 else 50
+
+        if (_gameDay.value != _lastEventLogDay) {
+            _lastEventLogDay = _gameDay.value
+            _dailyEventCount = 0
+        }
+        if (_dailyEventCount >= maxDailyEvents) return false
+
+        current.add(0, timePrefixed)
+        if (current.size > 300) {
             current.removeAt(current.size - 1)
         }
         _eventLog.value = current
-        if (!isMajor) _dailyEventCount++
+        _dailyEventCount++
 
-        addWeeklyEvent(msg)
+        addWeeklyEvent(timePrefixed)
         return true
     }
 

@@ -29,9 +29,11 @@ import com.example.townapp.data.database.entity.*
         /** v1.4 新增：人生轨迹归档 + 夜间状态 */
         NpcLifeRecordEntity::class, NightStateEntity::class,
         /** v1.5 消费系统：商品标签 + 精神文案库 */
-        GoodsConsumptionTagEntity::class, MindTextLibEntity::class
+        GoodsConsumptionTagEntity::class, MindTextLibEntity::class,
+        /** v2.0 消费系统深化：用户消费状态 + 消费抉择事件 */
+        UserConsumptionStateEntity::class, ConsumptionChoiceEventEntity::class
     ],
-    version = 13,
+    version = 14,
     exportSchema = true
 )
 abstract class TownDatabase : RoomDatabase() {
@@ -74,6 +76,10 @@ abstract class TownDatabase : RoomDatabase() {
     abstract fun goodsConsumptionTagDao(): GoodsConsumptionTagDao
     abstract fun mindTextLibDao(): MindTextLibDao
 
+    /** v2.0 消费系统深化 DAO：用户消费状态 + 消费抉择事件 */
+    abstract fun userConsumptionStateDao(): UserConsumptionStateDao
+    abstract fun consumptionChoiceEventDao(): ConsumptionChoiceEventDao
+
     companion object {
         @Volatile
         private var INSTANCE: TownDatabase? = null
@@ -98,6 +104,10 @@ abstract class TownDatabase : RoomDatabase() {
                                             pendingInstance.goodsConsumptionTagDao().insertAll(consumptionSeeds.goodsTags())
                                             pendingInstance.mindTextLibDao().insertAll(consumptionSeeds.mindTexts())
                                             pendingInstance.quoteDao().insertAll(consumptionSeeds.quotes())
+                                            // 初始化用户消费状态（默认值50分，中立状态）
+                                            pendingInstance.userConsumptionStateDao().insert(
+                                                com.example.townapp.data.database.entity.UserConsumptionStateEntity()
+                                            )
                                         }
                                         Log.d("ROOM_DB_INIT", "SeedData插入完成：营养${seeds.first.size}条，风险${seeds.second.size}条，消费标签${consumptionSeeds.goodsTags().size}条，独白文案${consumptionSeeds.mindTexts().size}条，NPC对话${consumptionSeeds.quotes().size}条")
                                     } catch (e: Exception) {

@@ -358,7 +358,24 @@ class TextAssetLoader private constructor(
                     if (line.startsWith("<!--") || line.endsWith("-->")) continue
                     if (line.length < 4 || line.length > 500) continue
 
-                    line = line.replace(Regex("""\*\*([^*]+)\*\*"""), "$1")
+                    // ====== 彻底清洗markdown标记 ======
+                    line = line.replace(Regex("""\*\*([^*]+)\*\*"""), "$1")          // **bold**
+                    line = line.replace(Regex("""\*([^*]+)\*"""), "$1")              // *italic*
+                    line = line.replace(Regex("""__([^_]+)__"""), "$1")              // __bold__
+                    line = line.replace(Regex("""`([^`]+)`"""), "$1")                // `code`
+                    line = line.replace(Regex("""~~([^~]+)~~"""), "$1")              // ~~strike~~
+                    line = line.replace(Regex("""\[([^\]]+)\]\([^)]+\)"""), "$1")    // [text](url)
+                    line = line.replace(Regex("""!\[([^\]]*)\]\([^)]+\)"""), "$1")   // ![alt](img)
+                    line = line.replace(Regex("""^>\s*"""), "")                      // > quote prefix
+                    line = line.replace(Regex("""^#+\s*"""), "")                     // # headings
+                    line = line.replace(Regex("""^\d+\.\s*"""), "")                  // 1. ordered list
+                    line = line.replace(Regex("""\[( |x|X)\]"""), "")                // [ ] [x] checkbox remnants
+                    line = line.trim()
+
+                    // 过滤分隔符/纯符号行
+                    if (line.matches(Regex("""^[-=*_]{3,}$"""))) continue
+                    if (line.isBlank()) continue
+
                     line = line.replace(Regex("""^note_\d+\s*[:：]\s*"""), "")
                     line = line.trim()
 
@@ -403,6 +420,24 @@ class TextAssetLoader private constructor(
 
                     if (stripped.startsWith("key:") || stripped.startsWith("type:") || stripped.startsWith("score_")) continue
                     if (stripped.matches(Regex("""^[A-Za-z_][A-Za-z0-9_]*\s*[=:].*"""))) continue
+
+                    // ====== 过滤宏大叙事：小镇只写具体生活，不写时代洪流 ======
+                    // 一个句子同时含2个及以上"大词"视为宏大叙事，过滤掉
+                    val grandWords = listOf(
+                        "世界", "时代", "命运", "洪流", "阶级", "历史的", "人间", "众生",
+                        "觉醒者", "看透", "本质", "终极", "宇宙", "救赎", "顿悟", "开悟",
+                        "万物皆", "真相", "生命的意义", "人性本质", "社会规则", "资本的",
+                        "这个世界", "人这一生", "人生而", "我们都在", "成年人的世界",
+                        "这就是人生", "大多数人", "底层逻辑", "认知觉醒", "阶层", "格局",
+                        "注定", "宿命", "轮回", "一切都", "所谓人生"
+                    )
+                    val hitCount = grandWords.count { stripped.contains(it) }
+                    if (hitCount >= 2) continue
+                    // 单个大词但句子太短（<15字）也跳过——通常是空洞口号
+                    if (hitCount >= 1 && stripped.length < 15) continue
+                    // 含明显说教/判断句式
+                    if (stripped.contains("你必须") || stripped.contains("你应该") || stripped.contains("人一定要")) continue
+                    if (stripped.contains("真正的") && stripped.contains("才是")) continue
 
                     lines.add(stripped.ifEmpty { line })
                 }

@@ -284,18 +284,18 @@ object NarrativePacingConfig {
     )
 
     fun getAutoPace(age: Int): TimePace = when {
-        age < 25 -> TimePace(1, 1, 800L, 1200L)
-        age < 30 -> TimePace(1, 2, 700L, 1100L)
-        age < 40 -> TimePace(1, 2, 600L, 1000L)
-        age < 50 -> TimePace(2, 3, 500L, 900L)
-        age < 60 -> TimePace(2, 4, 500L, 800L)
-        age < 70 -> TimePace(3, 6, 400L, 700L)
-        else -> TimePace(4, 8, 400L, 700L)
+        age < 25 -> TimePace(1, 1, 3500L, 6000L)
+        age < 30 -> TimePace(1, 1, 3000L, 5000L)
+        age < 40 -> TimePace(1, 2, 3000L, 5000L)
+        age < 50 -> TimePace(1, 2, 2500L, 4500L)
+        age < 60 -> TimePace(1, 2, 2500L, 4000L)
+        age < 70 -> TimePace(2, 3, 2000L, 3500L)
+        else -> TimePace(2, 4, 2000L, 3500L)
     }
 
     fun getManualPace(age: Int): TimePace = when {
-        age < 60 -> TimePace(1, 1, 1500L, 2500L)
-        else -> TimePace(1, 2, 1500L, 2500L)
+        age < 60 -> TimePace(1, 1, 4000L, 7000L)
+        else -> TimePace(1, 1, 4000L, 7000L)
     }
 
     // ==================== 行为池权重（按年龄段） ====================
