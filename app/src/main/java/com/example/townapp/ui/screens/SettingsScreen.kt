@@ -1,8 +1,5 @@
 package com.example.townapp.ui.screens
 
-import com.example.townapp.ui.theme.AppDimens
-
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -16,406 +13,359 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import com.example.townapp.ui.theme.AppColors
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.townapp.ui.components.OrdinaryLifeMemorial
-import com.example.townapp.ui.components.TopNavBar
-import com.example.townapp.ui.viewmodel.TownViewModel
+import com.example.townapp.core.state.UserPreferencesManager
+import com.example.townapp.core.theme.VeraThemeMode
+import com.example.townapp.ui.components.StandardTopBar
+import com.example.townapp.ui.theme.DictionaryTokens
+import kotlinx.coroutines.launch
 
 @Composable
 fun SettingsScreen(
-    viewModel: TownViewModel,
     onBack: () -> Unit,
-    onNavigateToAdminPanel: () -> Unit = {},
-    onNavigateToArchive: () -> Unit,
-    onNavigateToDocument: () -> Unit = {}
+    onMenuClick: () -> Unit = {}
 ) {
-    val settings by viewModel.settings.collectAsState()
-    val openCredits = remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
-    if (openCredits.value) {
-        PixelCreditsScreen(onDismiss = { openCredits.value = false })
-    } else {
+    // 展开模式状态：0=智能预览 1=全部展开 2=全部收起
+    var expandMode by remember { mutableIntStateOf(0) }
+    // 主题模式
+    var themeMode by remember { mutableStateOf(VeraThemeMode.DefaultMonochrome) }
+
+    // 读取持久化配置
+    LaunchedEffect(Unit) {
+        UserPreferencesManager.getExpandMode(context).collect { mode ->
+            expandMode = mode
+        }
+    }
+    LaunchedEffect(Unit) {
+        UserPreferencesManager.getThemeMode(context).collect { mode ->
+            themeMode = mode
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        StandardTopBar(
+            title = "软件设置",
+            onMenuClick = onBack,
+            menuIcon = "back"
+        )
+
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFFFFF9EC))
-                .navigationBarsPadding(),
-            verticalArrangement = Arrangement.Center
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = DictionaryTokens.pagePadding)
         ) {
-            TopNavBar(title = "设置", showBack = true, onBack = onBack)
+            Spacer(modifier = Modifier.height(DictionaryTokens.sectionSpacing))
 
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .verticalScroll(rememberScrollState())
+            // 字典模式说明
+            SectionLabel(text = "字典模式")
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(DictionaryTokens.radiusCard),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = DictionaryTokens.elevationCard)
             ) {
-                // 纯内存模式说明
-                Text(
-                    text = "💾 内存模式",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = AppColors.TextDark,
-                    modifier = Modifier.padding(horizontal = AppDimens.paddingLarge, vertical = AppDimens.paddingMedium)
-                )
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = AppDimens.paddingLarge),
-                    shape = RoundedCornerShape(AppDimens.radiusMedium),
-                    colors = CardDefaults.cardColors(containerColor = AppColors.SuccessBackground),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                Row(
+                    modifier = Modifier.padding(DictionaryTokens.cardPadding),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(DictionaryTokens.primaryLight),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .clip(CircleShape)
-                                .background(AppColors.SuccessLight),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text("🌱", fontSize = 24.sp)
-                        }
-                        Spacer(modifier = Modifier.width(AppDimens.paddingMedium))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "当前运行模式",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = AppColors.SuccessDark
-                            )
-                            Text(
-                                text = "所有数据仅保存在内存中，关闭应用后自动清空",
-                                fontSize = 12.sp,
-                                color = AppColors.Success
-                            )
-                        }
+                        Text(
+                            "字典",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "当前运行模式",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = "纯认知字典查询模式，所有内容从本地加载",
+                            fontSize = DictionaryTokens.Type.captionSize,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
                     }
                 }
+            }
 
-                Spacer(modifier = Modifier.height(AppDimens.paddingXXLarge))
+            Spacer(modifier = Modifier.height(DictionaryTokens.sectionSpacing))
 
-                // 🏠 平凡生活纪念馆
-                Text(
-                    text = "🏠 纪念馆",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = AppColors.TextDark,
-                    modifier = Modifier.padding(horizontal = AppDimens.paddingLarge, vertical = AppDimens.paddingMedium)
-                )
-                val mealCount by viewModel.memorialMealCount.collectAsState()
-                val instantNoodleCount by viewModel.memorialInstantNoodleCount.collectAsState()
-                val goodSleepDays by viewModel.memorialGoodSleepDays.collectAsState()
-                val lateNightCount by viewModel.memorialLateNightCount.collectAsState()
-                val selfCareActions by viewModel.memorialSelfCareActions.collectAsState()
-                val placesLived by viewModel.memorialPlacesLived.collectAsState()
-                val moneyDelta by viewModel.memorialMoneyDelta.collectAsState()
-                OrdinaryLifeMemorial(
-                    mealCount = mealCount,
-                    instantNoodleCount = instantNoodleCount,
-                    goodSleepDays = goodSleepDays,
-                    lateNightCount = lateNightCount,
-                    selfCareActions = selfCareActions,
-                    placesLived = placesLived,
-                    moneyDelta = moneyDelta,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = AppDimens.paddingLarge)
-                )
+            // 阅读偏好
+            SectionLabel(text = "阅读偏好")
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(DictionaryTokens.radiusCard),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = DictionaryTokens.elevationCard)
+            ) {
+                Column(modifier = Modifier.padding(DictionaryTokens.cardPadding)) {
+                    Text(
+                        text = "词条文本默认展开模式",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "控制打开词条时各模块的默认显示状态",
+                        fontSize = DictionaryTokens.Type.captionSize,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                Spacer(modifier = Modifier.height(AppDimens.paddingXXLarge))
-
-                // 后台面板入口
-                Text(
-                    text = "🔧 后台调试",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = AppColors.TextDark,
-                    modifier = Modifier.padding(horizontal = AppDimens.paddingLarge, vertical = AppDimens.paddingMedium)
-                )
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = AppDimens.paddingLarge)
-                        .clickable { onNavigateToAdminPanel() },
-                    shape = RoundedCornerShape(AppDimens.radiusMedium),
-                    colors = CardDefaults.cardColors(containerColor = AppColors.LightOrangeBackground),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .clip(CircleShape)
-                                .background(AppColors.WarningAmber),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text("⚙️", fontSize = 24.sp)
-                        }
-                        Spacer(modifier = Modifier.width(AppDimens.paddingMedium))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "后台隐藏面板",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = AppColors.ErrorDeepOrange
-                            )
-                            Text(
-                                text = "系统参数调试、一键重置",
-                                fontSize = 12.sp,
-                                color = AppColors.ErrorDark
-                            )
-                        }
-                        Text("→", fontSize = 18.sp, color = AppColors.WarningAmber)
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(AppDimens.paddingXXLarge))
-
-                // 世界观可折叠卡片
-                var expandWorldView by remember { mutableStateOf(false) }
-                
-                Text(
-                    text = "🌍 世界观",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = AppColors.TextDark,
-                    modifier = Modifier.padding(horizontal = AppDimens.paddingLarge, vertical = AppDimens.paddingMedium)
-                )
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = AppDimens.paddingLarge),
-                    shape = RoundedCornerShape(AppDimens.radiusMedium),
-                    border = BorderStroke(1.dp, AppColors.BorderLight),
-                    colors = CardDefaults.cardColors(containerColor = AppColors.OffWhiteBackground)
-                ) {
-                    Column {
-                        // 可点击的标题行
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { expandWorldView = !expandWorldView }
-                                .padding(16.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "小镇世界观",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = AppColors.WarmBrown
-                            )
-                            Text(
-                                text = if (expandWorldView) "▼" else "▶",
-                                fontSize = 14.sp,
-                                color = AppColors.PrimaryWarm
-                            )
-                        }
-                        
-                        // 展开内容
-                        if (expandWorldView) {
-                            Column(modifier = Modifier.padding(horizontal = AppDimens.paddingLarge)) {
-                                // 核心宗旨
-                                Text(
-                                    text = "小镇宗旨",
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = AppColors.WarmBrown
-                                )
-                                Text(
-                                    text = "以人为本，每个人内心存有向善的闪光点潜能。生存压力、小镇政策会左右短期行为，系统仅展示现实利弊，不规定最优人生道路，交由你自主抉择短期得失与长远人生走向。",
-                                    fontSize = 14.sp,
-                                    color = AppColors.TextSecondary,
-                                    lineHeight = 20.sp,
-                                    modifier = Modifier.padding(vertical = AppDimens.paddingSmall)
-                                )
-
-                                // 三大准则
-                                Text(
-                                    text = "三大准则",
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = AppColors.WarmBrown,
-                                    modifier = Modifier.padding(top = AppDimens.paddingLarge)
-                                )
-
-                                val principles = listOf(
-                                    Pair("自由", "躺平独居、职场打拼、革新小镇政策均可选择，个人选择能够改变自身命运，长期决策还会影响小镇整体社会环境。"),
-                                    Pair("平等", "各类职业没有高低优劣之分，贫富差距源自物价税负、生存压力、长期个人选择，所有人先天人格潜能对等。"),
-                                    Pair("实事求是", "系统变量环环相扣，短期会遇见内卷、人际算计、失业负债等现实困境；时间拉长后，个人选择与顶层改革能够改善整体环境，只呈现客观事实，不做说教式指令输出。")
-                                )
-
-                                principles.forEach { (title, desc) ->
-                                    Column(modifier = Modifier.padding(vertical = 6.dp)) {
-                                        Text(
-                                            text = "• $title",
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.Medium,
-                                            color = AppColors.PrimaryWarm
-                                        )
-                                        Text(
-                                            text = desc,
-                                            fontSize = 13.sp,
-                                            color = AppColors.TextSecondary,
-                                            lineHeight = 18.sp,
-                                            modifier = Modifier.padding(start = AppDimens.paddingLarge)
-                                        )
-                                    }
-                                }
-
-                                // 延伸阅读提示
-                                Text(
-                                    text = "\n深层仿真模型、社会运行规则，可查阅小镇全量文案文档。",
-                                    fontSize = 13.sp,
-                                    color = AppColors.PrimaryWarm,
-                                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                                    modifier = Modifier.padding(top = 8.dp, bottom = 16.dp)
-                                )
+                    // 选项列表
+                    ExpandModeOption(
+                        title = "智能预览（显示前3行）",
+                        description = "每个模块只显示前3行，点击展开按钮查看完整内容",
+                        selected = expandMode == 0,
+                        onClick = {
+                            scope.launch {
+                                UserPreferencesManager.setExpandMode(context, 0)
+                                expandMode = 0
                             }
                         }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(AppDimens.paddingXXLarge))
-
-                // 📚 文档资料入口
-                Text(
-                    text = "📚 文档资料",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = AppColors.TextDark,
-                    modifier = Modifier.padding(horizontal = AppDimens.paddingLarge, vertical = AppDimens.paddingMedium)
-                )
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = AppDimens.paddingLarge)
-                        .clickable { onNavigateToDocument() },
-                    shape = RoundedCornerShape(AppDimens.radiusMedium),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF3E5F5)),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFF9C27B0).copy(alpha = 0.2f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text("📖", fontSize = 24.sp)
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 8.dp),
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                    )
+                    ExpandModeOption(
+                        title = "全部自动展开",
+                        description = "打开词条时所有模块默认展开显示完整内容",
+                        selected = expandMode == 1,
+                        onClick = {
+                            scope.launch {
+                                UserPreferencesManager.setExpandMode(context, 1)
+                                expandMode = 1
+                            }
                         }
-                        Spacer(modifier = Modifier.width(AppDimens.paddingMedium))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "小镇全量文案文档",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = Color(0xFF7B1FA2)
-                            )
-                            Text(
-                                text = "全部剧情、文案、数据内容（11个系统）",
-                                fontSize = 12.sp,
-                                color = Color(0xFF9C27B0)
-                            )
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 8.dp),
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                    )
+                    ExpandModeOption(
+                        title = "全部默认收起",
+                        description = "打开词条时所有模块默认收起，需手动展开查看",
+                        selected = expandMode == 2,
+                        onClick = {
+                            scope.launch {
+                                UserPreferencesManager.setExpandMode(context, 2)
+                                expandMode = 2
+                            }
                         }
-                        Text("→", fontSize = 18.sp, color = Color(0xFF7B1FA2))
-                    }
+                    )
                 }
-
-                Spacer(modifier = Modifier.height(AppDimens.paddingXXLarge))
-
-                Text(
-                    text = "关于",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = AppColors.TextDark,
-                    modifier = Modifier.padding(horizontal = AppDimens.paddingLarge, vertical = AppDimens.paddingMedium)
-                )
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = AppDimens.paddingLarge),
-                    shape = RoundedCornerShape(AppDimens.radiusMedium),
-                    colors = CardDefaults.cardColors(containerColor = AppColors.CardBackgroundLight)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = "🏘️ 万物薪俸小镇",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = AppColors.TextDark
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "v2.0 纯内存版",
-                            fontSize = 12.sp,
-                            color = AppColors.TextGray
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(AppDimens.paddingXXLarge))
-
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = AppDimens.paddingLarge)
-                        .clickable { openCredits.value = true },
-                    colors = CardDefaults.cardColors(containerColor = AppColors.LightOrangeBackground),
-                    shape = RoundedCornerShape(14.dp),
-                    border = BorderStroke(1.5.dp, AppColors.WarningAmber)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = AppDimens.paddingXLarge, vertical = 18.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "💛",
-                                fontSize = 22.sp
-                            )
-                            Spacer(modifier = Modifier.width(AppDimens.paddingSmall))
-                            Text(
-                                text = "小镇的小家伙们",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = AppColors.ErrorDeepOrange
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = "✨",
-                                fontSize = 16.sp
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = "打开致谢名单，看看是谁在陪你",
-                            fontSize = 12.sp,
-                            color = AppColors.ErrorDark,
-                            fontWeight = FontWeight.Normal
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(40.dp))
             }
+
+            Spacer(modifier = Modifier.height(DictionaryTokens.sectionSpacingLarge))
+
+            // 外观主题
+            SectionLabel(text = "外观主题")
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(DictionaryTokens.radiusCard),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = DictionaryTokens.elevationCard)
+            ) {
+                Column(modifier = Modifier.padding(DictionaryTokens.cardPadding)) {
+                    Text(
+                        text = "主题色彩方案",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "切换详情页图标、按钮、标签的配色风格，布局和交互不变",
+                        fontSize = DictionaryTokens.Type.captionSize,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // 默认黑白极简（默认选中）
+                    ThemeModeOption(
+                        title = "默认黑白极简",
+                        description = "纯黑单线图标，极简克制，日常阅读舒适",
+                        selected = themeMode == VeraThemeMode.DefaultMonochrome,
+                        onClick = {
+                            scope.launch {
+                                UserPreferencesManager.setThemeMode(context, VeraThemeMode.DefaultMonochrome)
+                                themeMode = VeraThemeMode.DefaultMonochrome
+                            }
+                        }
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 8.dp),
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                    )
+                    ThemeModeOption(
+                        title = "马卡龙童趣彩色",
+                        description = "柔和低饱和马卡龙色，图标多彩，兼顾儿童使用",
+                        selected = themeMode == VeraThemeMode.MacaronChild,
+                        onClick = {
+                            scope.launch {
+                                UserPreferencesManager.setThemeMode(context, VeraThemeMode.MacaronChild)
+                                themeMode = VeraThemeMode.MacaronChild
+                            }
+                        }
+                    )
+                }
+            }
+
+            // 关于
+            SectionLabel(text = "关于")
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(DictionaryTokens.radiusCard),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = DictionaryTokens.elevationCard)
+            ) {
+                Column(modifier = Modifier.padding(DictionaryTokens.cardPadding)) {
+                    Text(
+                        text = "关于VERA认知字典",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "v3.0",
+                        fontSize = DictionaryTokens.Type.captionSize,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "不评判、不催促、拒绝标准化规训，认可每个人独一无二的人生节奏。\n\n面对婚育、人生选择等重大议题，我们不提供标准答案，只帮你看清束缚你的思维陷阱。\n\n当你被世俗教条困住时，在这里看清枷锁，回归属于自己的生活与选择。",
+                        fontSize = DictionaryTokens.Type.bodySize,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                        lineHeight = 22.sp
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(DictionaryTokens.bottomSafePadding))
+        }
+    }
+}
+
+@Composable
+private fun SectionLabel(text: String) {
+    Text(
+        text = text,
+        fontSize = DictionaryTokens.Type.headingSize,
+        fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.onBackground,
+        modifier = Modifier.padding(vertical = 12.dp)
+    )
+}
+
+@Composable
+private fun ExpandModeOption(
+    title: String,
+    description: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .clickable(onClick = onClick)
+            .padding(vertical = 8.dp, horizontal = 4.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        RadioButton(
+            selected = selected,
+            onClick = onClick,
+            colors = RadioButtonDefaults.colors(
+                selectedColor = DictionaryTokens.primaryLight
+            )
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                fontSize = 14.sp,
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                color = if (selected)
+                    MaterialTheme.colorScheme.onSurface
+                else
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = description,
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                lineHeight = 16.sp
+            )
+        }
+    }
+}
+
+@Composable
+private fun ThemeModeOption(
+    title: String,
+    description: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .clickable(onClick = onClick)
+            .padding(vertical = 8.dp, horizontal = 4.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        RadioButton(
+            selected = selected,
+            onClick = onClick,
+            colors = RadioButtonDefaults.colors(
+                selectedColor = DictionaryTokens.primaryLight
+            )
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                fontSize = 14.sp,
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                color = if (selected)
+                    MaterialTheme.colorScheme.onSurface
+                else
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = description,
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                lineHeight = 16.sp
+            )
         }
     }
 }

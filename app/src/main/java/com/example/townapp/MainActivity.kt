@@ -1,493 +1,303 @@
 package com.example.townapp
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.view.WindowCompat
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import com.example.townapp.ui.theme.AppColors
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.example.townapp.feature.town_simulation.BodyStateBusiness
-import com.example.townapp.feature.town_simulation.EventEngine
-import com.example.townapp.feature.town_simulation.NutritionRiskCache
-import com.example.townapp.data.SampleProducts
-import com.example.townapp.data.database.TownDatabase
-import com.example.townapp.data.database.dao.ProductDao
-import com.example.townapp.data.database.entity.ProductEntity
-import com.example.townapp.data.repository.GameSaveRepository
-import com.example.townapp.performance.PerformanceManager
-import com.example.townapp.ui.components.TownBottomNavigation
-import com.example.townapp.ui.screens.LifeArchiveScreen
-import com.example.townapp.ui.screens.SettingsScreen
-import com.example.townapp.ui.screens.DocumentScreen
-import com.example.townapp.ui.screens.ResidentScreen
-import com.example.townapp.ui.screens.SimulationScreen
-import com.example.townapp.ui.screens.DataViewerScreen
-import com.example.townapp.ui.viewmodel.TownViewModel
-import com.example.townapp.ui.viewmodel.HomeViewModel
-import com.example.townapp.feature.human_narrative.cognition.ui.CognitionAwakeningScreen
-import com.example.townapp.ui.theme.TownTheme
-import kotlinx.coroutines.Dispatchers
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import com.example.townapp.feature.town_simulation.StructuredLogger
-import com.example.townapp.feature.town_simulation.ExceptionHandler
-import com.example.townapp.data.asset.TextAssetLoader
-import com.example.townapp.data.repository.DataIntegrationManager
-import com.example.townapp.data.repository.SimulationDataSwitch
+import com.example.townapp.core.theme.LocalVeraColors
+import com.example.townapp.core.theme.VeraThemeColors
+import com.example.townapp.core.state.UserPreferencesManager
+import com.example.townapp.data.idiom.IdiomCritiqueLibrary
+import com.example.townapp.ui.components.AppDrawerContent
+import com.example.townapp.ui.components.StandardTopBar
+import com.example.townapp.ui.screens.*
+import com.example.townapp.ui.theme.TownTheme
+import com.example.townapp.ui.theme.DictionaryTokens
 
 class MainActivity : ComponentActivity() {
-    private lateinit var database: TownDatabase
-    private lateinit var eventEngine: EventEngine
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
-        // 初始化文本加载器（必须最先初始化，所有文案依赖它）
-        TextAssetLoader.init(this)
-        
-        // 设置沉浸式状态栏
-        setupImmersiveStatusBar()
-        
+
         try {
-            database = TownDatabase.getDatabase(this)
-            eventEngine = EventEngine(database.lifeEventLogDao())
-            
-            // 开启模拟数据开关，让空间、事件等数据真正生效
-            SimulationDataSwitch.enableAll()
-            
-            // 初始化所有数据，确保每个数据文件都被调用
-            DataIntegrationManager.initialize()
-            
-            setContent {
-                TownTheme {
-                    Surface(
-                        modifier = Modifier.fillMaxSize(),
-                        color = MaterialTheme.colorScheme.background
-                    ) {
-                        TownApp(database)
-                    }
-                }
-            }
-            
-            initializeApp()
+            IdiomCritiqueLibrary.initialize(this)
         } catch (e: Exception) {
-            Log.e("MainActivity", "初始化失败", e)
-            setContent {
-                TownTheme {
-                    Surface(modifier = Modifier.fillMaxSize()) {
-                        ErrorScreen(error = e.message ?: "初始化失败")
+            android.util.Log.e("TownApp", "词条库初始化失败", e)
+        }
+        val darkTheme = resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK == android.content.res.Configuration.UI_MODE_NIGHT_YES
+        setupImmersiveStatusBar(darkTheme)
+
+        setContent {
+            val context = LocalContext.current
+            // 读取持久化主题偏好
+            val themeMode by UserPreferencesManager.getThemeMode(context)
+                .collectAsState(initial = com.example.townapp.core.theme.VeraThemeMode.DefaultMonochrome)
+            val veraColors = when (themeMode) {
+                com.example.townapp.core.theme.VeraThemeMode.MacaronChild -> VeraThemeColors.macaron()
+                else -> VeraThemeColors.monochrome()
+            }
+
+            TownTheme {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    CompositionLocalProvider(LocalVeraColors provides veraColors) {
+                        TownApp()
                     }
                 }
             }
         }
     }
-
-    private fun initializeApp() {
-        PerformanceManager.initialize(this)
-        
-        val startTime = StructuredLogger.start("initializeApp")
-        
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                val dbStartTime = StructuredLogger.start("db.init")
-                val nutritionCount = database.foodNutritionDao().count()
-                if (nutritionCount == 0) {
-                    StructuredLogger.i("MainActivity", "Initializing nutrition and risk data...")
-                    val seeds = SeedData.all()
-                    database.foodNutritionDao().insertAll(seeds.first)
-                    database.foodRiskDao().insertAll(seeds.second)
-                    StructuredLogger.i("MainActivity", "Nutrition data: ${seeds.first.size} items, Risk data: ${seeds.second.size} items")
-                }
-                NutritionRiskCache.init(database.foodNutritionDao(), database.foodRiskDao())
-                StructuredLogger.logDatabase("MainActivity", "nutrition_data_init", StructuredLogger.end("db.init", dbStartTime), nutritionCount > 0)
-                
-                val productStartTime = StructuredLogger.start("product.init")
-                val products = database.productDao().getAllForAdult()
-                if (products.isEmpty()) {
-                    StructuredLogger.i("MainActivity", "Initializing sample product data...")
-                    database.materialDao().insertAll(SampleProducts.getMaterials())
-                    database.productDao().insertAll(SampleProducts.getProducts())
-                    database.formulaDao().insertAll(SampleProducts.getFormulas())
-                    StructuredLogger.i("MainActivity", "Product data initialized, total ${SampleProducts.getProducts().size} items")
-                }
-                StructuredLogger.logDatabase("MainActivity", "product_data_init", StructuredLogger.end("product.init", productStartTime), products.isNotEmpty())
-                
-                initializeCoreBusiness()
-                
-                StructuredLogger.i("MainActivity", "All data initialization completed")
-                StructuredLogger.logPerformance("MainActivity", "initializeApp", StructuredLogger.end("initializeApp", startTime))
-            } catch (e: Exception) {
-                ExceptionHandler.handleDatabaseException("MainActivity", "应用初始化", e)
-                throw e
-            }
-        }
-        
-        BodyStateBusiness.startLongTermAccumulation(database.userBodyStateDao())
-    }
-    
-    private suspend fun initializeCoreBusiness() {
-        try {
-            val existingUser = database.userDao().getUser()
-            if (existingUser == null) {
-                database.userDao().insertUser(
-                    com.example.townapp.data.database.entity.UserEntity(
-                        id = 1,
-                        name = "小镇居民",
-                        level = 1,
-                        experience = 0,
-                        currency = 10000.0
-                    )
-                )
-            }
-
-            val existingNpcs = database.npcDao().getAllNpcs()
-            if (existingNpcs.isEmpty()) {
-                val npcs = listOf(
-                    com.example.townapp.data.database.entity.NpcEntity(1, "taffi", "塔菲", "小镇管家", "🧚", 0, true),
-                    com.example.townapp.data.database.entity.NpcEntity(2, "doro", "朵朵", "生活助手", "🐱", 0, true),
-                    com.example.townapp.data.database.entity.NpcEntity(3, "gugaga", "咕咕鸽", "财务顾问", "🦉", 0, false),
-                    com.example.townapp.data.database.entity.NpcEntity(4, "momoyo", "若叶睦", "知识导师", "📚", 0, false)
-                )
-                npcs.forEach { database.npcDao().insertNpc(it) }
-            }
-
-            val existingBuildings = database.buildingDao().getAllBuildings()
-            if (existingBuildings.isEmpty()) {
-                val buildings = listOf(
-                    com.example.townapp.data.database.entity.BuildingEntity(
-                        id = 1, buildingId = "home", name = "温馨小屋", category = "居住",
-                        district = "🏠", level = 1, count = 1, cost = 0.0,
-                        description = "", daysWithoutTrigger = 0, isActive = true
-                    ),
-                    com.example.townapp.data.database.entity.BuildingEntity(
-                        id = 2, buildingId = "market", name = "市场", category = "购物",
-                        district = "🛒", level = 1, count = 1, cost = 0.0,
-                        description = "", daysWithoutTrigger = 0, isActive = true
-                    ),
-                    com.example.townapp.data.database.entity.BuildingEntity(
-                        id = 3, buildingId = "park", name = "公园", category = "休闲",
-                        district = "🌳", level = 1, count = 1, cost = 0.0,
-                        description = "", daysWithoutTrigger = 0, isActive = true
-                    ),
-                    com.example.townapp.data.database.entity.BuildingEntity(
-                        id = 4, buildingId = "hospital", name = "医院", category = "医疗",
-                        district = "🏥", level = 1, count = 1, cost = 0.0,
-                        description = "", daysWithoutTrigger = 0, isActive = true
-                    ),
-                    com.example.townapp.data.database.entity.BuildingEntity(
-                        id = 5, buildingId = "school", name = "学校", category = "教育",
-                        district = "🏫", level = 1, count = 1, cost = 0.0,
-                        description = "", daysWithoutTrigger = 0, isActive = true
-                    )
-                )
-                buildings.forEach { database.buildingDao().insertBuilding(it) }
-            }
-        } catch (e: Exception) {
-            Log.e("MainActivity", "核心业务数据初始化失败", e)
-        }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        BodyStateBusiness.stopLongTermAccumulation()
-        PerformanceManager.shutdown()
-    }
 }
 
-class ProductViewModel(private val productDao: ProductDao) : ViewModel() {
-    private val _products = MutableStateFlow<List<ProductEntity>>(emptyList())
-    val products: StateFlow<List<ProductEntity>> = _products.asStateFlow()
-
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-
-    fun loadProducts() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                val result = withContext(Dispatchers.IO) {
-                    productDao.getAllForAdult()
-                }
-                _products.value = result.sortedBy { it.name.lowercase() }
-            } catch (e: Exception) {
-                Log.e("ProductViewModel", "加载失败", e)
-                _products.value = emptyList()
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }
-}
-
+/**
+ * 主应用入口
+ *
+ * 架构改造后：
+ * - 无底部导航栏，页面底部统一预留40dp安全留白
+ * - 左上角汉堡按钮 → 侧边抽屉收纳低频功能
+ * - 顶部统一标准化Header
+ */
 @Composable
-fun TownApp(database: TownDatabase) {
-    val productViewModel = remember { ProductViewModel(database.productDao()) }
+fun TownApp() {
+    val scope = rememberCoroutineScope()
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+
+    // 当前主页面
+    var currentScreen by remember { mutableStateOf("home") }
+
+    // 词条详情导航
+    var selectedIdiomId by remember { mutableStateOf<String?>(null) }
+
+    // 已读词条集合（点击进入详情后自动标记已读）
+    val readIdiomIds = remember { mutableStateListOf<String>() }
+
+    // 搜索面板开关
+    var searchOpen by remember { mutableStateOf(false) }
+
+    // 搜索初始关键词（标签点击触发搜索时填充）
+    var searchInitialQuery by remember { mutableStateOf("") }
+
+    // 打开抽屉
+    val openDrawer: () -> Unit = {
+        scope.launch { drawerState.open() }
+    }
+
+    // 打开搜索
+    val openSearch: () -> Unit = {
+        searchInitialQuery = ""
+        searchOpen = true
+    }
+
+    // 通过标签打开搜索
+    val openSearchByTag: (String) -> Unit = { tag ->
+        searchInitialQuery = tag
+        searchOpen = true
+    }
+
+    // 关闭搜索
+    val closeSearch: () -> Unit = {
+        searchOpen = false
+        searchInitialQuery = ""
+    }
+
+    // 抽屉菜单点击处理
     val context = LocalContext.current
-    val gameSaveRepository = remember { GameSaveRepository(context) }
-    val homeViewModel = remember { HomeViewModel.Factory(gameSaveRepository).create(HomeViewModel::class.java) }
-
-    // 尝试读取本地存档，无存档则保持默认初始状态
-    LaunchedEffect(Unit) {
-        homeViewModel.tryLoadGame()
+    val onDrawerItemClick: (String) -> Unit = { itemId ->
+        scope.launch { drawerState.close() }
+        // 搁置功能仅弹出 Toast，不跳转页面
+        if (itemId in listOf("feedback", "settings", "import_export")) {
+            android.widget.Toast.makeText(
+                context,
+                "该功能暂未开放",
+                android.widget.Toast.LENGTH_SHORT
+            ).show()
+        } else {
+            currentScreen = itemId
+            selectedIdiomId = null
+        }
     }
 
-    val isLoading by productViewModel.isLoading.collectAsState()
-
-    var selectedProduct by remember { mutableStateOf<ProductEntity?>(null) }
-    var currentTab by remember { mutableStateOf("town") }
-
-    LaunchedEffect(Unit) {
-        productViewModel.loadProducts()
+    // 词条点击 → 进入详情（自动标记已读）
+    val onNavigateToIdiom: (String) -> Unit = { idiomId ->
+        if (!readIdiomIds.contains(idiomId)) {
+            readIdiomIds.add(idiomId)
+        }
+        selectedIdiomId = idiomId
     }
 
-    Scaffold(
-        bottomBar = {
-            TownBottomNavigation(
-                currentTab = currentTab,
-                onTabChange = { currentTab = it }
-            )
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet(
+                drawerShape = MaterialTheme.shapes.small,
+                drawerContainerColor = MaterialTheme.colorScheme.background
+            ) {
+                AppDrawerContent(
+                    currentItem = if (currentScreen == "home") "" else currentScreen,
+                    onItemClick = onDrawerItemClick
+                )
+            }
         },
-        contentWindowInsets = WindowInsets(0)
-    ) { innerPadding ->
+        gesturesEnabled = currentScreen == "home" && selectedIdiomId == null
+    ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .padding(top = 0.dp)
-                .statusBarsPadding()
+                .background(MaterialTheme.colorScheme.background)
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color(0xFFFFF9EC))
-            ) {
-                when {
-                            selectedProduct != null -> {
-                                com.example.townapp.ui.components.ProductDetailPanel(
-                                    product = selectedProduct!!,
-                                    isChildMode = false,
-                                    onClose = { selectedProduct = null }
-                                )
-                            }
-                            isLoading -> {
-                                LoadingIndicator()
-                            }
-                            else -> {
-                                when (currentTab) {
-                                    "town" -> {
-                                        com.example.townapp.ui.screens.TownHomeScreen(
-                                            viewModel = homeViewModel,
-                                            onNavigate = { route ->
-                                                when {
-                                                    route == "resident" -> currentTab = "resident"
-                                                    route == "cognitive" -> currentTab = "cognitive"
-                                                    route == "food" -> currentTab = "food"
-                                                    else -> {}
-                                                }
-                                            }
-                                        )
-                                    }
-                            "resident" -> {
-                                ResidentScreen(
-                                    viewModel = homeViewModel,
-                                    onBack = { currentTab = "town" }
-                                )
-                            }
-                            "cognitive" -> {
-                                CognitionAwakeningScreen(
-                                    onBack = { currentTab = "town" }
-                                )
-                            }
-                            "food" -> {
-                                com.example.townapp.ui.screens.FoodAppreciationScreen(
-                                    onBack = { currentTab = "town" }
-                                )
-                            }
-                            "simulate" -> {
-                                SimulationScreen(
-                                    onNavigateToFoodList = { currentTab = "food" },
-                                    onNavigateToDataViewer = { currentTab = "dataviewer" }
-                                )
-                            }
-                            "dataviewer" -> {
-                                DataViewerScreen(
-                                    onBack = { currentTab = "simulate" },
-                                    onUseFood = { foodId ->
-                                        com.example.townapp.domain.engine.SimulationEngine.eat(foodId)
-                                        currentTab = "simulate"
-                                    },
-                                    onUseSpace = { spaceId ->
-                                        com.example.townapp.domain.engine.SimulationEngine.changeSpace(spaceId)
-                                        currentTab = "simulate"
-                                    }
-                                )
-                            }
-                            "settings" -> {
-                                SettingsScreen(
-                                    viewModel = homeViewModel,
-                                    onBack = { currentTab = "town" },
-                                    onNavigateToArchive = { currentTab = "archive" },
-                                    onNavigateToDocument = { currentTab = "document" }
-                                )
-                            }
-                            "document" -> {
-                                DocumentScreen()
-                            }
-                            "archive" -> {
-                                var records by remember { mutableStateOf(emptyList<com.example.townapp.data.database.entity.NpcLifeRecordEntity>()) }
-                                var nightStates by remember { mutableStateOf(emptyList<com.example.townapp.data.database.entity.NightStateEntity>()) }
-                                
-                                LaunchedEffect(Unit) {
-                                    records = database.npcLifeRecordDao().getRecordsByNpcId("player")
-                                    nightStates = database.nightStateDao().getStatesByNpcId("player")
-                                }
-                                
-                                LifeArchiveScreen(
-                                    onBack = { currentTab = "settings" },
-                                    records = records,
-                                    nightStates = nightStates
-                                )
-                            }
-                            else -> {
-                                OtherTabContent(tab = currentTab)
-                            }
-                        }
+            when (currentScreen) {
+                "home" -> {
+                    if (selectedIdiomId != null) {
+                        // 词条详情页（含主体性工具，统一引擎）
+                        IdiomCriticScreen(
+                            initialIdiomId = selectedIdiomId,
+                            initialCategory = null,
+                            onBack = {
+                                selectedIdiomId = null
+                            },
+                            onMenuClick = openDrawer,
+                            onSearchClick = { searchOpen = true },
+                            onBiasTagSearch = openSearchByTag
+                        )
+                    } else {
+                        // 首页（横向Tab + 全屏词条列表）
+                        DictionaryHomeScreen(
+                            onNavigateToIdiom = onNavigateToIdiom,
+                            onMenuClick = openDrawer,
+                            onSearchOpen = openSearch,
+                            readIdiomIds = readIdiomIds
+                        )
                     }
                 }
+                "favorites" -> {
+                    FavoritesScreen(
+                        onBack = { currentScreen = "home" },
+                        onIdiomClick = { id ->
+                            currentScreen = "home"
+                            onNavigateToIdiom(id)
+                        }
+                    )
+                }
+                "notes" -> {
+                    NotesScreen(
+                        onBack = { currentScreen = "home" },
+                        onIdiomClick = { id ->
+                            currentScreen = "home"
+                            onNavigateToIdiom(id)
+                        }
+                    )
+                }
+                "settings" -> {
+                    SettingsScreen(
+                        onBack = { currentScreen = "home" },
+                        onMenuClick = openDrawer
+                    )
+                }
+                "about" -> {
+                    AboutVeraScreen(
+                        onBack = { currentScreen = "home" },
+                        onMenuClick = openDrawer
+                    )
+                }
+                else -> {
+                    PlaceholderScreen(
+                        title = getScreenTitle(currentScreen),
+                        onMenuClick = openDrawer,
+                        onBack = { currentScreen = "home" }
+                    )
+                }
+            }
+        }
+
+        // ====== 搜索面板覆盖层（全页面通用，覆盖在最上层） ======
+        if (searchOpen) {
+            SearchOverlay(
+                initialQuery = searchInitialQuery,
+                onClose = closeSearch,
+                onIdiomClick = { id ->
+                    closeSearch()
+                    currentScreen = "home"
+                    onNavigateToIdiom(id)
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun PlaceholderScreen(
+    title: String,
+    onMenuClick: () -> Unit,
+    onBack: () -> Unit
+) {
+    Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+        ) {
+        StandardTopBar(
+            title = title,
+            onMenuClick = onBack,
+            menuIcon = "back",
+            showSearch = false,
+            onSearchClick = null
+        )
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = title,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = DictionaryTokens.textTitle
+                )
+                Text(
+                    text = "正在建设中...",
+                    fontSize = 14.sp,
+                    color = DictionaryTokens.textCaption,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
             }
         }
     }
 }
 
-@Composable
-fun LoadingIndicator() {
-    Box(
-        modifier = Modifier.fillMaxSize().background(AppColors.Background),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = "🌱",
-                fontSize = 48.sp,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-            Text(
-                text = "正在加载...",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Medium,
-                color = AppColors.TextPrimary
-            )
-        }
-    }
-}
-@Composable
-fun OtherTabContent(tab: String) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = getTabEmoji(tab),
-                fontSize = 48.sp,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-            Text(
-                text = getTabTitle(tab),
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Medium,
-                color = AppColors.TextPrimary
-            )
-            Text(
-                text = "正在建设中...",
-                fontSize = 14.sp,
-                color = AppColors.PrimaryWarm,
-                modifier = Modifier.padding(top = 8.dp)
-            )
-        }
-    }
-}
-
-private fun getTabEmoji(tab: String): String {
-    return when (tab) {
-        "town" -> "🏠"
-        "resident" -> "👤"
-        "cognitive" -> "💡"
-        "settings" -> "⚙️"
-        else -> "📱"
-    }
-}
-
-private fun getTabTitle(tab: String): String {
-    return when (tab) {
-        "town" -> "小镇"
-        "resident" -> "居民"
-        "cognitive" -> "认知觉醒"
+private fun getScreenTitle(screen: String): String {
+    return when (screen) {
+        "favorites" -> "收藏词条"
+        "notes" -> "思辨笔记"
+        "import_export" -> "词条导入导出"
+        "feedback" -> "意见反馈"
+        "about" -> "关于 Vera"
         "settings" -> "设置"
-        else -> tab
-    }
-}
-
-@Composable
-fun ErrorScreen(error: String) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(AppColors.ErrorBackground),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = "❌",
-                fontSize = 48.sp,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-            Text(
-                text = "出错了",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = AppColors.ErrorVivid
-            )
-            Text(
-                text = error,
-                fontSize = 14.sp,
-                color = AppColors.TextSecondary,
-                modifier = Modifier.padding(top = 8.dp)
-            )
-        }
+        else -> screen
     }
 }
 
 // 设置沉浸式状态栏
-private fun MainActivity.setupImmersiveStatusBar() {
-    // 关闭系统默认安全边距
+private fun MainActivity.setupImmersiveStatusBar(darkTheme: Boolean = false) {
     WindowCompat.setDecorFitsSystemWindows(window, false)
-    
-    // 设置状态栏字体为深色（因为背景是浅色）
-    val decorView = window.decorView
-    val flags = decorView.systemUiVisibility or android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-    decorView.systemUiVisibility = flags
+    WindowCompat.getInsetsController(window, window.decorView)?.let { controller ->
+        controller.isAppearanceLightStatusBars = !darkTheme
+    }
 }

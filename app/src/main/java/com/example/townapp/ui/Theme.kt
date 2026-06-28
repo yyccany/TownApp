@@ -480,3 +480,206 @@ fun TownTheme(
 @Composable fun getWarningColor(): Color = TownDesignTokens.Colors.warning
 @Composable fun getDangerColor(): Color = TownDesignTokens.Colors.error
 @Composable fun getInfoColor(): Color = TownDesignTokens.Colors.info
+
+// ============================================
+// 📖 认知字典设计系统 v3.0（悬浮卡片 · 柔和层次 · 温暖活泼）
+// ============================================
+
+object DictionaryTokens {
+    // 背景
+    val pageBg = Color(0xFFF8F5EB)
+    val cardBg = Color(0xFFFFFFFF)
+
+    // 品牌主色（低饱和青柠绿）
+    val primary = Color(0xFFA3D98B)
+    val primaryLight = Color(0xFFD4F0C4)
+    val primaryBg = Color(0xFFF0F9EB)
+
+    // 标签区分色
+    val tagPink = Color(0xFFF2D8E0)      // 认知误区
+    val tagOrange = Color(0xFFF9E2CC)    // 焦虑陷阱
+    val tagYellow = Color(0xFFFFF7D9)    // 片面认知
+    val tagPeach = Color(0xFFFBE3E6)     // 传统观念
+    val tagBlue = Color(0xFFE0EEFB)      // 底层认知
+
+    // 文字四层分级（+ 已读置灰）
+    val textTitle = Color(0xFF121212)    // 大标题深黑
+    val textHeading = Color(0xFF4A4A4A)  // 模块标题深灰
+    val textBody = Color(0xFF707070)     // 正文浅灰
+    val textCaption = Color(0xFF8C8C8C)  // 辅助小字中灰（已读统一色）
+
+    // 详情页板块卡片底色（浅色模式用特定语义色，深色模式回退surface由ContentCard处理）
+    val cardDefinition = Color(0xFFFFFFFF)   // 基础定义：纯白
+    val cardExample = Color(0xFFFFFDF5)      // 现实案例：浅暖米黄
+    val cardCore = Color(0xFFF0F9EB)         // 小镇辩证解读：青柠绿浅底
+    val cardTip = Color(0xFFF5F8FA)          // 可操作校准技巧：浅青灰
+
+    /**
+     * 主题感知文字色（自动适配深浅色模式）
+     */
+    @Composable
+    fun textTitleThemed(): Color = MaterialTheme.colorScheme.onSurface
+
+    @Composable
+    fun textHeadingThemed(): Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f)
+
+    @Composable
+    fun textBodyThemed(): Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+
+    @Composable
+    fun textCaptionThemed(): Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+
+    @Composable
+    fun textTitleUnreadThemed(): Color = MaterialTheme.colorScheme.onSurface
+
+    @Composable
+    fun textTitleReadThemed(): Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+
+    @Composable
+    fun textBodyUnreadThemed(): Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+
+    @Composable
+    fun textBodyReadThemed(): Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+
+    // 圆角（统一规范：卡片16dp大圆角，标签/按钮8dp小圆角）
+    val radiusCard = 16.dp
+    val radiusButton = 8.dp
+    val radiusTag = 8.dp
+    val radiusIcon = 12.dp
+
+    // 阴影（统一柔和向下阴影，低透明度）
+    val elevationCard = 4.dp
+    val shadowColor = Color(0x14000000)         // 统一柔和投影色
+    val shadowColorAmbient = Color(0x0A000000)  // 环境光投影
+
+    // 间距（8倍数栅格，页面左右24dp，模块上下16/24dp两种规格）
+    val pagePadding = 24.dp
+    val sectionSpacing = 16.dp
+    val sectionSpacingLarge = 24.dp
+    val cardPadding = 16.dp
+    val cardPaddingSmall = 12.dp
+    val bottomSafePadding = 40.dp               // 底部安全留白，规避手势遮挡
+
+    // ============================================
+    // 🖊️ 图标规范（全局统一 2dp 粗细线性图标，禁止混搭填充/粗线条）
+    // ============================================
+    val iconStrokeDensity = 2f                    // Canvas stroke 基准：2f × density
+
+    // ============================================
+    // 📖 已读/未读文字色值（点击查看后自动切换灰色）
+    // ============================================
+    val textTitleUnread = Color(0xFF121212)       // 未读标题：深黑
+    val textTitleRead = Color(0xFF8C8C8C)         // 已读标题：中灰度
+    val textBodyUnread = Color(0xFF707070)        // 未读正文：浅灰
+    val textBodyRead = Color(0xFF8C8C8C)          // 已读正文：统一灰度
+
+    // ============================================
+    // 📝 文字层级规范（四层，全页面统一，强制拉开主次）
+    // ============================================
+    object Type {
+        // 第一层：大标题（词条名、页面标题）—— Medium 深黑，18~22sp
+        val titleSize = 18.sp
+        val titleSizeLarge = 28.sp              // 详情页词条名
+        val titleWeight = FontWeight.Medium
+        val titleColor = Color(0xFF121212)
+        val titleLineHeight = 26.sp
+
+        // 第二层：板块小标题（小镇辩证解读、可操作校准技巧）—— 加粗深灰
+        val headingSize = 17.sp
+        val headingWeight = FontWeight.Bold
+        val headingColor = Color(0xFF4A4A4A)
+        val headingLineHeight = 24.sp
+
+        // 第三层：正文内容 —— 常规中灰
+        val bodySize = 14.sp
+        val bodyWeight = FontWeight.Normal
+        val bodyColor = Color(0xFF707070)
+        val bodyLineHeight = 22.sp
+
+        // 第四层：辅助小字（简介、标签说明）—— 13~14sp 常规浅灰
+        val captionSize = 13.sp
+        val captionWeight = FontWeight.Normal
+        val captionColor = Color(0xFF8C8C8C)
+        val captionLineHeight = 18.sp
+
+        // 标签文字（12sp，Medium）
+        val tagSize = 12.sp
+        val tagWeight = FontWeight.Medium
+    }
+
+    // ── Tab 栏分类细色条色彩（4组基础色，同类板块复用） ──
+    object TabBar {
+        val pink = Color(0xFFF0CFD8)           // 人际关系 / 亲密关系：淡粉
+        val warmBrown = Color(0xFFE3CFBD)      // 人格品德：浅暖棕
+        val limeGreen = Color(0xFFC5E6B0)      // 处事方法 / 小镇内在：青柠绿系
+        val earthGold = Color(0xFFDFCFA8)      // 社会观念：浅土金
+        val grayBlue = Color(0xFFCFDEEA)       // 认知思维：浅灰蓝
+        val warmNeutral = Color(0xFFECDCC8)    // 今日认知：暖中性
+        val featureGreen = Color(0xFFD9EDCA)   // 值得先读：特征绿
+
+        val selectedBg = Color(0xFFA3D98B)     // 选中态：低饱和青柠绿（与primary一致）
+        val tabBg = Color(0xFFFFFFFF)          // 未选中：纯白底
+        val tabShadow = Color(0x0D000000)      // 轻拟态柔和阴影
+    }
+
+    // 按Tab label获取左侧细色条颜色
+    fun tabBarColor(tabId: String): Color = when (tabId) {
+        "daily" -> TabBar.warmNeutral
+        "character" -> TabBar.warmBrown
+        "method" -> TabBar.limeGreen
+        "interpersonal" -> TabBar.pink
+        "society" -> TabBar.earthGold
+        "relationship" -> TabBar.pink
+        "cognition" -> TabBar.grayBlue
+        "town_system" -> TabBar.limeGreen
+        "subjectivity" -> TabBar.grayBlue
+        "featured" -> TabBar.featureGreen
+        else -> TabBar.grayBlue
+    }
+
+    // 按分类获取标签/装饰色（保留兼容旧接口）
+    fun categoryTagColor(category: com.example.townapp.data.idiom.IdiomCategory): Color =
+        when (category) {
+            com.example.townapp.data.idiom.IdiomCategory.CHARACTER -> tagPeach
+            com.example.townapp.data.idiom.IdiomCategory.METHOD -> tagYellow
+            com.example.townapp.data.idiom.IdiomCategory.INTERPERSONAL -> tagYellow
+            com.example.townapp.data.idiom.IdiomCategory.SOCIETY -> tagPeach
+            com.example.townapp.data.idiom.IdiomCategory.RELATIONSHIP -> tagPeach
+            com.example.townapp.data.idiom.IdiomCategory.COGNITION -> tagBlue
+            com.example.townapp.data.idiom.IdiomCategory.TOWN_SYSTEM -> tagBlue
+            com.example.townapp.data.idiom.IdiomCategory.WORKPLACE -> tagBlue
+            com.example.townapp.data.idiom.IdiomCategory.CONSUMPTION -> tagOrange
+        }
+
+    fun categoryDarkColor(category: com.example.townapp.data.idiom.IdiomCategory): Color =
+        when (category) {
+            com.example.townapp.data.idiom.IdiomCategory.CHARACTER -> Color(0xFFB07A8A)
+            com.example.townapp.data.idiom.IdiomCategory.METHOD -> Color(0xFFB09B6A)
+            com.example.townapp.data.idiom.IdiomCategory.INTERPERSONAL -> Color(0xFFB09B6A)
+            com.example.townapp.data.idiom.IdiomCategory.SOCIETY -> Color(0xFFB07A8A)
+            com.example.townapp.data.idiom.IdiomCategory.RELATIONSHIP -> Color(0xFFB07A8A)
+            com.example.townapp.data.idiom.IdiomCategory.COGNITION -> Color(0xFF7A8FA3)
+            com.example.townapp.data.idiom.IdiomCategory.TOWN_SYSTEM -> Color(0xFF7AA38F)
+            com.example.townapp.data.idiom.IdiomCategory.WORKPLACE -> Color(0xFF7A8FA3)
+            com.example.townapp.data.idiom.IdiomCategory.CONSUMPTION -> Color(0xFFB08A6A)
+        }
+
+    // 按毒性等级获取标签色
+    fun toxicityTagColor(level: com.example.townapp.data.idiom.ToxicityLevel): Color =
+        when (level) {
+            com.example.townapp.data.idiom.ToxicityLevel.POISONOUS -> tagPink
+            com.example.townapp.data.idiom.ToxicityLevel.HARMFUL -> tagOrange
+            com.example.townapp.data.idiom.ToxicityLevel.DISTORTED -> tagYellow
+            com.example.townapp.data.idiom.ToxicityLevel.HERITAGE -> tagPeach
+            com.example.townapp.data.idiom.ToxicityLevel.TOWN_WISDOM -> tagBlue
+        }
+
+    fun toxicityDarkColor(level: com.example.townapp.data.idiom.ToxicityLevel): Color =
+        when (level) {
+            com.example.townapp.data.idiom.ToxicityLevel.POISONOUS -> Color(0xFFB07A8A)
+            com.example.townapp.data.idiom.ToxicityLevel.HARMFUL -> Color(0xFFB08A6A)
+            com.example.townapp.data.idiom.ToxicityLevel.DISTORTED -> Color(0xFFB09B6A)
+            com.example.townapp.data.idiom.ToxicityLevel.HERITAGE -> Color(0xFFB07A8A)
+            com.example.townapp.data.idiom.ToxicityLevel.TOWN_WISDOM -> Color(0xFF7A8FA3)
+        }
+}

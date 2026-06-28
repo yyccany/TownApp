@@ -1,6 +1,7 @@
 package com.example.townapp.ui.components
 
 import com.example.townapp.ui.theme.AppDimens
+import com.example.townapp.ui.theme.DictionaryTokens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -159,7 +160,7 @@ fun TopNavBar(
         },
         actions = actions,
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = Color(0xFFFFF9EC),
+            containerColor = MaterialTheme.colorScheme.background,
             titleContentColor = MaterialTheme.colorScheme.onSurface
         ),
         windowInsets = WindowInsets(0, 0, 0, 0),
